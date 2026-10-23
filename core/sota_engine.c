@@ -206,7 +206,7 @@ SOTA_NORETURN static void roll_back(sota_engine_t *e, const char *reason)
     sota_boot_rollback(e->st.prev_part);
 }
 
-static void start_trial(sota_engine_t *e, bool staged, bool pending)
+static void start_trial(sota_engine_t *e, bool staged)
 {
     /* Power was lost after the slot switch, before sota_staged was removed. */
     if (staged) sota_state_unstage();
@@ -217,10 +217,10 @@ static void start_trial(sota_engine_t *e, bool staged, bool pending)
         return;
     }
     e->in_trial = true;
-    /* A hang that stops the confirm timer still resets the chip, and the
-     * bootloader returns to the previous image. */
-    if (pending &&
-        sota_sys_wdt_arm(e->cfg.confirm_timeout_s, sota_wdt_floor_sec(e->cfg.http_timeout_ms))) {
+    /* A hang that stops the confirm timer still resets the chip: the
+     * bootloader then returns to the previous image, or this function's
+     * caller rolls back a trial that booted after a watchdog. */
+    if (sota_sys_wdt_arm(e->cfg.confirm_timeout_s, sota_wdt_floor_sec(e->cfg.http_timeout_ms))) {
         SOTA_LOGW("confirm timeout is longer than the chip watchdog can wait");
     }
     if (!sota_sys_timer_start(&e->timer, e->cfg.confirm_timeout_s, e)) {
@@ -304,7 +304,7 @@ void sota_engine_validate_boot(sota_engine_t *e)
             e->ending = true;
             roll_back(e, "deep_sleep");
         }
-        start_trial(e, facts.staged != 0, info.pending);
+        start_trial(e, facts.staged != 0);
         return;
     case SOTA_BOOT_TRIAL:
         if (e->cfg.rollback && sota_reset_is_crash(info.reset_reason)) {
@@ -312,7 +312,7 @@ void sota_engine_validate_boot(sota_engine_t *e)
             e->ending = true;
             roll_back(e, sota_rollback_reason(info.reset_reason));
         }
-        start_trial(e, facts.staged != 0, info.pending);
+        start_trial(e, facts.staged != 0);
         return;
     }
 }

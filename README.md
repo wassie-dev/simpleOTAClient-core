@@ -56,7 +56,7 @@ ESP-IDF (5.1 and later) and Arduino-ESP32 (2.x and 3.x) provide:
 | `sota_image_ota.c` | `sota_image.h` on `esp_ota_*` |
 | `sota_boot_ota.c` | `sota_boot.h` on `esp_ota_*` and `esp_reset_reason()` |
 | `sota_sys_esp32.c` | `sota_sys.h` on FreeRTOS and `esp_timer` |
-| `sota_wdt_esp32.c` | The trial watchdog on `wdt_hal`, with bootloader rollback only |
+| `sota_wdt_esp32.c` | The trial watchdog on `wdt_hal` |
 
 A client then supplies `sota_net.h` and `sota_app.h`, owns a
 `sota_engine_t`, and calls `sota_engine_check()` and `sota_engine_apply()`

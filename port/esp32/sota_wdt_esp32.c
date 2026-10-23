@@ -3,7 +3,8 @@
  * (sota_wdt_calc.h), on wdt_hal. C, not C++: hal/wdt_hal.h does not
  * compile as C++ on the S2 and the C3 in Arduino-ESP32 2.0.17.
  *
- * Built only with bootloader rollback, which undoes its reset. The clients'
+ * Its reset is undone by bootloader rollback, or, without it, by the
+ * engine's rollback of a trial that boots after a watchdog. The clients'
  * opt-outs are read here, because an Arduino library cannot pass its own
  * defines to this file.
  */
@@ -13,10 +14,8 @@
 
 #include "sota_wdt_calc.h"
 
-#if (defined(CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE) || defined(CONFIG_APP_ROLLBACK_ENABLE)) && \
-    !defined(CONFIG_SIMPLEOTA_DISABLE_TRIAL_WATCHDOG) &&                                         \
-    !defined(SIMPLEOTA_DISABLE_TRIAL_WATCHDOG) &&                                                \
-    !defined(SIMPLEOTA_DISABLE_BOOTLOADER_ROLLBACK) && __has_include("hal/wdt_hal.h")
+#if !defined(CONFIG_SIMPLEOTA_DISABLE_TRIAL_WATCHDOG) && \
+    !defined(SIMPLEOTA_DISABLE_TRIAL_WATCHDOG) && __has_include("hal/wdt_hal.h")
 #define SOTA_WDT_HW 1
 #include "esp_idf_version.h"
 #include "esp_sleep.h"

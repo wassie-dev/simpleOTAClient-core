@@ -57,6 +57,9 @@ one place.
 - Without the bootloader's probation, a trial image that boots after a
   panic or a watchdog reset is rolled back, reported with that reason.
   Before, each crash restarted the trial with a fresh confirm timeout.
+- The trial watchdog runs without bootloader rollback too: its reset now
+  ends in that software rollback. Before, it ran only with bootloader
+  rollback.
 - The confirm timeout's timer only notes the timeout and wakes the client,
   which rolls back from a task, as the ESP-IDF client did.
 - During a trial, check-ins are sent once and queued reports wait, as the

@@ -4,7 +4,9 @@
  *
  * During a SimpleOTA trial the RTC (or LP) watchdog runs on the chip's slow
  * clock, so it still fires when a hang stops the confirm timer. It resets
- * the chip, and the bootloader then returns to the previous image. It waits
+ * the chip, and the bootloader then returns to the previous image, or,
+ * without bootloader rollback, the engine rolls back the trial that booted
+ * after a watchdog. It waits
  * for the confirm timeout plus a margin: the larger of a floor and 10
  * percent of the confirm timeout.
  *

@@ -203,6 +203,17 @@ static void test_crash_in_trial(bool bl_rollback)
     check(fake_server_count("rolled_back", "panic") == 1, "rolled_back panic is reported");
 }
 
+static void test_hang_in_trial(void)
+{
+    device_on_build_1(false);
+    reach_trial();
+    check(fw.wdt_armed, "without bootloader rollback the chip watchdog still guards the trial");
+    boot(SOTA_RST_WDT);
+    check(fw.running == 0 && g_e.st.live.build == 1, "and its reset rolls back");
+    run(act_step);
+    check(fake_server_count("rolled_back", "watchdog") == 1, "rolled_back watchdog is reported");
+}
+
 static void test_power_loss_in_trial(void)
 {
     device_on_build_1(false);
@@ -557,6 +568,7 @@ int main(void)
     test_confirm_timeout(false);
     test_crash_in_trial(true);
     test_crash_in_trial(false);
+    test_hang_in_trial();
     test_power_loss_in_trial();
     test_deep_sleep_in_trial();
     test_no_timer();
