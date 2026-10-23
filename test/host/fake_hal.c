@@ -182,8 +182,10 @@ bool sota_boot_mark_valid(void)
     return true;
 }
 
+/* Either way the slot change is a flash write that a power cut can stop. */
 void sota_boot_rollback(uint32_t prev_part)
 {
+    fake_kv_step();
     if (fw.bl_rollback && fw.state[fw.running] == IMG_PENDING) {
         fw.state[fw.running] = IMG_INVALID;
         fw.boot = fw.running ^ 1;

@@ -63,6 +63,10 @@ int main(void)
           "record without sota_staged, not on the new image: rolled back");
     check(classify(2, false, B, A, A, false) == SOTA_BOOT_REPORT_PENDING,
           "trial 2 from an earlier boot: report pending");
+    check(classify2(2, false, B, A, B, B, false) == SOTA_BOOT_ROLLBACK_CUT,
+          "trial 2 still on the new image: the rollback was cut short");
+    check(classify(2, false, B, B, B, false) == SOTA_BOOT_REPORT_PENDING,
+          "trial 2 on the new image with no previous slot to return to: report pending");
     check(classify(1, false, 0, B, B, false) == SOTA_BOOT_INCOMPLETE,
           "no new partition: cannot be checked");
 
@@ -130,6 +134,8 @@ int main(void)
           "prev_part only, back on the previous image: rolled back");
     check(classify_prev(2, false, A, A, A, false) == SOTA_BOOT_REPORT_PENDING,
           "prev_part only, trial 2: report pending");
+    check(classify_prev(2, false, A, B, B, false) == SOTA_BOOT_ROLLBACK_CUT,
+          "prev_part only, trial 2 still on the new image: the rollback was cut short");
     check(classify_prev(1, false, 0, B, B, false) == SOTA_BOOT_INCOMPLETE,
           "neither partition: cannot be checked");
     check(classify_prev(1, false, A, 0, 0, false) == SOTA_BOOT_INCOMPLETE,
@@ -201,6 +207,8 @@ int main(void)
           "a trial the bootloader is not supervising is not held");
     check(sota_hold_pending_image(true, SOTA_BOOT_SLEPT_IN_TRIAL),
           "a trial that woke from deep sleep is held until it rolls back");
+    check(sota_hold_pending_image(true, SOTA_BOOT_ROLLBACK_CUT),
+          "an image whose rollback was cut short is held until it rolls back");
     check(!sota_hold_pending_image(true, SOTA_BOOT_ROLLED_BACK) &&
               !sota_hold_pending_image(true, SOTA_BOOT_ABANDONED) &&
               !sota_hold_pending_image(true, SOTA_BOOT_WAITING) &&

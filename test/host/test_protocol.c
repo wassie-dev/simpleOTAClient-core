@@ -71,6 +71,8 @@ static void test_check_body(void)
               sota_json_get_string(out, "version_label", s, sizeof(s)) &&
               strcmp(s, "1.2 \"rc\"") == 0 && !sota_json_get_bool(out, "labels", &b),
           "the body reads back with the scanner");
+    check(!sota_json_get_u32("{\"n\":4294967296}", "n", &u),
+          "a number past 32 bits is refused rather than wrapped");
 
     d.board_id = "";
     check(sota_protocol_check_body(&d, &live, "", out, sizeof(out)) &&
