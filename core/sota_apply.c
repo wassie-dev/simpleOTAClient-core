@@ -171,7 +171,7 @@ static int open_download(sota_engine_t *e, int64_t *len, const char **reason)
             *reason = st == SOTA_URL_NOT_HTTPS ? "redirect_not_https" : "redirect_malformed";
             break;
         }
-        strcpy(e->offer.url, next);
+        memcpy(e->offer.url, next, strlen(next) + 1);
     }
     free(loc);
     return status;

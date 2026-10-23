@@ -71,7 +71,7 @@ static inline const char *sota_url_status_name(int status)
  * Where a download redirect from base leads, into out. location is an
  * absolute https:// URL, or a path starting with '/' on base's host. A
  * redirect to plain HTTP is SOTA_URL_NOT_HTTPS; out is untouched unless
- * the result is SOTA_URL_OK.
+ * the result is SOTA_URL_OK. out must not overlap base or location.
  */
 static inline sota_url_status_t sota_redirect_target(const char *base, const char *location,
                                                      char *out, size_t cap)
@@ -89,9 +89,10 @@ static inline sota_url_status_t sota_redirect_target(const char *base, const cha
     } else if (!sota_url_has_scheme(location, "https://") || location[8] == '/' || !location[8]) {
         return SOTA_URL_MALFORMED;
     }
-    if (origin + strlen(location) >= cap) return SOTA_URL_MALFORMED;
-    memmove(out, base, origin);
-    strcpy(out + origin, location);
+    size_t len = strlen(location);
+    if (origin + len >= cap) return SOTA_URL_MALFORMED;
+    memcpy(out, base, origin);
+    memcpy(out + origin, location, len + 1);
     return SOTA_URL_OK;
 }
 
