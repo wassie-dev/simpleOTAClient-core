@@ -1,17 +1,19 @@
-# Host unit tests for the core, and compile checks of the core and the ESP32
-# port under ESP-IDF and Arduino-ESP32, on every push to main and every PR.
-
 name: CI
 
 on:
   push:
-    branches: [main]
+    branches: ['**']
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   host-tests:
     name: Host tests (${{ matrix.cc }})
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, tower, simpleotaclient-core]
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     strategy:
       fail-fast: false
       matrix:
@@ -36,7 +38,8 @@ jobs:
 
   sync-script:
     name: Sync script round trip
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, tower, simpleotaclient-core]
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
 
     steps:
       - uses: actions/checkout@v4
@@ -54,7 +57,8 @@ jobs:
 
   esp-idf:
     name: ESP-IDF ${{ matrix.idf }} (${{ matrix.target }})
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, tower, simpleotaclient-core]
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     strategy:
       fail-fast: false
       matrix:
@@ -80,7 +84,8 @@ jobs:
 
   arduino:
     name: Arduino-ESP32 ${{ matrix.core }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, tower, simpleotaclient-core]
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     strategy:
       fail-fast: false
       matrix:
@@ -99,7 +104,7 @@ jobs:
           cp core/* port/esp32/* "$lib/"
           printf 'name=SimpleOTACore\nversion=0.0.0\narchitectures=esp32\n' \
             > "$RUNNER_TEMP/libraries/SimpleOTACore/library.properties"
-          arduino-cli config init
+          arduino-cli config init --overwrite
           arduino-cli config add board_manager.additional_urls \
             https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
           arduino-cli core update-index
