@@ -1,0 +1,35 @@
+# Doxygen configuration for the API reference. Build with
+# `mkdir -p build/docs && doxygen` from the repository root; the HTML lands in
+# build/docs/html. CI fails on any warning, so every declaration in the
+# headers below stays documented.
+
+PROJECT_NAME           = "SimpleOTA client"
+PROJECT_BRIEF          = "Shared core of the SimpleOTA Arduino and ESP-IDF clients"
+OUTPUT_DIRECTORY       = build/docs
+INPUT                  = docs/mainpage.md docs/NVS_CONTRACT.md include core port/esp32
+FILE_PATTERNS          = *.h
+EXCLUDE_PATTERNS       = */monocypher*
+USE_MDFILE_AS_MAINPAGE = docs/mainpage.md
+OPTIMIZE_OUTPUT_FOR_C  = YES
+JAVADOC_AUTOBRIEF      = YES
+TYPEDEF_HIDES_STRUCT   = YES
+EXTRACT_ALL            = NO
+EXTRACT_STATIC         = YES
+SHOW_INCLUDE_FILES     = NO
+SORT_MEMBER_DOCS       = NO
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+PREDEFINED             = __attribute__(x)=
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = NO
+WARN_AS_ERROR          = FAIL_ON_WARNINGS
+QUIET                  = YES
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+HTML_COLORSTYLE        = TOGGLE
+GENERATE_TREEVIEW      = YES
+FULL_PATH_NAMES        = YES
+STRIP_FROM_PATH        = .
+DISTRIBUTE_GROUP_DOC   = YES
+HAVE_DOT               = NO

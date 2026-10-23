@@ -1,6 +1,7 @@
 name: CI
 
-# Every push runs the host tests and the sync check, which take a minute.
+# Every push runs the host tests, the sync check and the API reference build,
+# which take a minute; a push to main also publishes the reference.
 # The firmware builds take far longer on the one runner, so they run on pull
 # requests, tags and manual runs only (Actions > CI > Run workflow).
 on:
@@ -72,6 +73,45 @@ jobs:
             echo "a changed header passed the check" >&2
             exit 1
           fi
+
+  docs:
+    name: API reference
+    runs-on: [self-hosted, linux, x64, tower, simpleotaclient-core]
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Doxygen
+        run: sudo apt-get update && sudo apt-get install -y doxygen
+
+      # The Doxyfile fails on any warning, so an undocumented declaration
+      # fails the build.
+      - name: Build
+        run: mkdir -p build/docs && doxygen
+
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          path: build/docs/html
+
+  # Publishes main's API reference to GitHub Pages. Needs Settings > Pages >
+  # Source set to GitHub Actions.
+  docs-deploy:
+    name: Publish the API reference
+    needs: docs
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, x64, tower, simpleotaclient-core]
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4
 
   esp-idf:
     name: ESP-IDF ${{ matrix.idf }} (${{ matrix.target }})

@@ -12,6 +12,13 @@ a GitHub ZIP, PlatformIO, an ESP-IDF git dependency or the component
 registry) gets it. Git submodules are not used, because the Library Manager
 and GitHub archives publish them as empty folders.
 
+## API reference
+
+The [API reference](https://wassie-dev.github.io/simpleotaclient-core/) is
+generated from the headers' Doxygen comments and published from `main` by
+CI, which fails when a declaration has no comment. To build it locally, run
+`mkdir -p build/docs && doxygen` and open `build/docs/html/index.html`.
+
 ## What is in it
 
 Nothing here includes an Arduino, ESP-IDF or FreeRTOS header, so all of it
