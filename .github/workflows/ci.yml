@@ -59,11 +59,17 @@ jobs:
       - name: Copy, check, and detect a change
         run: |
           set -euo pipefail
-          scripts/sync-core.sh "$RUNNER_TEMP/copy"
-          scripts/sync-core.sh --check "$RUNNER_TEMP/copy"
+          scripts/sync-core.sh "$RUNNER_TEMP/copy" "$RUNNER_TEMP/include"
+          scripts/sync-core.sh --check "$RUNNER_TEMP/copy" "$RUNNER_TEMP/include"
           echo "// drift" >> "$RUNNER_TEMP/copy/sota_time.h"
-          if scripts/sync-core.sh --check "$RUNNER_TEMP/copy"; then
+          if scripts/sync-core.sh --check "$RUNNER_TEMP/copy" "$RUNNER_TEMP/include"; then
             echo "a changed copy passed the check" >&2
+            exit 1
+          fi
+          scripts/sync-core.sh "$RUNNER_TEMP/copy" "$RUNNER_TEMP/include"
+          echo "// drift" >> "$RUNNER_TEMP/include/simpleota.h"
+          if scripts/sync-core.sh --check "$RUNNER_TEMP/copy" "$RUNNER_TEMP/include"; then
+            echo "a changed header passed the check" >&2
             exit 1
           fi
 
@@ -121,7 +127,7 @@ jobs:
           set -euo pipefail
           lib="$RUNNER_TEMP/libraries/SimpleOTACore/src"
           mkdir -p "$lib"
-          cp core/* port/esp32/* "$lib/"
+          cp core/* port/esp32/* include/* "$lib/"
           printf 'name=SimpleOTACore\nversion=0.0.0\narchitectures=esp32\n' \
             > "$RUNNER_TEMP/libraries/SimpleOTACore/library.properties"
           arduino-cli config init --overwrite

@@ -35,6 +35,15 @@ one place.
   `sota_net.h` and `sota_app.h` (events, logging, wake-up) from the client.
 - `port/esp32/`: `sota_image_ota.c`, `sota_boot_ota.c`, `sota_sys_esp32.c`
   and `sota_wdt_esp32.c`, the trial watchdog from both clients.
+- The public API, `include/simpleota.h`, with `port/esp32/simpleota.c` and
+  the `esp_http_client` transport, `sota_net_esp32.c`: the ESP-IDF client's
+  API, now the API of both clients. `sota_framework.{h,c}` holds what
+  differs in the Arduino build: Kconfig defaults, the ISRG Root X1 and X2
+  certificates as the default CA, warnings at Arduino's default log level,
+  and the `verifyRollbackLater()` bootloader hook. `sync-core.sh` takes the
+  header's destination as a second argument.
+- A refused downgrade is reported to the server once per boot, not on
+  every check. Every check logs its result at info level.
 - `sota_runner.h` and `port/esp32/sota_runner_esp32.c`: the managed task
   both clients ran, with its initial delay, connection check, cooperative
   stop and the confirm timeout's rollback task.

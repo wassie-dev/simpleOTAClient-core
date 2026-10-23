@@ -1,12 +1,13 @@
 # SimpleOTAClient-core
 
-The portable C99 core shared by the two SimpleOTA clients:
+The SimpleOTA client for ESP32: one C API, `simpleota.h`, and everything
+behind it, shared by the two packages users install:
 
-- [SimpleOTA-Arduino](https://github.com/xanderwasserman/SimpleOTA-Arduino) (Arduino-ESP32, PlatformIO)
+- [SimpleOTAClient-Arduino](https://github.com/xanderwasserman/SimpleOTAClient-Arduino) (Arduino-ESP32, PlatformIO)
 - [SimpleOTAClient-ESP-IDF](https://github.com/xanderwasserman/SimpleOTAClient-ESP-IDF) (ESP-IDF component)
 
-It is not installed on its own. Each client carries a copy of `core/` as
-plain files, so every way of installing a client (Arduino Library Manager,
+It is not installed on its own. Each client carries a copy as plain
+files, so every way of installing a client (Arduino Library Manager,
 a GitHub ZIP, PlatformIO, an ESP-IDF git dependency or the component
 registry) gets it. Git submodules are not used, because the Library Manager
 and GitHub archives publish them as empty folders.
@@ -59,13 +60,22 @@ ESP-IDF (5.1 and later) and Arduino-ESP32 (2.x and 3.x) provide:
 | `sota_sys_esp32.c` | `sota_sys.h` on FreeRTOS and `esp_timer` |
 | `sota_runner_esp32.c` | `sota_runner.h` on a FreeRTOS task |
 | `sota_wdt_esp32.c` | The trial watchdog on `wdt_hal` |
+| `sota_net_esp32.c` | `sota_net.h` on `esp_http_client` |
+| `simpleota.c` | The public API, `include/simpleota.h`, and `sota_app.h` |
+| `sota_framework.{h,c}` | What differs between the ESP-IDF and Arduino builds |
 
-A client then supplies `sota_net.h` and `sota_app.h`, owns a
-`sota_engine_t` and a `sota_runner_t`, and calls `sota_engine_check()` and
-`sota_engine_apply()` (polling), or starts the runner (managed). Its
-`sota_app_wake()` calls `sota_runner_wake()`.
+So both clients are the same code with the same API, and each repository
+is packaging: the ESP-IDF component adds its `CMakeLists.txt`, `Kconfig`
+and manifest, and the Arduino library its `library.properties`. The
+Arduino build, which has no Kconfig and links against Arduino-ESP32's
+prebuilt ESP-IDF, differs only in `sota_framework.c`: the Kconfig defaults,
+the ISRG roots as the default CA (Arduino-ESP32 has no certificate bundle),
+warnings shown at Arduino's default log level, and the bootloader hook that
+keeps a trial image pending until `simpleota_init()`.
+
 `SOTA_LOG_LEVEL` sets which log lines are compiled in, and `SOTA_DL_CHUNK`
-the download buffer (1024 bytes).
+the download buffer (4096 bytes; the ESP-IDF component sets it from
+Kconfig).
 
 ## Tests
 
@@ -73,7 +83,7 @@ the download buffer (1024 bytes).
 make -C test/host test
 ```
 
-CI also compiles `core/` and `port/esp32/` in a small ESP-IDF app
+CI also compiles everything, through the public API, in a small ESP-IDF app
 (`test/esp-idf`, several IDF versions and targets) and an Arduino sketch
 (`test/arduino`, cores 2.0.17 and 3.3.0).
 
@@ -92,12 +102,13 @@ AddressSanitizer and UndefinedBehaviorSanitizer with GCC and Clang.
 2. In the client, with this repository checked out at that tag beside it:
 
    ```sh
-   ../SimpleOTAClient-core/scripts/sync-core.sh src/sota_core          # Arduino
-   ../SimpleOTAClient-core/scripts/sync-core.sh simpleota/src/core     # ESP-IDF
+   ../SimpleOTAClient-core/scripts/sync-core.sh src/sota_core src                     # Arduino
+   ../SimpleOTAClient-core/scripts/sync-core.sh simpleota/src/core simpleota/include  # ESP-IDF
    ```
 
-   The script replaces the folder's contents with `core/` and
-   `port/esp32/`, side by side, and writes the tag to `CORE_VERSION` in it.
+   The script replaces the first folder's contents with `core/` and
+   `port/esp32/`, side by side, writes the tag to `CORE_VERSION` in it, and
+   copies `include/simpleota.h` into the second.
 3. The client's CI checks out the tag named in `CORE_VERSION` and runs
    `sync-core.sh --check` on the folder, so a hand edit to the copy fails
    CI. Change the core here instead.

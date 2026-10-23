@@ -387,6 +387,11 @@ static void test_apply_failures(void)
     fake_server_offer(1, "dep-old");
     fs.offer_old = true;
     expect_failure("offer of the running build", "downgrade_refused", SOTA_APPLY_DOWNGRADE);
+    run(act_check);
+    run(act_apply);
+    check(g_applied == SOTA_APPLY_DOWNGRADE && !g_e.has_offer &&
+              fake_server_count("failed", "downgrade_refused") == 1,
+          "the same refused offer is reported once");
     fs.offer_old = false;
     fake_server_offer(2, "dep-2");
 
