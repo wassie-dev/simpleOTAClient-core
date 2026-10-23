@@ -127,6 +127,17 @@ enum {
     SOTA_RST_BROWNOUT = 9,
 };
 
+/**
+ * The reset was a crash or a watchdog. A trial image that crashed has
+ * failed its trial: without the bootloader's probation it would otherwise
+ * get a fresh confirm timeout on every boot, and never roll back.
+ */
+static inline bool sota_reset_is_crash(int reset_reason)
+{
+    return reset_reason == SOTA_RST_PANIC || reset_reason == SOTA_RST_INT_WDT ||
+           reset_reason == SOTA_RST_TASK_WDT || reset_reason == SOTA_RST_WDT;
+}
+
 /** Reason sent with rolled_back, from the reset that ended the trial. */
 static inline const char *sota_rollback_reason(int reset_reason)
 {

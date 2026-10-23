@@ -23,6 +23,7 @@ static size_t s_count;
 static int s_budget = -1;
 static int s_writes;
 static int s_fail_at = -1;
+static void (*s_cut_hook)(void);
 
 void fake_kv_reset(void)
 {
@@ -35,6 +36,7 @@ void fake_kv_reset(void)
 
 void fake_kv_cut_after(int n) { s_budget = n; }
 void fake_kv_fail_nth(int n) { s_fail_at = n; }
+void fake_kv_set_cut_hook(void (*hook)(void)) { s_cut_hook = hook; }
 void fake_kv_power_on(void) { s_budget = -1; }
 int fake_kv_writes(void) { return s_writes; }
 size_t fake_kv_count(void) { return s_count; }
@@ -47,13 +49,22 @@ static entry_t *find(const char *key)
     return NULL;
 }
 
+bool fake_kv_step(void)
+{
+    if (s_budget == 0) {
+        if (s_cut_hook) s_cut_hook();
+        return false;
+    }
+    if (s_budget > 0) --s_budget;
+    return true;
+}
+
 /* One write is allowed through the budget. NVS keys are at most 15 chars. */
 static bool may_write(const char *key)
 {
     if (strlen(key) > 15) return false;
     if (s_fail_at >= 0 && s_fail_at-- == 0) return false;
-    if (s_budget == 0) return false;
-    if (s_budget > 0) --s_budget;
+    if (!fake_kv_step()) return false;
     ++s_writes;
     return true;
 }

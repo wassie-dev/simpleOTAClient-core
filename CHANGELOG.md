@@ -28,6 +28,17 @@ one place.
 - `sota_json_has_key()`.
 - `port/esp32/sota_kv_nvs.c`, `sota_kv.h` on NVS, compiled in CI under
   ESP-IDF 5.1 to latest and Arduino-ESP32 2.0.17 and 3.3.0.
+- The engine, `sota_engine` and `sota_apply`: boot validation, check-ins,
+  the apply pipeline, the trial with its confirm and rollback, deferred
+  reports and the managed task's schedule, behind link-time interfaces:
+  `sota_image.h`, `sota_boot.h` and `sota_sys.h` from the port, and
+  `sota_net.h` and `sota_app.h` (events, logging, wake-up) from the client.
+- `port/esp32/`: `sota_image_ota.c`, `sota_boot_ota.c`, `sota_sys_esp32.c`
+  and `sota_wdt_esp32.c`, the trial watchdog from both clients.
+- Engine tests on a fake two-slot device, with and without bootloader
+  rollback, that cut power at every write and slot switch of an update's
+  life, through to its confirm or rollback, and check that each run
+  settles on the image it reports.
 - Host tests merged from both clients, a C++11 build of every header, and
   CI with GCC, Clang and sanitizers.
 - `scripts/sync-core.sh`, which copies the core into a client and checks a
@@ -39,5 +50,20 @@ one place.
   falls back to `sota_prev_part`. Records from Arduino releases up to 0.6.0,
   which only write `sota_prev_part`, now classify on the ESP-IDF client too,
   instead of being dropped as incomplete.
+- Rollback marks the image invalid through the bootloader when it holds the
+  image on probation, and otherwise switches back to the previous slot, as
+  the Arduino client did. The ESP-IDF client chooses whether to use it
+  without bootloader rollback.
+- Without the bootloader's probation, a trial image that boots after a
+  panic or a watchdog reset is rolled back, reported with that reason.
+  Before, each crash restarted the trial with a fresh confirm timeout.
+- The confirm timeout's timer only notes the timeout and wakes the client,
+  which rolls back from a task, as the ESP-IDF client did.
+- During a trial, check-ins are sent once and queued reports wait, as the
+  ESP-IDF client did, so the confirm timeout waits behind one request at
+  most. Polling follows the ESP-IDF client's schedule.
+- Downloads follow up to three redirects on both clients.
+- A rollback's reason is the one it saved, then a slot the bootloader marked
+  invalid (`confirm_timeout`), then the reset reason.
 - Tick conversion saturates at `UINT32_MAX - 1` on both clients. The Arduino
   client saturated at `UINT32_MAX`, which FreeRTOS reads as "wait forever".

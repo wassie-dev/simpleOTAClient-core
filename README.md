@@ -21,6 +21,8 @@ indirectly and the linker drops what a build does not use.
 
 | File | What it does |
 | --- | --- |
+| `sota_engine.{h,c}` | The engine: boot validation, check-ins, the trial with its confirm and rollback, reports, and a managed task's next wait. |
+| `sota_apply.c` | Download, verify and flash an offer, then save the trial record and switch the boot slot, in that order. |
 | `sota_trial.h` | What a boot means for a saved trial record: trial, rolled back, abandoned, waiting, and so on. Reads records from every earlier release of both clients. |
 | `sota_report.h` | The outbox of `confirmed` / `rolled_back` reports (one NVS blob) and the poll interval policy. |
 | `sota_state.{h,c}` | Everything a client persists (identity, trial record, outbox) and the order it is written in, so a power cut between any two writes is recoverable. |
@@ -34,15 +36,33 @@ indirectly and the linker drops what a build does not use.
 | `sota_sha256.{h,c}` | A dependency-free SHA-256, the same on every IDF version (mbedTLS 4 in IDF 6 has no legacy API). |
 | `monocypher*` | [Monocypher](https://monocypher.org/) 3.1.3, unmodified. See `core/LICENSE-vendor.md`. |
 
-`port/esp32/` implements the platform interfaces with the ESP-IDF APIs that
-both ESP-IDF (5.1 and later) and Arduino-ESP32 (2.x and 3.x) provide:
+The interfaces, one per concern:
+
+| Header | What it covers | Implemented by |
+| --- | --- | --- |
+| `sota_kv.h` | The stored state | the port |
+| `sota_image.h` | Writing an update into the next slot | the port |
+| `sota_boot.h` | Which image runs and boots next; mark valid; roll back | the port |
+| `sota_sys.h` | Sleep, the lock, the confirm timer, the chip watchdog, restart | the port |
+| `sota_net.h` | HTTP: check-in and status posts, the firmware download | the client |
+| `sota_app.h` | Events, log lines, and a wake-up when the confirm timeout fires | the client |
+
+`port/esp32/` implements the port's half with the ESP-IDF APIs that both
+ESP-IDF (5.1 and later) and Arduino-ESP32 (2.x and 3.x) provide:
 
 | File | Implements |
 | --- | --- |
 | `sota_kv_nvs.c` | `sota_kv.h` on NVS, namespace `simpleota` |
+| `sota_image_ota.c` | `sota_image.h` on `esp_ota_*` |
+| `sota_boot_ota.c` | `sota_boot.h` on `esp_ota_*` and `esp_reset_reason()` |
+| `sota_sys_esp32.c` | `sota_sys.h` on FreeRTOS and `esp_timer` |
+| `sota_wdt_esp32.c` | The trial watchdog on `wdt_hal`, with bootloader rollback only |
 
-The engine (check, apply, boot validation, confirm and rollback) moves here
-in a later phase of the plan.
+A client then supplies `sota_net.h` and `sota_app.h`, owns a
+`sota_engine_t`, and calls `sota_engine_check()` and `sota_engine_apply()`
+(polling), or `sota_engine_step()` from its own task (managed).
+`SOTA_LOG_LEVEL` sets which log lines are compiled in, and `SOTA_DL_CHUNK`
+the download buffer (1024 bytes).
 
 ## Tests
 
@@ -53,6 +73,11 @@ make -C test/host test
 CI also compiles `core/` and `port/esp32/` in a small ESP-IDF app
 (`test/esp-idf`, several IDF versions and targets) and an Arduino sketch
 (`test/arduino`, cores 2.0.17 and 3.3.0).
+
+`test_engine` runs the engine on a fake two-slot device, with and without
+bootloader rollback, and cuts power after every write and slot switch of
+an update's whole life, checking that each run settles on the image it
+reports.
 
 The tests build as C99 with `-Werror`, and `test_cxx` builds every header
 as C++11, the way the Arduino client includes them. CI also runs them under

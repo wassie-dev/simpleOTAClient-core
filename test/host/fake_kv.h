@@ -9,6 +9,7 @@
 #ifndef FAKE_KV_H
 #define FAKE_KV_H
 
+#include <stdbool.h>
 #include <stddef.h>
 
 /** Empty the store and allow every write. */
@@ -20,6 +21,15 @@ void fake_kv_cut_after(int n);
 /** Fail only the write n writes from now (0 = the next one); later writes
  *  go through. A write error that is not a power cut. */
 void fake_kv_fail_nth(int n);
+
+/** Called, instead of failing, by the first write the cut stops; it does
+ *  not return (the host tests longjmp out, as a power cut stops the code).
+ *  NULL to fail the write instead. */
+void fake_kv_set_cut_hook(void (*hook)(void));
+
+/** A step that is not a write, such as a boot slot switch: counted against
+ *  the cut like a write. False when the cut stops it. */
+bool fake_kv_step(void);
 
 /** Allow every write again, keeping the contents. */
 void fake_kv_power_on(void);
