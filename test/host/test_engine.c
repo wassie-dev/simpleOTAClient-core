@@ -203,6 +203,22 @@ static void test_crash_in_trial(bool bl_rollback)
     check(fake_server_count("rolled_back", "panic") == 1, "rolled_back panic is reported");
 }
 
+/* Software rollback: the new image crashes on its first boot before the
+ * engine runs, so the trial's first boot is never saved. */
+static void test_crash_before_first_call(void)
+{
+    device_on_build_1(false);
+    fake_server_offer(2, "dep-2");
+    boot(SOTA_RST_POWERON);
+    run(act_check);
+    run(act_apply);
+    fake_bootloader(SOTA_RST_SW);
+    check(fw.running == 1 && g_e.st.trial == SOTA_TRIAL_STAGED, "the update booted, unsaved");
+    boot(SOTA_RST_PANIC);
+    check(fw.running == 0 && g_e.st.live.build == 1 && !g_e.in_trial,
+          "its next boot after the crash rolls back");
+}
+
 static void test_hang_in_trial(void)
 {
     device_on_build_1(false);
@@ -608,6 +624,7 @@ int main(void)
     test_confirm_timeout(false);
     test_crash_in_trial(true);
     test_crash_in_trial(false);
+    test_crash_before_first_call();
     test_hang_in_trial();
     test_reset_in_trial(false, SOTA_RST_POWERON, "power_on");
     test_reset_in_trial(false, SOTA_RST_BROWNOUT, "brownout");

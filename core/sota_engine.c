@@ -287,7 +287,8 @@ void sota_engine_validate_boot(sota_engine_t *e)
     sota_sys_wdt_quiesce();
     sota_boot_facts_t facts = boot_facts(&e->st, &info);
 
-    switch (sota_classify_boot(&facts)) {
+    sota_boot_outcome_t outcome = sota_classify_boot(&facts);
+    switch (outcome) {
     case SOTA_BOOT_NONE:
         /* An update applied without a trial left its report context. */
         if (e->st.conf_pend) {
@@ -329,14 +330,13 @@ void sota_engine_validate_boot(sota_engine_t *e)
         sota_engine_reload(e);
         return;
     case SOTA_BOOT_TRIAL_RESET:
-        if (e->cfg.rollback) {
+    case SOTA_BOOT_TRIAL:
+        if (e->cfg.rollback &&
+            (outcome == SOTA_BOOT_TRIAL_RESET || sota_reset_is_crash(info.reset_reason))) {
             e->in_trial = true;
             e->ending = true;
             roll_back(e, sota_rollback_reason(info.reset_reason));
         }
-        start_trial(e, facts.staged != 0);
-        return;
-    case SOTA_BOOT_TRIAL:
         start_trial(e, facts.staged != 0);
         return;
     }

@@ -230,6 +230,12 @@ int main(void)
     check(strcmp(sota_rollback_reason(SOTA_RST_TASK_WDT), "task_wdt") == 0, "task watchdog");
     check(strcmp(sota_rollback_reason(SOTA_RST_POWERON), "power_on") == 0, "power on");
     check(strcmp(sota_rollback_reason(SOTA_RST_DEEPSLEEP), "deep_sleep") == 0, "deep sleep");
+    check(sota_reset_is_crash(SOTA_RST_PANIC) && sota_reset_is_crash(SOTA_RST_INT_WDT) &&
+              sota_reset_is_crash(SOTA_RST_TASK_WDT) && sota_reset_is_crash(SOTA_RST_WDT),
+          "a panic or a watchdog is a crash");
+    check(!sota_reset_is_crash(SOTA_RST_SW) && !sota_reset_is_crash(SOTA_RST_POWERON) &&
+              !sota_reset_is_crash(SOTA_RST_BROWNOUT) && !sota_reset_is_crash(SOTA_RST_DEEPSLEEP),
+          "a restart, power-on, brownout or wake is not");
     int all_fit = 1;
     for (int rr = -1; rr <= 32; ++rr) {
         sota_outbox_t b;

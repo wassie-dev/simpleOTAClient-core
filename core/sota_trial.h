@@ -152,6 +152,18 @@ enum {
     SOTA_RST_BROWNOUT = 9,
 };
 
+/**
+ * The reset was a crash or a watchdog. A trial that crashed before it could
+ * save its first boot (SOTA_TRIAL_BOOTED), such as in a global constructor,
+ * has failed it too. Other resets cannot be told apart from the restart
+ * into the update.
+ */
+static inline bool sota_reset_is_crash(int reset_reason)
+{
+    return reset_reason == SOTA_RST_PANIC || reset_reason == SOTA_RST_INT_WDT ||
+           reset_reason == SOTA_RST_TASK_WDT || reset_reason == SOTA_RST_WDT;
+}
+
 /** Reason sent with rolled_back, from the reset that ended the trial. */
 static inline const char *sota_rollback_reason(int reset_reason)
 {
