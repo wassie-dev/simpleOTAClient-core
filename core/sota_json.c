@@ -47,6 +47,11 @@ static bool json_find_value(const char *s, const char *key, size_t *val_start) {
     return false;
 }
 
+bool sota_json_has_key(const char *json, const char *key) {
+    size_t p;
+    return json_find_value(json, key, &p);
+}
+
 bool sota_json_get_string(const char *json, const char *key, char *out,
                           size_t out_cap) {
     if (!json || !out || out_cap == 0) return false;

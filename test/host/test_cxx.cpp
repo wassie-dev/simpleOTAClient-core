@@ -13,6 +13,7 @@
 #include "sota_report.h"
 #include "sota_sha256.h"
 #include "sota_kv.h"
+#include "sota_protocol.h"
 #include "sota_signing.h"
 #include "sota_state.h"
 #include "sota_time.h"

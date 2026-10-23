@@ -6,3 +6,4 @@ test/host/test_wdt
 test/host/test_url
 test/host/test_cxx
 test/host/test_state
+test/host/test_protocol

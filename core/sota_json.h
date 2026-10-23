@@ -40,6 +40,9 @@ bool sota_json_get_string(const char *json, const char *key, char *out,
  */
 bool sota_json_escape(const char *src, char *out, size_t out_cap);
 
+/** True when the key is present, whatever its value. */
+bool sota_json_has_key(const char *json, const char *key);
+
 /** Extract true/false. */
 bool sota_json_get_bool(const char *json, const char *key, bool *out);
 

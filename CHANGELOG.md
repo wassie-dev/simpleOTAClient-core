@@ -21,6 +21,11 @@ one place.
   partition keys go into every trial record. Host tests cut power, or fail
   a write, at every write of staging and of a rollback, and check that the
   next boot ends on a known identity with no record left behind.
+- `sota_protocol`: the check-in and status bodies and the check response,
+  shared by both clients, with no heap and no printf. An offer whose
+  `signature_algorithm` is present but not a short string is now unusable
+  (fail closed); the ESP-IDF client treated it as ed25519.
+- `sota_json_has_key()`.
 - `port/esp32/sota_kv_nvs.c`, `sota_kv.h` on NVS, compiled in CI under
   ESP-IDF 5.1 to latest and Arduino-ESP32 2.0.17 and 3.3.0.
 - Host tests merged from both clients, a C++11 build of every header, and

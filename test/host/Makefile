@@ -11,8 +11,8 @@ CXXFLAGS ?= -std=c++11 -Wall -Wextra -Werror
 CORE     := ../../core
 INC      := -I$(CORE)
 
-OBJS := monocypher.o monocypher-ed25519.o sota_json.o sota_sha256.o sota_signing.o
-TESTS := test_signing test_report test_trial test_wdt test_url test_state test_cxx
+OBJS := monocypher.o monocypher-ed25519.o sota_json.o sota_sha256.o sota_signing.o sota_protocol.o
+TESTS := test_signing test_report test_trial test_wdt test_url test_state test_protocol test_cxx
 
 test: $(TESTS)
 	@set -e; for t in $(TESTS); do echo "== $$t"; ./$$t; done
@@ -34,6 +34,9 @@ test_url: test_url.c $(CORE)/sota_url.h
 
 test_state: test_state.c fake_kv.c fake_kv.h $(CORE)/sota_state.c $(wildcard $(CORE)/*.h)
 	$(CC) $(CFLAGS) $(INC) -o $@ test_state.c fake_kv.c $(CORE)/sota_state.c
+
+test_protocol: test_protocol.c $(OBJS)
+	$(CC) $(CFLAGS) $(INC) -o $@ test_protocol.c $(OBJS)
 
 test_cxx: test_cxx.cpp $(OBJS) $(wildcard $(CORE)/*.h)
 	$(CXX) $(CXXFLAGS) $(INC) -o $@ test_cxx.cpp $(OBJS)
