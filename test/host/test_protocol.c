@@ -71,6 +71,13 @@ static void test_check_body(void)
               sota_json_get_string(out, "version_label", s, sizeof(s)) &&
               strcmp(s, "1.2 \"rc\"") == 0 && !sota_json_get_bool(out, "labels", &b),
           "the body reads back with the scanner");
+    check(!sota_json_get_u32("{\"meta\":{\"n\":7},\"list\":[{\"n\":8}]}", "n", &u),
+          "a key inside a nested object or array is not a top-level key");
+    check(sota_json_get_u32("{\"meta\":{\"n\":7,\"s\":\"}{\"},\"n\":9}", "n", &u) && u == 9,
+          "the top-level key is found after nested members, braces in strings ignored");
+    check(sota_json_get_string("{\"a\":\"url\",\"url\":\"x\"}", "url", s, sizeof(s)) &&
+              strcmp(s, "x") == 0,
+          "a value equal to the key's name is not taken for the key");
     check(!sota_json_get_u32("{\"n\":4294967296}", "n", &u),
           "a number past 32 bits is refused rather than wrapped");
 
