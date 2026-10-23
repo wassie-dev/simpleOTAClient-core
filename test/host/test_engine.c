@@ -83,7 +83,7 @@ static void act_boot(void)
 static void act_check(void) { g_checked = sota_engine_check(&g_e); }
 static void act_apply(void) { g_applied = sota_engine_apply(&g_e); }
 static void act_confirm(void) { g_confirmed = sota_engine_confirm(&g_e); }
-static void act_step(void) { g_wait = sota_engine_step(&g_e, true, NULL); }
+static void act_step(void) { g_wait = sota_engine_step(&g_e, true); }
 static void act_reboot_for_update(void) { sota_engine_reboot_for_update(&g_e); }
 static void act_timeout(void)
 {
@@ -421,7 +421,6 @@ static void test_manual_reboot(void)
           "with auto_reboot off, apply returns and the update waits");
     check(fake_server_count("reboot", NULL) == 0 && fake_event_seen(SOTA_EVENT_BEFORE_REBOOT) == 1,
           "BEFORE_REBOOT emitted, no reboot status yet");
-    check(sota_engine_report(&g_e, "custom", NULL) == 200, "report() still names the deployment");
     run(act_check);
     check(!g_checked, "check-ins report the flashed build, so it is not offered again");
     fake_server_offer(3, "dep-3");
@@ -635,8 +634,8 @@ static void test_one_engine(void)
     int posts = fs.checks + fs.log_count;
     check(!sota_engine_check(&other) && sota_engine_apply(&other) == SOTA_APPLY_NO_OFFER &&
               sota_engine_confirm(&other) == SOTA_CONFIRM_NO_TRIAL &&
-              sota_engine_report(&other, "x", NULL) < 0 && fs.checks + fs.log_count == posts,
-          "and does nothing: no check-in, flash, confirm or report");
+              !sota_engine_reboot_for_update(&other) && fs.checks + fs.log_count == posts,
+          "and does nothing: no check-in, flash, confirm or status post");
     reach_trial();
     sota_engine_deinit(&other);
     check(fw.wdt_armed && g_e.in_trial, "shutting it down leaves the running trial's watchdog");

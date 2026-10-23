@@ -63,7 +63,7 @@ void app_main(void)
     sota_runner_start(&s_runner, "simpleota");
     sota_runner_on_task(&s_runner);
     sota_runner_stop(&s_runner, 1000);
-    sota_engine_step(&s_engine, true, NULL);
+    sota_engine_step(&s_engine, true);
     sota_engine_confirm(&s_engine);
     sota_engine_reboot_for_update(&s_engine);
     sota_engine_hold_pending_image();

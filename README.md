@@ -43,7 +43,8 @@ The interfaces, one per concern:
 | `sota_kv.h` | The stored state | the port |
 | `sota_image.h` | Writing an update into the next slot | the port |
 | `sota_boot.h` | Which image runs and boots next; mark valid; roll back | the port |
-| `sota_sys.h` | Sleep, the lock, the confirm timer, the chip watchdog, restart | the port |
+| `sota_sys.h` | Sleep and time, the lock, the confirm timer, the chip watchdog, restart, the default device ID | the port |
+| `sota_runner.h` | The managed task: start, stop, wake | the port |
 | `sota_net.h` | HTTP: check-in and status posts, the firmware download | the client |
 | `sota_app.h` | Events, log lines, and a wake-up when the confirm timeout fires | the client |
 
@@ -56,11 +57,13 @@ ESP-IDF (5.1 and later) and Arduino-ESP32 (2.x and 3.x) provide:
 | `sota_image_ota.c` | `sota_image.h` on `esp_ota_*` |
 | `sota_boot_ota.c` | `sota_boot.h` on `esp_ota_*` and `esp_reset_reason()` |
 | `sota_sys_esp32.c` | `sota_sys.h` on FreeRTOS and `esp_timer` |
+| `sota_runner_esp32.c` | `sota_runner.h` on a FreeRTOS task |
 | `sota_wdt_esp32.c` | The trial watchdog on `wdt_hal` |
 
 A client then supplies `sota_net.h` and `sota_app.h`, owns a
-`sota_engine_t`, and calls `sota_engine_check()` and `sota_engine_apply()`
-(polling), or `sota_engine_step()` from its own task (managed).
+`sota_engine_t` and a `sota_runner_t`, and calls `sota_engine_check()` and
+`sota_engine_apply()` (polling), or starts the runner (managed). Its
+`sota_app_wake()` calls `sota_runner_wake()`.
 `SOTA_LOG_LEVEL` sets which log lines are compiled in, and `SOTA_DL_CHUNK`
 the download buffer (1024 bytes).
 

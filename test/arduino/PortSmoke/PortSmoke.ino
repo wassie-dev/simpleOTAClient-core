@@ -25,7 +25,7 @@ void setup() {
   sota_runner_start(&runner, "simpleota");
   sota_runner_stop(&runner, 1000);
   sota_runner_wake(&runner);
-  sota_engine_step(&engine, true, nullptr);
+  sota_engine_step(&engine, true);
   sota_engine_confirm(&engine);
   sota_engine_hold_pending_image();
 }
