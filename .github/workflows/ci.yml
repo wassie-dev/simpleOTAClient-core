@@ -26,6 +26,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install the toolchain
+        run: sudo apt-get update && sudo apt-get install -y build-essential clang
+
       - name: Build and run
         run: make -C test/host test CC=${{ matrix.cc }} CXX=${{ matrix.cxx }}
 
