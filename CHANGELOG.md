@@ -16,6 +16,11 @@ one place.
 - `sota_s_to_ticks()`, for durations in seconds.
 - `sota_hold_pending_image()`, from the Arduino client's
   `verifyRollbackLater()`.
+- `sota_state`, the persisted state shared by both clients: identity, trial
+  record and outbox, over the `sota_kv.h` key-value interface. Both
+  partition keys go into every trial record. Host tests cut power, or fail
+  a write, at every write of staging and of a rollback, and check that the
+  next boot ends on a known identity with no record left behind.
 - Host tests merged from both clients, a C++11 build of every header, and
   CI with GCC, Clang and sanitizers.
 - `scripts/sync-core.sh`, which copies the core into a client and checks a

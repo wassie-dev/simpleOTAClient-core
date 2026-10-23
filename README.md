@@ -14,12 +14,17 @@ and GitHub archives publish them as empty folders.
 ## What is in it
 
 Nothing here includes an Arduino, ESP-IDF or FreeRTOS header, so all of it
-is tested on a host.
+is tested on a host. Where the core needs the platform, it declares a small
+interface (such as `sota_kv.h`) that the platform port defines. These are
+bound at link time, not through function pointers, so nothing is called
+indirectly and the linker drops what a build does not use.
 
 | File | What it does |
 | --- | --- |
 | `sota_trial.h` | What a boot means for a saved trial record: trial, rolled back, abandoned, waiting, and so on. Reads records from every earlier release of both clients. |
 | `sota_report.h` | The outbox of `confirmed` / `rolled_back` reports (one NVS blob) and the poll interval policy. |
+| `sota_state.{h,c}` | Everything a client persists (identity, trial record, outbox) and the order it is written in, so a power cut between any two writes is recoverable. |
+| `sota_kv.h` | The key-value store the state lives in. The platform port implements it (NVS on ESP32); the host tests use an in-memory fake that can cut power after any write. |
 | `sota_wdt_calc.h` | The chip watchdog's deadline for a trial: confirm timeout plus a margin. |
 | `sota_time.h` | Millisecond and second durations to FreeRTOS ticks, without 32-bit wrap. |
 | `sota_url.h` | Server base URL validation and joining. |
