@@ -424,6 +424,17 @@ static void test_flashed_another_way(void)
           "so the new project's first build is taken");
 
     device_on_build_1(true);
+    g_cfg.image_build = 9; /* a USB flash of a release that declares its build */
+    fw.project = 3;
+    boot(SOTA_RST_POWERON);
+    check(g_e.st.live.build == 9, "one that declares its build reports it");
+    fake_server_offer(9, "dep-9");
+    fs.offer_old = true;
+    run(act_check);
+    run(act_apply);
+    check(g_applied == SOTA_APPLY_DOWNGRADE, "and is not offered that build again");
+
+    device_on_build_1(true);
     sota_kv_erase("sota_image");
     boot(SOTA_RST_POWERON);
     check(g_e.st.live.build == 0, "a build stored before images were noted reads as 0");

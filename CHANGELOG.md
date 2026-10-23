@@ -52,6 +52,8 @@ one place.
   `sota_image`. A device that boots an image SimpleOTA did not install,
   such as a serial flash of another project, reports build 0 instead of
   the stored build, which would otherwise refuse that project's builds.
+  With `sota_config_t.image_build` set, it reports that build instead, so a
+  release flashed over USB is not replaced by the server.
 - `sota_json_is_object()`. Labels that are not one JSON object are left out
   of the check-in with a warning, so a typo can't break every check-in.
 - Engine tests on a fake two-slot device, with and without bootloader
