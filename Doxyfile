@@ -1,10 +1,12 @@
 # Doxygen configuration for the API reference. Build with
-# `mkdir -p build/docs && doxygen` from the repository root; the HTML lands in
-# build/docs/html. CI fails on any warning, so every declaration in the
-# headers below stays documented.
+# `mkdir -p build/docs && DOCS_VERSION=main doxygen` from the repository root;
+# the HTML lands in build/docs/html. CI fails on any warning, so every
+# declaration in the headers below stays documented. CI publishes one copy
+# per tag, and main's, with scripts/publish-docs.sh.
 
 PROJECT_NAME           = "SimpleOTA client"
 PROJECT_BRIEF          = "Shared core of the SimpleOTA Arduino and ESP-IDF clients"
+PROJECT_NUMBER         = $(DOCS_VERSION)
 OUTPUT_DIRECTORY       = build/docs
 INPUT                  = docs/mainpage.md docs/NVS_CONTRACT.md include core port/esp32
 FILE_PATTERNS          = *.h

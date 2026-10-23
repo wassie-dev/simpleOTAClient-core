@@ -15,8 +15,12 @@ and GitHub archives publish them as empty folders.
 ## API reference
 
 The [API reference](https://wassie-dev.github.io/simpleotaclient-core/) is
-generated from the headers' Doxygen comments and published from `main` by
-CI, which fails when a declaration has no comment. To build it locally, run
+generated from the headers' Doxygen comments. CI builds it on every push,
+and fails when a declaration has no comment. Each `v*` tag is published
+under its own version, and earlier versions stay available; `latest/` is
+the newest release and `main/` the unreleased state. Publishing commits to
+the `gh-pages` branch through `scripts/publish-docs.sh`, and GitHub Pages
+serves that branch. To build it locally, run
 `mkdir -p build/docs && doxygen` and open `build/docs/html/index.html`.
 
 ## What is in it

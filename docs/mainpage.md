@@ -38,3 +38,7 @@ concern, bound at link time:
 
 What is stored, and in which order, is a contract with releases in the
 field: see the [NVS contract](NVS_CONTRACT.md).
+
+This reference is for one version of the core; each client release names
+the core it carries in its `CORE_VERSION` file. Other versions:
+[all versions](../versions.html).
