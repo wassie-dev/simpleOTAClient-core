@@ -1,4 +1,5 @@
-# Host unit tests for the core, on every push to main and every pull request.
+# Host unit tests for the core, and compile checks of the core and the ESP32
+# port under ESP-IDF and Arduino-ESP32, on every push to main and every PR.
 
 name: CI
 
@@ -50,3 +51,58 @@ jobs:
             echo "a changed copy passed the check" >&2
             exit 1
           fi
+
+  esp-idf:
+    name: ESP-IDF ${{ matrix.idf }} (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - idf: v5.1.4
+            target: esp32
+          - idf: v5.4.4
+            target: esp32c6
+          - idf: v5.5.5
+            target: esp32s3
+          - idf: latest
+            target: esp32c3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the port smoke app
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: ${{ matrix.idf }}
+          target: ${{ matrix.target }}
+          path: test/esp-idf
+
+  arduino:
+    name: Arduino-ESP32 ${{ matrix.core }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        core: ["2.0.17", "3.3.0"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: arduino/setup-arduino-cli@v2
+
+      - name: Compile the port smoke sketch
+        run: |
+          set -euo pipefail
+          lib="$RUNNER_TEMP/libraries/SimpleOTACore/src"
+          mkdir -p "$lib"
+          cp core/* port/esp32/* "$lib/"
+          printf 'name=SimpleOTACore\nversion=0.0.0\narchitectures=esp32\n' \
+            > "$RUNNER_TEMP/libraries/SimpleOTACore/library.properties"
+          arduino-cli config init
+          arduino-cli config add board_manager.additional_urls \
+            https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32@${{ matrix.core }}
+          arduino-cli compile --fqbn esp32:esp32:esp32 --warnings all \
+            --library "$RUNNER_TEMP/libraries/SimpleOTACore" test/arduino/PortSmoke

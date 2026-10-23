@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Copy the core into a client repository, or check that a copy matches.
 #
-#   scripts/sync-core.sh <dest-dir>          copy core/ into <dest-dir>
+#   scripts/sync-core.sh <dest-dir>          copy core/ and port/esp32/ into <dest-dir>
 #   scripts/sync-core.sh --check <dest-dir>  exit 1 when <dest-dir> differs
 #
 # Run it from a checkout of the core at the tag the client pins. The copy
@@ -26,7 +26,12 @@ if [ $# -ne 1 ]; then
 fi
 dest=$1
 root=$(cd "$(dirname "$0")/.." && pwd)
-src="$root/core"
+
+# core/ and port/esp32/ land in one flat folder, so a client needs one
+# include path (Arduino adds only src/ to it).
+src=$(mktemp -d)
+trap 'rm -rf "$src"' EXIT
+cp "$root"/core/* "$root"/port/esp32/* "$src"/
 
 version=$(git -C "$root" describe --tags --exact-match 2>/dev/null ||
           git -C "$root" rev-parse HEAD)

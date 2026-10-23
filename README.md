@@ -33,14 +33,25 @@ indirectly and the linker drops what a build does not use.
 | `sota_sha256.{h,c}` | A dependency-free SHA-256, the same on every IDF version (mbedTLS 4 in IDF 6 has no legacy API). |
 | `monocypher*` | [Monocypher](https://monocypher.org/) 3.1.3, unmodified. See `core/LICENSE-vendor.md`. |
 
-The engine (check, apply, boot validation, confirm and rollback) and an
-ESP32 platform port move here in later phases of the plan.
+`port/esp32/` implements the platform interfaces with the ESP-IDF APIs that
+both ESP-IDF (5.1 and later) and Arduino-ESP32 (2.x and 3.x) provide:
+
+| File | Implements |
+| --- | --- |
+| `sota_kv_nvs.c` | `sota_kv.h` on NVS, namespace `simpleota` |
+
+The engine (check, apply, boot validation, confirm and rollback) moves here
+in a later phase of the plan.
 
 ## Tests
 
 ```sh
 make -C test/host test
 ```
+
+CI also compiles `core/` and `port/esp32/` in a small ESP-IDF app
+(`test/esp-idf`, several IDF versions and targets) and an Arduino sketch
+(`test/arduino`, cores 2.0.17 and 3.3.0).
 
 The tests build as C99 with `-Werror`, and `test_cxx` builds every header
 as C++11, the way the Arduino client includes them. CI also runs them under
@@ -56,8 +67,8 @@ AddressSanitizer and UndefinedBehaviorSanitizer with GCC and Clang.
    ../SimpleOTAClient-core/scripts/sync-core.sh simpleota/src/core     # ESP-IDF
    ```
 
-   The script replaces the folder's contents and writes the tag to
-   `CORE_VERSION` in it.
+   The script replaces the folder's contents with `core/` and
+   `port/esp32/`, side by side, and writes the tag to `CORE_VERSION` in it.
 3. The client's CI checks out the tag named in `CORE_VERSION` and runs
    `sync-core.sh --check` on the folder, so a hand edit to the copy fails
    CI. Change the core here instead.
