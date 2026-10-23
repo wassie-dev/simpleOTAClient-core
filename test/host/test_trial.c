@@ -87,10 +87,14 @@ int main(void)
           "slot switched, sota_staged left behind, deep-sleep wake: waiting");
     check(classify(1, false, B, A, A, true) == SOTA_BOOT_ROLLED_BACK,
           "deep-sleep wake with the slot back on the old image: rolled back");
-    check(classify(1, false, B, B, B, true) == SOTA_BOOT_SLEPT_IN_TRIAL,
+    check(classify(1, false, B, B, B, true) == SOTA_BOOT_TRIAL_RESET,
           "deep-sleep wake on the new image before it was confirmed: roll back");
-    check(classify(1, true, B, B, B, true) == SOTA_BOOT_SLEPT_IN_TRIAL,
+    check(classify(1, true, B, B, B, true) == SOTA_BOOT_TRIAL_RESET,
           "deep-sleep wake on the new image, sota_staged left behind: roll back");
+    check(classify(3, false, B, B, B, false) == SOTA_BOOT_TRIAL_RESET,
+          "a trial that already booted, on the new image again: roll back");
+    check(classify(3, false, B, A, A, false) == SOTA_BOOT_ROLLED_BACK,
+          "a trial that already booted, back on the old image: rolled back");
     check(classify(7, false, B, B, B, false) == SOTA_BOOT_TRIAL,
           "any trial value other than 0 and 2 is a trial");
     check(classify(1, false, B, 0, 0, false) == SOTA_BOOT_INCOMPLETE,
@@ -153,8 +157,8 @@ int main(void)
     check(classify_prev(1, false, A, A, A, true) == SOTA_BOOT_ROLLED_BACK &&
               classify_prev(1, false, A, A, 0, true) == SOTA_BOOT_ROLLED_BACK,
           "prev_part only, deep-sleep wake with the slot on the old image or unknown: rolled back");
-    check(classify_prev(1, false, A, B, B, true) == SOTA_BOOT_SLEPT_IN_TRIAL &&
-              classify_prev(1, true, A, B, B, true) == SOTA_BOOT_SLEPT_IN_TRIAL,
+    check(classify_prev(1, false, A, B, B, true) == SOTA_BOOT_TRIAL_RESET &&
+              classify_prev(1, true, A, B, B, true) == SOTA_BOOT_TRIAL_RESET,
           "prev_part only, deep-sleep wake on the new image: roll back");
 
     /* Records with both keys, as the clients write them from the core on:
@@ -162,7 +166,7 @@ int main(void)
     check(classify2(1, false, B, A, B, B, false) == SOTA_BOOT_TRIAL &&
               classify2(1, false, B, A, A, A, false) == SOTA_BOOT_ROLLED_BACK &&
               classify2(1, false, B, A, A, B, true) == SOTA_BOOT_WAITING &&
-              classify2(1, false, B, A, B, B, true) == SOTA_BOOT_SLEPT_IN_TRIAL,
+              classify2(1, false, B, A, B, B, true) == SOTA_BOOT_TRIAL_RESET,
           "both partitions: the same outcomes");
     check(classify2(1, false, B, A, C, C, false) == SOTA_BOOT_ROLLED_BACK,
           "both partitions, running a third slot: not on the new image, rolled back");
@@ -205,7 +209,7 @@ int main(void)
           "a pending image with no trial record (ArduinoOTA) is not held");
     check(!sota_hold_pending_image(false, SOTA_BOOT_TRIAL),
           "a trial the bootloader is not supervising is not held");
-    check(sota_hold_pending_image(true, SOTA_BOOT_SLEPT_IN_TRIAL),
+    check(sota_hold_pending_image(true, SOTA_BOOT_TRIAL_RESET),
           "a trial that woke from deep sleep is held until it rolls back");
     check(sota_hold_pending_image(true, SOTA_BOOT_ROLLBACK_CUT),
           "an image whose rollback was cut short is held until it rolls back");
@@ -226,12 +230,6 @@ int main(void)
     check(strcmp(sota_rollback_reason(SOTA_RST_TASK_WDT), "task_wdt") == 0, "task watchdog");
     check(strcmp(sota_rollback_reason(SOTA_RST_POWERON), "power_on") == 0, "power on");
     check(strcmp(sota_rollback_reason(SOTA_RST_DEEPSLEEP), "deep_sleep") == 0, "deep sleep");
-    check(sota_reset_is_crash(SOTA_RST_PANIC) && sota_reset_is_crash(SOTA_RST_INT_WDT) &&
-              sota_reset_is_crash(SOTA_RST_TASK_WDT) && sota_reset_is_crash(SOTA_RST_WDT),
-          "a panic or a watchdog is a crash");
-    check(!sota_reset_is_crash(SOTA_RST_SW) && !sota_reset_is_crash(SOTA_RST_POWERON) &&
-              !sota_reset_is_crash(SOTA_RST_BROWNOUT) && !sota_reset_is_crash(SOTA_RST_DEEPSLEEP),
-          "a restart, power-on, brownout or wake is not");
     int all_fit = 1;
     for (int rr = -1; rr <= 32; ++rr) {
         sota_outbox_t b;

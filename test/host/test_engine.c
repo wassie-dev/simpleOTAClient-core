@@ -214,15 +214,33 @@ static void test_hang_in_trial(void)
     check(fake_server_count("rolled_back", "watchdog") == 1, "rolled_back watchdog is reported");
 }
 
-static void test_power_loss_in_trial(void)
+static void test_reset_in_trial(bool bl_rollback, int reset, const char *reason)
 {
-    device_on_build_1(false);
+    device_on_build_1(bl_rollback);
     reach_trial();
-    boot(SOTA_RST_POWERON);
-    check(fw.running == 1 && on_trial(),
-          "without bootloader rollback, a power loss restarts the trial");
+    boot(reset);
+    char msg[96];
+    snprintf(msg, sizeof(msg), "%s rollback: a %s reset in the trial rolls back",
+             bl_rollback ? "bootloader" : "software", reason);
+    check(fw.running == 0 && g_e.st.live.build == 1 && !g_e.in_trial, msg);
     run(act_step);
-    check(!g_e.in_trial && fake_server_count("confirmed", NULL) == 1, "which then confirms");
+    check(fake_server_count("rolled_back", reason) == 1, "and is reported with its cause");
+}
+
+/* A power loss after the confirm is saved keeps the image. */
+static void test_power_loss_after_confirm(bool bl_rollback)
+{
+    device_on_build_1(bl_rollback);
+    reach_trial();
+    fs.up = false;
+    check(sota_engine_confirm(&g_e) == SOTA_CONFIRM_DONE, "a manual confirm while offline");
+    boot(SOTA_RST_POWERON);
+    fs.up = true;
+    run(act_step);
+    check(fw.running == 1 && g_e.st.live.build == 2 && !g_e.in_trial &&
+              fake_server_count("confirmed", NULL) == 1 &&
+              fake_server_count("rolled_back", NULL) == 0,
+          "a power loss after a confirm keeps the image and reports it confirmed");
 }
 
 static void test_deep_sleep_in_trial(void)
@@ -569,7 +587,12 @@ int main(void)
     test_crash_in_trial(true);
     test_crash_in_trial(false);
     test_hang_in_trial();
-    test_power_loss_in_trial();
+    test_reset_in_trial(false, SOTA_RST_POWERON, "power_on");
+    test_reset_in_trial(false, SOTA_RST_BROWNOUT, "brownout");
+    test_reset_in_trial(false, SOTA_RST_SW, "reset");
+    test_reset_in_trial(true, SOTA_RST_POWERON, "power_on");
+    test_power_loss_after_confirm(false);
+    test_power_loss_after_confirm(true);
     test_deep_sleep_in_trial();
     test_no_timer();
     test_manual_confirm();

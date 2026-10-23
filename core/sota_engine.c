@@ -216,6 +216,8 @@ static void start_trial(sota_engine_t *e, bool staged)
         accept_record(e);
         return;
     }
+    /* From here on, any reset of this image ends the trial in a rollback. */
+    if (!sota_state_mark_booted()) SOTA_LOGW("trial boot not saved");
     e->in_trial = true;
     /* A hang that stops the confirm timer still resets the chip: the
      * bootloader then returns to the previous image, or this function's
@@ -307,20 +309,15 @@ void sota_engine_validate_boot(sota_engine_t *e)
         sota_state_drop_trial();
         sota_engine_reload(e);
         return;
-    case SOTA_BOOT_SLEPT_IN_TRIAL:
+    case SOTA_BOOT_TRIAL_RESET:
         if (e->cfg.rollback) {
-            e->in_trial = true;
-            e->ending = true;
-            roll_back(e, "deep_sleep");
-        }
-        start_trial(e, facts.staged != 0);
-        return;
-    case SOTA_BOOT_TRIAL:
-        if (e->cfg.rollback && sota_reset_is_crash(info.reset_reason)) {
             e->in_trial = true;
             e->ending = true;
             roll_back(e, sota_rollback_reason(info.reset_reason));
         }
+        start_trial(e, facts.staged != 0);
+        return;
+    case SOTA_BOOT_TRIAL:
         start_trial(e, facts.staged != 0);
         return;
     }
@@ -338,6 +335,9 @@ sota_confirm_result_t sota_engine_confirm(sota_engine_t *e)
         sota_engine_service(e); /* a timeout that fired meanwhile */
         return SOTA_CONFIRM_FAILED;
     }
+    /* A power loss from here on no longer rolls back: the next boot queues
+     * the confirmed report. */
+    if (!sota_state_end_trial()) SOTA_LOGW("trial end not saved");
     sota_sys_wdt_disarm();
     sota_sys_timer_stop(&e->timer);
     sota_sys_lock();
