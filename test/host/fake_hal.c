@@ -50,6 +50,7 @@ void fake_world_reset(bool bl_rollback)
     fs.up = true;
     fs.dl_status = 200;
     fs.dl_fail_at = -1;
+    fs.dl_fail_with = SOTA_NET_AGAIN;
     fake_event_count = 0;
     fake_wakes = 0;
     fake_kv_set_cut_hook(power_cut);
@@ -198,6 +199,7 @@ void sota_boot_rollback(uint32_t prev_part)
 /* ---- sota_sys.h --------------------------------------------------------- */
 
 void sota_sys_sleep_ms(uint32_t ms) { fw.sleep_ms += ms; }
+uint32_t sota_sys_now_ms(void) { return fw.sleep_ms; }
 void sota_sys_lock(void) {}
 void sota_sys_unlock(void) {}
 
@@ -332,7 +334,7 @@ int sota_net_dl_read(void *user, uint8_t *buf, size_t cap)
 {
     (void)user;
     size_t left = fs.image_len - fs.dl_pos;
-    if (fs.dl_fail_at >= 0 && fs.dl_pos >= (size_t)fs.dl_fail_at) return SOTA_NET_STALLED;
+    if (fs.dl_fail_at >= 0 && fs.dl_pos >= (size_t)fs.dl_fail_at) return fs.dl_fail_with;
     size_t n = left < cap ? left : cap;
     memcpy(buf, fs.image + fs.dl_pos, n);
     if (fs.corrupt && fs.dl_pos == 0 && n > 100) buf[100] ^= 0xffu;

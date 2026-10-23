@@ -40,6 +40,10 @@ one place.
   stop and the confirm timeout's rollback task.
 - `sota_sys_default_device_id()`, the Wi-Fi station MAC both clients used
   as the default device ID.
+- `sota_engine_set_confirm_timeout()`, so both clients clamp the confirm time
+  in one place, and `sota_sys_now_ms()`. The engine times a download stall
+  (`download_stalled`) itself: a transport returns `SOTA_NET_AGAIN` while
+  no byte has arrived, instead of timing it.
 - `sota_json_is_object()`. Labels that are not one JSON object are left out
   of the check-in with a warning, so a typo can't break every check-in.
 - Engine tests on a fake two-slot device, with and without bootloader

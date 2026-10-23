@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "fake_hal.h"
+#include "sota_net.h"
 #include "fake_kv.h"
 #include "monocypher-ed25519.h"
 #include "sota_engine.h"
@@ -351,7 +352,10 @@ static void test_apply_failures(void)
     fs.dl_status = 200;
     fs.dl_fail_at = 2048;
     expect_failure("stalled download", "download_stalled", SOTA_APPLY_FLASH_FAIL);
+    fs.dl_fail_with = SOTA_NET_ERROR;
+    expect_failure("broken download", "stream_error", SOTA_APPLY_FLASH_FAIL);
     fs.dl_fail_at = -1;
+    fs.dl_fail_with = SOTA_NET_AGAIN;
     fw.fail_finish = true;
     expect_failure("image the bootloader rejects", "update_end_failed", SOTA_APPLY_FLASH_FAIL);
     fw.fail_finish = false;
