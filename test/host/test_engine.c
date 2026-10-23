@@ -14,8 +14,10 @@
 #include "sota_net.h"
 #include "fake_kv.h"
 #include "monocypher-ed25519.h"
+#include "sota_boot.h"
 #include "sota_engine.h"
 #include "sota_engine_priv.h"
+#include "sota_kv.h"
 #include "sota_trial.h"
 
 /* A simulated reset leaves the heap behind, as a real one does. */
@@ -63,6 +65,9 @@ static void device_on_build_1(bool bl_rollback)
     memset(&id, 0, sizeof(id));
     id.build = 1;
     sota_state_set_identity(&id);
+    sota_boot_info_t info;
+    sota_boot_info(&info);
+    sota_state_set_image_id(info.image_id);
     memset(&g_e, 0, sizeof(g_e));
     configure();
 }
@@ -403,6 +408,27 @@ static void test_redirects(void)
           "a relative redirect stays on the host it came from");
 }
 
+static void test_flashed_another_way(void)
+{
+    device_on_build_1(true);
+    sota_identity_t id = {57, "", ""};
+    sota_state_set_identity(&id);
+    boot(SOTA_RST_POWERON);
+    check(g_e.st.live.build == 57, "the image SimpleOTA noted keeps its build");
+
+    fw.project = 2; /* a serial flash of another project's build 1 */
+    boot(SOTA_RST_POWERON);
+    check(g_e.st.live.build == 0, "an image flashed another way reports build 0");
+    fake_server_offer(1, "dep-new");
+    check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
+          "so the new project's first build is taken");
+
+    device_on_build_1(true);
+    sota_kv_erase("sota_image");
+    boot(SOTA_RST_POWERON);
+    check(g_e.st.live.build == 0, "a build stored before images were noted reads as 0");
+}
+
 static void test_rollback_disabled(void)
 {
     device_on_build_1(true);
@@ -674,6 +700,7 @@ int main(void)
     test_timeout_during_failed_confirm();
     test_apply_failures();
     test_redirects();
+    test_flashed_another_way();
     test_rollback_disabled();
     test_manual_reboot();
     test_report_retries();

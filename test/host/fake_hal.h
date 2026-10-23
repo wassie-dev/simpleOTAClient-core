@@ -27,6 +27,7 @@ enum { IMG_UNDEFINED, IMG_NEW, IMG_PENDING, IMG_VALID, IMG_INVALID, IMG_ABORTED 
 typedef struct {
     bool bl_rollback;      /**< The bootloader supports app rollback. */
     uint32_t build[2];     /**< The build each slot holds, 0 = none. */
+    uint32_t project;      /**< Part of each image's fingerprint, with its build. */
     int state[2];          /**< IMG_* per slot. */
     int boot;              /**< Slot the next boot selects. */
     int running;

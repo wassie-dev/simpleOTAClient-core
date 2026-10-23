@@ -48,6 +48,10 @@ one place.
   build is always refused (`downgrade_refused`, `SOTA_APPLY_DOWNGRADE`),
   because an old image's signature still verifies. To go back, release the
   old code under a new, higher build number.
+- `sota_boot_info_t.image_id`, the running image's ELF SHA-256, stored as
+  `sota_image`. A device that boots an image SimpleOTA did not install,
+  such as a serial flash of another project, reports build 0 instead of
+  the stored build, which would otherwise refuse that project's builds.
 - `sota_json_is_object()`. Labels that are not one JSON object are left out
   of the check-in with a warning, so a typo can't break every check-in.
 - Engine tests on a fake two-slot device, with and without bootloader

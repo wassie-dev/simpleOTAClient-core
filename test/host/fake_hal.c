@@ -155,6 +155,8 @@ bool sota_image_finish(void)
 
 void sota_boot_info(sota_boot_info_t *info)
 {
+    snprintf(info->image_id, sizeof(info->image_id), "%08x%08x",
+             (unsigned)fw.project, (unsigned)fw.build[fw.running]);
     info->running_part = k_addr[fw.running];
     info->boot_part = k_addr[fw.boot];
     info->reset_reason = fw.reset_reason;
