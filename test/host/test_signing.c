@@ -15,7 +15,7 @@
  *    signature, malformed PEM, non-Ed25519 DER.
  *  - Chunk-boundary invariance: 1-byte streaming == one-shot.
  *  - Two-key rotation acceptance (correct key in either slot).
- *  - The full sota_signed_gate truth table, including anti-downgrade.
+ *  - The full sota_signed_gate truth table, including stripped signatures.
  */
 
 #include <stdbool.h>
@@ -390,9 +390,9 @@ int main(void) {
           "gate: signed device + key + valid signed offer -> VERIFY");
     CHECK(sota_signed_gate(true, 1, true, false) == SOTA_GATE_FAIL_CLOSED,
           "gate: signed device + key + signed offer, no usable sig -> FAIL_CLOSED");
-    /* The anti-downgrade case: server strips security_mode/signature. */
+    /* The stripped-signature case: server strips security_mode/signature. */
     CHECK(sota_signed_gate(true, 1, false, false) == SOTA_GATE_FAIL_CLOSED,
-          "gate: signed device + key + UNSIGNED offer -> FAIL_CLOSED (no downgrade)");
+          "gate: signed device + key + UNSIGNED offer -> FAIL_CLOSED (not checksum-only)");
     CHECK(sota_signed_gate(true, 2, false, false) == SOTA_GATE_FAIL_CLOSED,
           "gate: signed device + 2 keys + unsigned offer -> FAIL_CLOSED");
 

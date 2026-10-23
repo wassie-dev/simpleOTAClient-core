@@ -1,5 +1,5 @@
 /**
- * Host checks for the server base URL.
+ * Host checks for the server base URL and download redirects.
  *
  *   make -C test/host test
  */
