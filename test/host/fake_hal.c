@@ -279,7 +279,7 @@ static int check_in(const char *body, char *resp, size_t cap)
     uint32_t current = 0;
     sota_json_get_u32(body, "current_build_number", &current);
     ++fs.checks;
-    if (!fs.offer_build || current >= fs.offer_build) {
+    if (!fs.offer_build || (current >= fs.offer_build && !fs.offer_old)) {
         return answer(resp, cap, "{\"update_available\":false,\"status\":\"up_to_date\"}");
     }
     char offer[1024];

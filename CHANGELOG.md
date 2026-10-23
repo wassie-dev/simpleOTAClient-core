@@ -44,6 +44,10 @@ one place.
   in one place, and `sota_sys_now_ms()`. The engine times a download stall
   (`download_stalled`) itself: a transport returns `SOTA_NET_AGAIN` while
   no byte has arrived, instead of timing it.
+- Anti-rollback: an offer whose build number is not above the running
+  build is always refused (`downgrade_refused`, `SOTA_APPLY_DOWNGRADE`),
+  because an old image's signature still verifies. To go back, release the
+  old code under a new, higher build number.
 - `sota_json_is_object()`. Labels that are not one JSON object are left out
   of the check-in with a warning, so a typo can't break every check-in.
 - Engine tests on a fake two-slot device, with and without bootloader

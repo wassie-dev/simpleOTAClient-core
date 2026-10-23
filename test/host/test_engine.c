@@ -379,6 +379,12 @@ static void test_apply_failures(void)
     expect_failure("too many redirects", "http_status_302", SOTA_APPLY_FLASH_FAIL);
     memset(fs.redirect, 0, sizeof(fs.redirect));
 
+    fake_server_offer(1, "dep-old");
+    fs.offer_old = true;
+    expect_failure("offer of the running build", "downgrade_refused", SOTA_APPLY_DOWNGRADE);
+    fs.offer_old = false;
+    fake_server_offer(2, "dep-2");
+
     fs.chunked = true;
     check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
           "a download without a length uses the offered size");

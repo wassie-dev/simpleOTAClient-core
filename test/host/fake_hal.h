@@ -52,6 +52,7 @@ typedef struct {
     int dl_status;
     int dl_fail_at;        /**< Byte offset where the download breaks, -1 = never. */
     int dl_fail_with;      /**< What a read returns from there on. */
+    bool offer_old;        /**< Offer the build even when the device runs it or newer. */
     bool corrupt;          /**< Flip a byte of the download. */
     const char *extra;     /**< More JSON members for the offer, or NULL. */
     size_t dl_pos;
