@@ -578,6 +578,28 @@ static void test_power_cuts(bool bl_rollback, bool trial_fails)
     check(cuts > 20 && bad == 0, msg);
 }
 
+static void test_one_engine(void)
+{
+    device_on_build_1(true);
+    run(act_boot);
+    sota_engine_t other;
+    check(!sota_engine_init(&other, &g_cfg), "a second engine is refused while one runs");
+    fake_server_offer(2, "dep-2");
+    int posts = fs.checks + fs.log_count;
+    check(!sota_engine_check(&other) && sota_engine_apply(&other) == SOTA_APPLY_NO_OFFER &&
+              sota_engine_confirm(&other) == SOTA_CONFIRM_NO_TRIAL &&
+              sota_engine_report(&other, "x", NULL) < 0 && fs.checks + fs.log_count == posts,
+          "and does nothing: no check-in, flash, confirm or report");
+    reach_trial();
+    sota_engine_deinit(&other);
+    check(fw.wdt_armed && g_e.in_trial, "shutting it down leaves the running trial's watchdog");
+    sota_engine_confirm(&g_e);
+    check(sota_engine_init(&g_e, &g_cfg), "the running engine can set itself up again");
+    sota_engine_deinit(&g_e);
+    check(sota_engine_init(&other, &g_cfg), "once it is shut down, another can run");
+    sota_engine_deinit(&other);
+}
+
 int main(void)
 {
     test_up_to_date();
@@ -602,6 +624,7 @@ int main(void)
     test_manual_reboot();
     test_report_retries();
     test_signed();
+    test_one_engine();
     test_power_cuts(true, false);
     test_power_cuts(true, true);
     test_power_cuts(false, false);

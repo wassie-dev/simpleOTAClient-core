@@ -40,9 +40,25 @@ static uint32_t clamp(uint32_t v, uint32_t lo, uint32_t hi)
     return v < lo ? lo : v > hi ? hi : v;
 }
 
+/* The trial record and the boot slot belong to the device, so one engine
+ * runs them. A second would start its own trial and timer for the same
+ * record, and could flash while the first one confirms. */
+static sota_engine_t *s_owner;
+
+/* An engine whose set-up failed does nothing: it never loads the record,
+ * so it can neither start a trial, nor confirm, flash or report. */
+static bool running(const sota_engine_t *e)
+{
+    return e == s_owner;
+}
+
 bool sota_engine_init(sota_engine_t *e, const sota_config_t *cfg)
 {
     memset(e, 0, sizeof(*e));
+    if (s_owner && s_owner != e) {
+        SOTA_LOGE("another SimpleOTA client is already running");
+        return false;
+    }
     e->cfg = *cfg;
     sota_outbox_init(&e->outbox);
     if (!e->cfg.server_url) e->cfg.server_url = SOTA_DEFAULT_SERVER_URL;
@@ -50,8 +66,11 @@ bool sota_engine_init(sota_engine_t *e, const sota_config_t *cfg)
     if (!e->cfg.confirm_timeout_s) e->cfg.confirm_timeout_s = SOTA_DEFAULT_CONFIRM_TIMEOUT_S;
     if (!e->cfg.http_timeout_ms) e->cfg.http_timeout_ms = SOTA_DEFAULT_HTTP_TIMEOUT_MS;
     e->cfg.confirm_timeout_s = clamp(e->cfg.confirm_timeout_s, 10u, 86400u);
-    return token_ok(e->cfg.token) &&
-           sota_validate_server_url(e->cfg.server_url) == SOTA_URL_OK;
+    if (!token_ok(e->cfg.token) || sota_validate_server_url(e->cfg.server_url) != SOTA_URL_OK) {
+        return false;
+    }
+    s_owner = e;
+    return true;
 }
 
 bool sota_engine_add_key(sota_engine_t *e, const char *key_id, const char *pem)
@@ -255,7 +274,7 @@ static sota_boot_facts_t boot_facts(const sota_state_t *st, const sota_boot_info
 
 void sota_engine_validate_boot(sota_engine_t *e)
 {
-    if (e->validated) return;
+    if (e->validated || !running(e)) return;
     e->validated = true;
     sota_engine_reload(e);
     sota_sys_lock();
@@ -375,6 +394,7 @@ void sota_engine_service(sota_engine_t *e)
 
 bool sota_engine_check(sota_engine_t *e)
 {
+    if (!running(e)) return false;
     sota_engine_validate_boot(e);
     /* During a trial the reports wait, so the check-in is the only request
      * the confirm timeout can wait behind. */
@@ -442,6 +462,7 @@ uint32_t sota_engine_step(sota_engine_t *e, bool connected, sota_apply_result_t 
 
 int sota_engine_report(sota_engine_t *e, const char *event, const char *reason)
 {
+    if (!running(e)) return -1;
     if (e->offer.deployment[0]) {
         return sota_engine_post_status(e, event, reason, e->offer.deployment, e->offer.build);
     }
@@ -451,7 +472,7 @@ int sota_engine_report(sota_engine_t *e, const char *event, const char *reason)
 
 bool sota_engine_reboot_for_update(sota_engine_t *e)
 {
-    if (!sota_engine_waiting) return false;
+    if (!running(e) || !sota_engine_waiting) return false;
     sota_engine_post_status(e, "reboot", NULL, e->st.deployment, e->st.report_build);
     sota_sys_sleep_ms(100);
     sota_sys_restart();
@@ -459,9 +480,12 @@ bool sota_engine_reboot_for_update(sota_engine_t *e)
 
 void sota_engine_deinit(sota_engine_t *e)
 {
+    sota_engine_clear_offer(e);
+    /* The watchdog is the device's: only the running engine stops it. */
+    if (!running(e)) return;
     sota_sys_timer_stop(&e->timer);
     sota_sys_wdt_disarm();
-    sota_engine_clear_offer(e);
+    s_owner = NULL;
 }
 
 bool sota_engine_update_waiting(void)
