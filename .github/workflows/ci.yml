@@ -1,0 +1,52 @@
+# Host unit tests for the core, on every push to main and every pull request.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  host-tests:
+    name: Host tests (${{ matrix.cc }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cc: gcc
+            cxx: g++
+          - cc: clang
+            cxx: clang++
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and run
+        run: make -C test/host test CC=${{ matrix.cc }} CXX=${{ matrix.cxx }}
+
+      - name: Build and run with sanitizers
+        run: |
+          make -C test/host clean
+          make -C test/host test CC=${{ matrix.cc }} CXX=${{ matrix.cxx }} \
+            CFLAGS="-std=c99 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all" \
+            CXXFLAGS="-std=c++11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all"
+
+  sync-script:
+    name: Sync script round trip
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy, check, and detect a change
+        run: |
+          set -euo pipefail
+          scripts/sync-core.sh "$RUNNER_TEMP/copy"
+          scripts/sync-core.sh --check "$RUNNER_TEMP/copy"
+          echo "// drift" >> "$RUNNER_TEMP/copy/sota_time.h"
+          if scripts/sync-core.sh --check "$RUNNER_TEMP/copy"; then
+            echo "a changed copy passed the check" >&2
+            exit 1
+          fi
