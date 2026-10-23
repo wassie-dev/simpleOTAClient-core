@@ -54,9 +54,14 @@ one place.
   image on probation, and otherwise switches back to the previous slot, as
   the Arduino client did. The ESP-IDF client chooses whether to use it
   without bootloader rollback.
-- Without the bootloader's probation, a trial image that boots after a
-  panic or a watchdog reset is rolled back, reported with that reason.
-  Before, each crash restarted the trial with a fresh confirm timeout.
+- Without the bootloader's probation, a trial ends at any reset of the new
+  image, as the bootloader's does: a crash, a watchdog, a brownout, a power
+  loss, a restart or deep sleep, reported with that reason. Its first boot
+  saves `sota_trial = 3` for this. Before, each reset restarted the trial
+  with a fresh confirm timeout. A rollback cut short by a power loss is
+  finished on the next boot.
+- One engine runs per device; a second `sota_engine_init()` is refused and
+  that engine does nothing.
 - The trial watchdog runs without bootloader rollback too: its reset now
   ends in that software rollback. Before, it ran only with bootloader
   rollback.
@@ -65,7 +70,14 @@ one place.
 - During a trial, check-ins are sent once and queued reports wait, as the
   ESP-IDF client did, so the confirm timeout waits behind one request at
   most. Polling follows the ESP-IDF client's schedule.
-- Downloads follow up to three redirects on both clients.
+- Downloads follow up to three redirects on both clients, walked by the
+  engine instead of the transport, and each only to another `https://` URL
+  (`redirect_not_https`). `sota_net_dl_open()` returns a redirect's
+  `Location` instead of following it.
+- The update slot is erased as the download is written, and an image larger
+  than the slot is refused before the download.
+- JSON keys are matched in the top-level object only, and numbers past 32
+  bits are refused.
 - A rollback's reason is the one it saved, then a slot the bootloader marked
   invalid (`confirm_timeout`), then the reset reason.
 - Tick conversion saturates at `UINT32_MAX - 1` on both clients. The Arduino

@@ -77,6 +77,41 @@ int main(void)
               strcmp(buf, "https:///c") == 0,
           "the scheme's own slashes are kept");
 
+    /* Redirect targets. */
+    char out[64];
+    check(sota_redirect_target("https://a.example/x", "https://b.example/y?s=1", out,
+                               sizeof(out)) == SOTA_URL_OK &&
+              strcmp(out, "https://b.example/y?s=1") == 0,
+          "an absolute https redirect is taken as is");
+    check(sota_redirect_target("https://a.example/x?q", "/y", out, sizeof(out)) == SOTA_URL_OK &&
+              strcmp(out, "https://a.example/y") == 0,
+          "a path redirect stays on the same host");
+    check(sota_redirect_target("https://a.example", "/y", out, sizeof(out)) == SOTA_URL_OK &&
+              strcmp(out, "https://a.example/y") == 0,
+          "a path redirect from a URL without a path");
+    memset(out, 'X', sizeof(out));
+    check(sota_redirect_target("https://a/x", "http://b/y", out, sizeof(out)) ==
+                  SOTA_URL_NOT_HTTPS && out[0] == 'X',
+          "a redirect to plain HTTP is refused, out untouched");
+    check(sota_redirect_target("https://a/x", "HTTP://b/y", out, sizeof(out)) == SOTA_URL_NOT_HTTPS,
+          "in any case");
+    check(sota_redirect_target("http://a/x", "/y", out, sizeof(out)) == SOTA_URL_NOT_HTTPS,
+          "a path redirect from plain HTTP is refused");
+    check(sota_redirect_target("https://a/x", "//b/y", out, sizeof(out)) == SOTA_URL_MALFORMED &&
+              sota_redirect_target("https://a/x", "", out, sizeof(out)) == SOTA_URL_MALFORMED &&
+              sota_redirect_target("https://a/x", "https:///y", out, sizeof(out)) ==
+                  SOTA_URL_MALFORMED &&
+              sota_redirect_target("https://a/x", "https://b/ y", out, sizeof(out)) ==
+                  SOTA_URL_MALFORMED &&
+              sota_redirect_target("https://a/x", "ftp://b/y", out, sizeof(out)) ==
+                  SOTA_URL_MALFORMED,
+          "scheme-relative, empty, hostless, spaced or other-scheme targets are malformed");
+    check(sota_redirect_target("https://a/x", "https://b/0123456789", out, 20) ==
+              SOTA_URL_MALFORMED,
+          "a target that does not fit is refused");
+    check(sota_validate_server_url("http://simpleota.com") == SOTA_URL_NOT_HTTPS,
+          "a plain HTTP server address is refused");
+
     if (g_failures) {
         printf("%d FAILURE(S)\n", g_failures);
         return 1;

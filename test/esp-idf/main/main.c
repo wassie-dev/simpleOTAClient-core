@@ -15,9 +15,10 @@ int sota_net_post(void *user, const char *url, const char *token, const char *bo
     return -1;
 }
 
-int sota_net_dl_open(void *user, const char *url, int64_t *len)
+int sota_net_dl_open(void *user, const char *url, int64_t *len, char *location,
+                     size_t location_cap)
 {
-    (void)user, (void)url, (void)len;
+    (void)user, (void)url, (void)len, (void)location, (void)location_cap;
     return 0;
 }
 

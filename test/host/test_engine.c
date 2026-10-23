@@ -361,9 +361,36 @@ static void test_apply_failures(void)
     fake_kv_fail_nth(0);
     expect_failure("trial record not saved", "state_save_failed", SOTA_APPLY_FLASH_FAIL);
 
+    const char *to_http[] = {"http://cdn.example/fw.bin", NULL};
+    memcpy(fs.redirect, to_http, sizeof(to_http));
+    fs.redirects_done = 0;
+    expect_failure("redirect to plain HTTP", "redirect_not_https", SOTA_APPLY_FLASH_FAIL);
+    const char *bad[] = {"ftp://cdn.example/fw.bin", NULL};
+    memcpy(fs.redirect, bad, sizeof(bad));
+    fs.redirects_done = 0;
+    expect_failure("redirect to another scheme", "redirect_malformed", SOTA_APPLY_FLASH_FAIL);
+    const char *loop[] = {"/a", "/b", "/c", "/d", NULL};
+    memcpy(fs.redirect, loop, sizeof(loop));
+    fs.redirects_done = 0;
+    expect_failure("too many redirects", "http_status_302", SOTA_APPLY_FLASH_FAIL);
+    memset(fs.redirect, 0, sizeof(fs.redirect));
+
     fs.chunked = true;
     check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
           "a download without a length uses the offered size");
+}
+
+static void test_redirects(void)
+{
+    device_on_build_1(true);
+    fake_server_offer(2, "dep-2");
+    boot(SOTA_RST_POWERON);
+    const char *hops[] = {"https://cdn2.example/x?sig=1", "/fw.bin?sig=2", NULL};
+    memcpy(fs.redirect, hops, sizeof(hops));
+    check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
+          "https redirects, absolute and relative, are followed");
+    check(strcmp(fs.opened, "https://cdn2.example/fw.bin?sig=2") == 0,
+          "a relative redirect stays on the host it came from");
 }
 
 static void test_rollback_disabled(void)
@@ -637,6 +664,7 @@ int main(void)
     test_manual_confirm();
     test_timeout_during_failed_confirm();
     test_apply_failures();
+    test_redirects();
     test_rollback_disabled();
     test_manual_reboot();
     test_report_retries();

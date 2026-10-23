@@ -54,6 +54,9 @@ typedef struct {
     bool corrupt;          /**< Flip a byte of the download. */
     const char *extra;     /**< More JSON members for the offer, or NULL. */
     size_t dl_pos;
+    const char *redirect[5]; /**< Location of each redirect before the image, NULL ends. */
+    int redirects_done;
+    char opened[128];        /**< The URL the last download opened. */
     char log[64][48];      /**< "event reason" of each status received. */
     int log_count;
     int checks;

@@ -311,11 +311,18 @@ int sota_net_post(void *user, const char *url, const char *token, const char *bo
     return 404;
 }
 
-int sota_net_dl_open(void *user, const char *url, int64_t *len)
+int sota_net_dl_open(void *user, const char *url, int64_t *len, char *location,
+                     size_t location_cap)
 {
     (void)user;
-    (void)url;
     if (!fs.up) return 0;
+    snprintf(fs.opened, sizeof(fs.opened), "%s", url);
+    const char *to = fs.redirects_done < 5 ? fs.redirect[fs.redirects_done] : NULL;
+    if (to) {
+        fs.redirects_done++;
+        snprintf(location, location_cap, "%s", to);
+        return 302;
+    }
     fs.dl_pos = 0;
     *len = fs.chunked ? -1 : (int64_t)fs.image_len;
     return fs.dl_status;
