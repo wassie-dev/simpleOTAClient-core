@@ -56,6 +56,10 @@ one place.
   release flashed over USB is not replaced by the server.
 - `sota_json_is_object()`. Labels that are not one JSON object are left out
   of the check-in with a warning, so a typo can't break every check-in.
+- `docs/NVS_CONTRACT.md`: every key both clients store, its type, values,
+  write order and the outbox layout, with the rules for changing them.
+  `test_contract` checks them, including records written by Arduino 0.6.0
+  and ESP-IDF 0.2.x.
 - Engine tests on a fake two-slot device, with and without bootloader
   rollback, that cut power at every write and slot switch of an update's
   life, through to its confirm or rollback, and check that each run

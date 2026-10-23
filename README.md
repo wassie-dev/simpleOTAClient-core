@@ -25,7 +25,7 @@ indirectly and the linker drops what a build does not use.
 | `sota_apply.c` | Download, verify and flash an offer, then save the trial record and switch the boot slot, in that order. |
 | `sota_trial.h` | What a boot means for a saved trial record: trial, rolled back, abandoned, waiting, and so on. Reads records from every earlier release of both clients. |
 | `sota_report.h` | The outbox of `confirmed` / `rolled_back` reports (one NVS blob) and the poll interval policy. |
-| `sota_state.{h,c}` | Everything a client persists (identity, trial record, outbox) and the order it is written in, so a power cut between any two writes is recoverable. |
+| `sota_state.{h,c}` | Everything a client persists (identity, trial record, outbox) and the order it is written in, so a power cut between any two writes is recoverable. The keys are a contract with releases in the field: see [docs/NVS_CONTRACT.md](docs/NVS_CONTRACT.md). |
 | `sota_protocol.{h,c}` | The check-in and status request bodies, written into a caller's buffer with every string escaped, and the check response read into an offer. No heap. |
 | `sota_kv.h` | The key-value store the state lives in. The platform port implements it (NVS on ESP32); the host tests use an in-memory fake that can cut power after any write. |
 | `sota_wdt_calc.h` | The chip watchdog's deadline for a trial: confirm timeout plus a margin. |
