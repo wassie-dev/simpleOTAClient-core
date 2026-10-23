@@ -63,6 +63,12 @@ static void test_check_body(void)
                           "\"version_label\":\"1.2 \\\"rc\\\"\",\"current_hash\":\"" HASH "\","
                           "\"labels\":{\"room\":\"lab\"}}") == 0,
           "every member, string values escaped, labels verbatim");
+    d.labels_json = "{\"room\":\"lab\"},\"current_build_number\":0";
+    char bad[512];
+    check(sota_protocol_check_body(&d, &live, NULL, bad, sizeof(bad)) &&
+              strstr(bad, "labels") == NULL && strstr(bad, "4294967295") != NULL,
+          "labels that are not one object are left out, so they cannot add members");
+    d.labels_json = "{\"room\":\"lab\"}";
 
     bool b = false;
     uint32_t u = 0;
@@ -78,6 +84,16 @@ static void test_check_body(void)
     check(sota_json_get_string("{\"a\":\"url\",\"url\":\"x\"}", "url", s, sizeof(s)) &&
               strcmp(s, "x") == 0,
           "a value equal to the key's name is not taken for the key");
+    check(sota_json_is_object("{}") && sota_json_is_object(" {\"a\":[1,{\"b\":\"}\\\"\"}]} ") &&
+              sota_json_is_object("{\"a\":\"x\\\\\"}"),
+          "objects, nested, with brackets and escapes in strings");
+    check(!sota_json_is_object("") && !sota_json_is_object("[]") &&
+              !sota_json_is_object("{\"a\":1},\"current_build_number\":0") &&
+              !sota_json_is_object("{\"a\":1") && !sota_json_is_object("{\"a\":[1}") &&
+              !sota_json_is_object("{\"a\":\"open}") && !sota_json_is_object("{} x") &&
+              !sota_json_is_object("{\"a\":\"\x01\"}") &&
+              !sota_json_is_object("{[[[[[[[[1]]]]]]]]}"),
+          "anything that is not one closed object is refused");
     check(!sota_json_get_u32("{\"n\":4294967296}", "n", &u),
           "a number past 32 bits is refused rather than wrapped");
 

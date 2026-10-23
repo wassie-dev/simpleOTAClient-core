@@ -35,6 +35,13 @@ one place.
   `sota_net.h` and `sota_app.h` (events, logging, wake-up) from the client.
 - `port/esp32/`: `sota_image_ota.c`, `sota_boot_ota.c`, `sota_sys_esp32.c`
   and `sota_wdt_esp32.c`, the trial watchdog from both clients.
+- `sota_runner.h` and `port/esp32/sota_runner_esp32.c`: the managed task
+  both clients ran, with its initial delay, connection check, cooperative
+  stop and the confirm timeout's rollback task.
+- `sota_sys_default_device_id()`, the Wi-Fi station MAC both clients used
+  as the default device ID.
+- `sota_json_is_object()`. Labels that are not one JSON object are left out
+  of the check-in with a warning, so a typo can't break every check-in.
 - Engine tests on a fake two-slot device, with and without bootloader
   rollback, that cut power at every write and slot switch of an update's
   life, through to its confirm or rollback, and check that each run
