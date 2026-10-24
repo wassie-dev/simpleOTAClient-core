@@ -42,7 +42,10 @@ one place.
   returns `ESP_OK` when the server answered and `ESP_FAIL` when it did not,
   so polling apps can tell a failed check from no update. The header states
   the compatibility rules (zero means default, additions only within 1.x)
-  and lists the stable `reason` tokens.
+  and lists the stable `reason` tokens. `security_mode` is an enum,
+  `simpleota_security_t` (none, basic, signed); the old "token" mode is
+  gone, because a device reporting it was offered neither basic nor signed
+  builds.
 - The public API, `include/simpleota.h`, with `port/esp32/simpleota.c` and
   the `esp_http_client` transport, `sota_net_esp32.c`: the ESP-IDF client's
   API, now the API of both clients. `sota_framework.{h,c}` holds what
