@@ -25,8 +25,8 @@ serves that branch. To build it locally, run
 
 ## What is in it
 
-Nothing here includes an Arduino, ESP-IDF or FreeRTOS header, so all of it
-is tested on a host. Where the core needs the platform, it declares a small
+Nothing in `core/` includes an Arduino, ESP-IDF or FreeRTOS header, so all
+of it is tested on a host. Where the core needs the platform, it declares a small
 interface (such as `sota_kv.h`) that the platform port defines. These are
 bound at link time, not through function pointers, so nothing is called
 indirectly and the linker drops what a build does not use.
@@ -44,7 +44,7 @@ indirectly and the linker drops what a build does not use.
 | `sota_time.h` | Millisecond and second durations to FreeRTOS ticks, without 32-bit wrap. |
 | `sota_url.h` | Server base URL validation and joining. |
 | `sota_json.{h,c}` | The minimal JSON scanner and string escaper used for server responses and request bodies. |
-| `sota_signing.{h,c}` | The signed-firmware gate (anti-downgrade), PEM key parsing, base64 signatures, and the streaming two-key Ed25519 verifier. |
+| `sota_signing.{h,c}` | The signed-firmware gate (a pinned key never accepts a stripped signature), PEM key parsing, base64 signatures, and the streaming two-key Ed25519 verifier. |
 | `sota_sha256.{h,c}` | A dependency-free SHA-256, the same on every IDF version (mbedTLS 4 in IDF 6 has no legacy API). |
 | `monocypher*` | [Monocypher](https://monocypher.org/) 3.1.3, unmodified. See `core/LICENSE-vendor.md`. |
 
@@ -57,8 +57,8 @@ The interfaces, one per concern:
 | `sota_boot.h` | Which image runs and boots next; mark valid; roll back | the port |
 | `sota_sys.h` | Sleep and time, the lock, the confirm timer, the chip watchdog, restart, the default device ID | the port |
 | `sota_runner.h` | The managed task: start, stop, wake | the port |
-| `sota_net.h` | HTTP: check-in and status posts, the firmware download | the client |
-| `sota_app.h` | Events, log lines, and a wake-up when the confirm timeout fires | the client |
+| `sota_net.h` | HTTP: check-in and status posts, the firmware download | the port |
+| `sota_app.h` | Events, log lines, and a wake-up when the confirm timeout fires | the API layer, `simpleota.c` |
 
 `port/esp32/` implements the port's half with the ESP-IDF APIs that both
 ESP-IDF (5.1 and later) and Arduino-ESP32 (2.x and 3.x) provide:
@@ -104,8 +104,8 @@ bootloader rollback, and cuts power after every write and slot switch of
 an update's whole life, checking that each run settles on the image it
 reports.
 
-The tests build as C99 with `-Werror`, and `test_cxx` builds every header
-as C++11, the way the Arduino client includes them. CI also runs them under
+The tests build as C99 with `-Werror`, and `test_cxx` builds every core header
+as C++11, so they stay usable from C++. CI also runs them under
 AddressSanitizer and UndefinedBehaviorSanitizer with GCC and Clang.
 
 ## Updating a client
@@ -118,7 +118,8 @@ AddressSanitizer and UndefinedBehaviorSanitizer with GCC and Clang.
    ../SimpleOTAClient-core/scripts/sync-core.sh simpleota/src/core simpleota/include  # ESP-IDF
    ```
 
-   The script replaces the first folder's contents with `core/` and
+   Each client wraps this in `scripts/update-core.sh <ref>`. The script
+   replaces the first folder's contents with `core/` and
    `port/esp32/`, side by side, writes the tag to `CORE_VERSION` in it, and
    copies `include/simpleota.h` into the second.
 3. The client's CI checks out the tag named in `CORE_VERSION` and runs

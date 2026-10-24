@@ -16,7 +16,6 @@
 #include "sota_json.h"
 #include "sota_report.h"
 #include "sota_runner.h"
-#include "sota_sys.h"
 #include "sota_sha256.h"
 #include "sota_kv.h"
 #include "sota_net.h"

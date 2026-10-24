@@ -45,7 +45,8 @@ one place.
   and lists the stable `reason` tokens. `security_mode` is an enum,
   `simpleota_security_t` (none, basic, signed); the old "token" mode is
   gone, because a device reporting it was offered neither basic nor signed
-  builds.
+  builds. Signed mode without a signing key fails init, because the device
+  would be offered signed builds it cannot verify.
 - The public API, `include/simpleota.h`, with `port/esp32/simpleota.c` and
   the `esp_http_client` transport, `sota_net_esp32.c`: the ESP-IDF client's
   API, now the API of both clients. `sota_framework.{h,c}` holds what
