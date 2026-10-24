@@ -14,7 +14,7 @@ and GitHub archives publish them as empty folders.
 
 ## API reference
 
-The [API reference](https://wassie-dev.github.io/simpleotaclient-core/) is
+The [API reference](https://wassie-dev.github.io/simpleOTAClient-core/) is
 generated from the headers' Doxygen comments. CI builds it on every push,
 and fails when a declaration has no comment. Each `v*` tag is published
 under its own version, and earlier versions stay available; `latest/` is
