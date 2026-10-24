@@ -2,7 +2,7 @@
 # Run from the repo root:  make -C test/host test
 #
 # The tests build with -Werror as C99, and test_cxx builds the headers as
-# C++11, the way the Arduino adapter includes them.
+# C++11, so they stay usable from C++ code.
 
 CC       ?= cc
 CXX      ?= c++

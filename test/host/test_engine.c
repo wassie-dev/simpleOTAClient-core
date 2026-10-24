@@ -110,7 +110,7 @@ static int run(void (*action)(void))
     }
 }
 
-/* A reset, then the adapter starting the engine. Follows any restart the
+/* A reset, then the API layer starting the engine. Follows any restart the
  * boot itself makes. Returns the number of restarts. */
 static int boot(int reset_reason)
 {

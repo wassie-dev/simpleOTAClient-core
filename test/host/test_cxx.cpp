@@ -1,5 +1,5 @@
 /**
- * The core's headers as C++, the way the Arduino adapter includes them:
+ * The core's headers as C++, so they stay usable from C++ code:
  * every header compiles under -std=c++11, and the C functions link.
  *
  *   make -C test/host test

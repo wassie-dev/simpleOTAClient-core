@@ -60,8 +60,8 @@ one place.
   stop and the confirm timeout's rollback task.
 - `sota_sys_default_device_id()`, the Wi-Fi station MAC both clients used
   as the default device ID.
-- `sota_engine_set_confirm_timeout()`, so both clients clamp the confirm time
-  in one place, and `sota_sys_now_ms()`. The engine times a download stall
+- The confirm time is clamped in one place, `sota_engine_init()`, and
+  `sota_sys_now_ms()` is added. The engine times a download stall
   (`download_stalled`) itself: a transport returns `SOTA_NET_AGAIN` while
   no byte has arrived, instead of timing it.
 - Anti-rollback: an offer whose build number is not above the running

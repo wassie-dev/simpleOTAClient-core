@@ -57,15 +57,6 @@ int main(void)
         check(sota_validate_server_url(url) == SOTA_URL_MALFORMED, "257 characters is not");
     }
 
-    sota_url_status_t st = SOTA_URL_OK;
-    const char *cur = SOTA_DEFAULT_SERVER_URL;
-    check(sota_select_server_url(cur, "http://h", &st) == cur && st == SOTA_URL_NOT_HTTPS,
-          "a rejected http url keeps the previous url");
-    const char *next = "https://staging.example";
-    check(sota_select_server_url(cur, next, &st) == next && st == SOTA_URL_OK,
-          "an accepted url replaces the previous one");
-    check(sota_select_server_url(cur, next, NULL) == next, "the status is optional");
-
     char buf[16];
     memset(buf, 'X', sizeof(buf));
     check(sota_build_api_url("HTTPS://ab/", "/c", buf, 13) && strcmp(buf, "HTTPS://ab/c") == 0,

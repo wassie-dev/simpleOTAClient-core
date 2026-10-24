@@ -84,9 +84,10 @@ the ISRG roots as the default CA (Arduino-ESP32 has no certificate bundle),
 warnings shown at Arduino's default log level, and the bootloader hook that
 keeps a trial image pending until `simpleota_init()`.
 
-`SOTA_LOG_LEVEL` sets which log lines are compiled in, and `SOTA_DL_CHUNK`
+`SOTA_LOG_LEVEL` sets which log lines are compiled in (all by default; the
+ESP-IDF component caps it at `CONFIG_LOG_MAXIMUM_LEVEL`), and `SOTA_DL_CHUNK`
 the download buffer (4096 bytes; the ESP-IDF component sets it from
-Kconfig).
+Kconfig, and an Arduino build from `-DCONFIG_SIMPLEOTA_DOWNLOAD_CHUNK`).
 
 ## Tests
 
