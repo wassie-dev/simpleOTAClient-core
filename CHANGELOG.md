@@ -54,6 +54,10 @@ one place.
   certificates as the default CA, warnings at Arduino's default log level,
   and the `verifyRollbackLater()` bootloader hook. `sync-core.sh` takes the
   header's destination as a second argument.
+- simpleota_check() and simpleota_apply() run on a short-lived task with
+  CONFIG_SIMPLEOTA_TASK_STACK_SIZE while the caller waits. A signed update
+  checked on the ESP-IDF main task, whose default stack is 3584 bytes,
+  overflowed it.
 - A refused downgrade is reported to the server once per boot, not on
   every check. Every check logs its result at info level.
 - `sota_runner.h` and `port/esp32/sota_runner_esp32.c`: the managed task
