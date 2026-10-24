@@ -6,9 +6,9 @@ runs each new image as a trial that rolls back unless it is confirmed.
 
 It ships as two packages with the same API, built from these sources:
 
-- [SimpleOTAClient-Arduino](https://github.com/wassie-dev/SimpleOTAClient-Arduino)
+- [SimpleOTAClient-Arduino](https://github.com/wassie-dev/simpleOTAClient-Arduino)
   for Arduino-ESP32 and PlatformIO
-- [SimpleOTAClient-ESP-IDF](https://github.com/wassie-dev/SimpleOTAClient-ESP-IDF)
+- [SimpleOTAClient-ESP-IDF](https://github.com/wassie-dev/simpleOTAClient-ESP-IDF)
   for ESP-IDF
 
 ## Using the client
