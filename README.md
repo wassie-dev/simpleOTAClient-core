@@ -3,8 +3,8 @@
 The SimpleOTA client for ESP32: one C API, `simpleota.h`, and everything
 behind it, shared by the two packages users install:
 
-- [SimpleOTAClient-Arduino](https://github.com/xanderwasserman/SimpleOTAClient-Arduino) (Arduino-ESP32, PlatformIO)
-- [SimpleOTAClient-ESP-IDF](https://github.com/xanderwasserman/SimpleOTAClient-ESP-IDF) (ESP-IDF component)
+- [SimpleOTAClient-Arduino](https://github.com/wassie-dev/SimpleOTAClient-Arduino) (Arduino-ESP32, PlatformIO)
+- [SimpleOTAClient-ESP-IDF](https://github.com/wassie-dev/SimpleOTAClient-ESP-IDF) (ESP-IDF component)
 
 It is not installed on its own. Each client carries a copy as plain
 files, so every way of installing a client (Arduino Library Manager,
