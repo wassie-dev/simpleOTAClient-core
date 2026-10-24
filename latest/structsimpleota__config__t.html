@@ -173,7 +173,7 @@ uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>num_signing_keys</
 <tr class="memdesc:a5a5ec9be14dcf796431041e837e1ae78"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return false while the link is down (e.g.  <br /></td></tr>
 <tr class="separator:a5a5ec9be14dcf796431041e837e1ae78"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1650a8ca0c2b755b68cd80bd3a14c031" id="r_a1650a8ca0c2b755b68cd80bd3a14c031"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsimpleota__config__t.html#a1650a8ca0c2b755b68cd80bd3a14c031">event_cb</a> )(const <a class="el" href="structsimpleota__event__t.html">simpleota_event_t</a> *event, void *<a class="el" href="structsimpleota__config__t.html#ac51f5afb195470375a651a070fd4037d">user_ctx</a>)</td></tr>
-<tr class="memdesc:a1650a8ca0c2b755b68cd80bd3a14c031"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lifecycle events, called on the task that runs the update: the managed task, or the app's task in polling mode.  <br /></td></tr>
+<tr class="memdesc:a1650a8ca0c2b755b68cd80bd3a14c031"><td class="mdescLeft">&#160;</td><td class="mdescRight">Lifecycle events, called on the client's task that runs the update: the managed task, or a polling call's task while the caller waits.  <br /></td></tr>
 <tr class="separator:a1650a8ca0c2b755b68cd80bd3a14c031"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac51f5afb195470375a651a070fd4037d" id="r_ac51f5afb195470375a651a070fd4037d"><td class="memItemLeft" align="right" valign="top"><a id="ac51f5afb195470375a651a070fd4037d" name="ac51f5afb195470375a651a070fd4037d"></a>
 void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></tr>
@@ -474,7 +474,7 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></
       </table>
 </div><div class="memdoc">
 
-<p>Lifecycle events, called on the task that runs the update: the managed task, or the app's task in polling mode. </p>
+<p>Lifecycle events, called on the client's task that runs the update: the managed task, or a polling call's task while the caller waits. </p>
 <p>Keep it quick, and don't call the client from it except <a class="el" href="simpleota_8h.html#a5478050df7be802fc1607fb181ff73f3" title="Reboot into a downloaded update when disable_auto_reboot was set.">simpleota_reboot_for_update()</a>. </p>
 
 </div>
