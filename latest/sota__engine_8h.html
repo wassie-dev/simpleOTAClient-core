@@ -161,9 +161,6 @@ Functions</h2></td></tr>
 <tr class="memitem:aa6003d9cfbad771a68841d2754a803e7" id="r_aa6003d9cfbad771a68841d2754a803e7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__engine_8h.html#aa6003d9cfbad771a68841d2754a803e7">sota_engine_init</a> (<a class="el" href="structsota__engine__t.html">sota_engine_t</a> *e, const <a class="el" href="structsota__config__t.html">sota_config_t</a> *cfg)</td></tr>
 <tr class="memdesc:aa6003d9cfbad771a68841d2754a803e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set up an engine.  <br /></td></tr>
 <tr class="separator:aa6003d9cfbad771a68841d2754a803e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abf2da72f8a3128fa1803ba572efb7b68" id="r_abf2da72f8a3128fa1803ba572efb7b68"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__engine_8h.html#abf2da72f8a3128fa1803ba572efb7b68">sota_engine_set_confirm_timeout</a> (<a class="el" href="structsota__engine__t.html">sota_engine_t</a> *e, uint32_t seconds)</td></tr>
-<tr class="memdesc:abf2da72f8a3128fa1803ba572efb7b68"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set cfg.confirm_timeout_s, clamped to [10, 86400].  <br /></td></tr>
-<tr class="separator:abf2da72f8a3128fa1803ba572efb7b68"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adefae207028c67d5f056bab7557d61f8" id="r_adefae207028c67d5f056bab7557d61f8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__engine_8h.html#adefae207028c67d5f056bab7557d61f8">sota_engine_add_key</a> (<a class="el" href="structsota__engine__t.html">sota_engine_t</a> *e, const char *key_id, const char *pem)</td></tr>
 <tr class="memdesc:adefae207028c67d5f056bab7557d61f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pin an Ed25519 public key (PEM).  <br /></td></tr>
 <tr class="separator:adefae207028c67d5f056bab7557d61f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -207,7 +204,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>sota_engine_update_wa
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The update engine both clients run: boot validation, check-ins, applying an update, the trial and its confirm or rollback, and the deferred reports. </p>
-<p>The adapter owns a <a class="el" href="structsota__engine__t.html" title="One engine&#39;s state.">sota_engine_t</a> and calls these functions. A device runs one engine at a time (<a class="el" href="sota__engine_8h.html#aa6003d9cfbad771a68841d2754a803e7" title="Set up an engine.">sota_engine_init()</a>). The engine reaches the platform only through the link-time interfaces: <a class="el" href="sota__kv_8h.html" title="The key-value store the core persists its state in.">sota_kv.h</a>, <a class="el" href="sota__image_8h.html" title="Writing an update into the next app slot.">sota_image.h</a>, <a class="el" href="sota__boot_8h.html" title="Which image runs and which boots next.">sota_boot.h</a> and <a class="el" href="sota__sys_8h.html" title="Time, locking, the confirm timer and the chip watchdog.">sota_sys.h</a> from the port, <a class="el" href="sota__net_8h.html" title="HTTP, implemented by each client&#39;s adapter (HTTPClient on Arduino, esp_http_client on ESP-IDF) and by...">sota_net.h</a> and <a class="el" href="sota__app_8h.html" title="What the engine tells the application: events, log lines, and a wake-up when the confirm timeout fire...">sota_app.h</a> from the adapter.</p>
+<p>The public API layer (port/esp32/simpleota.c) owns a <a class="el" href="structsota__engine__t.html" title="One engine&#39;s state.">sota_engine_t</a> and calls these functions. A device runs one engine at a time (<a class="el" href="sota__engine_8h.html#aa6003d9cfbad771a68841d2754a803e7" title="Set up an engine.">sota_engine_init()</a>). The engine reaches the platform only through the link-time interfaces <a class="el" href="sota__kv_8h.html" title="The key-value store the core persists its state in.">sota_kv.h</a>, <a class="el" href="sota__image_8h.html" title="Writing an update into the next app slot.">sota_image.h</a>, <a class="el" href="sota__boot_8h.html" title="Which image runs and which boots next.">sota_boot.h</a>, <a class="el" href="sota__sys_8h.html" title="Time, locking, the confirm timer and the chip watchdog.">sota_sys.h</a>, <a class="el" href="sota__net_8h.html" title="HTTP, implemented by the platform port (esp_http_client on ESP32, for both clients) and by the host t...">sota_net.h</a> and <a class="el" href="sota__app_8h.html" title="What the engine tells the application: events, log lines, and a wake-up when the confirm timeout fire...">sota_app.h</a>, which the port implements.</p>
 <p>Polling use: <a class="el" href="sota__engine_8h.html#a9204102dd4e00756e7595b2121d01cf8" title="Check in.">sota_engine_check()</a>, then <a class="el" href="sota__engine_8h.html#a63464357c9d5fdfff9605f86ace120ac" title="Download, verify and flash the offer.">sota_engine_apply()</a> when it offers an update. A managed task calls <a class="el" href="sota__engine_8h.html#a9a60f1b60de0bea8257b1afd027a5140" title="One pass of a managed task: service, then check and apply when connected.">sota_engine_step()</a> and waits the seconds it returns, waking early on <a class="el" href="sota__app_8h.html#a3762fdeb5e2b31c892f5c09246b1c780" title="The confirm timeout fired, possibly in a timer task: arrange for sota_engine_service() to run soon on...">sota_app_wake()</a>. </p>
 </div><h2 class="groupheader">Enumeration Type Documentation</h2>
 <a id="a3adf5c385940369d8bb6ffa3292953b2" name="a3adf5c385940369d8bb6ffa3292953b2"></a>
@@ -297,37 +294,6 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>sota_engine_update_wa
 
 <p>Set up an engine. </p>
 <p>No storage or network access. False for a token with control characters, an unusable server URL, or while another engine is set up: a device has one trial record, so it runs one engine until <a class="el" href="sota__engine_8h.html#a81761b5b700ece8ce126688217b3d2db" title="Stop the timer and the watchdog, free the offer, and let another engine be set up.">sota_engine_deinit()</a>. </p>
-
-</div>
-</div>
-<a id="abf2da72f8a3128fa1803ba572efb7b68" name="abf2da72f8a3128fa1803ba572efb7b68"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abf2da72f8a3128fa1803ba572efb7b68">&#9670;&#160;</a></span>sota_engine_set_confirm_timeout()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void sota_engine_set_confirm_timeout </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structsota__engine__t.html">sota_engine_t</a> *&#160;</td>
-          <td class="paramname"><em>e</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint32_t&#160;</td>
-          <td class="paramname"><em>seconds</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Set cfg.confirm_timeout_s, clamped to [10, 86400]. </p>
-<p>Before the trial's timer starts, at the boot's first validate_boot(). </p>
 
 </div>
 </div>
@@ -448,7 +414,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>sota_engine_update_wa
 </div><div class="memdoc">
 
 <p>Roll back when the confirm timeout has fired. </p>
-<p>Call from a task that may block: the managed task, or the adapter after <a class="el" href="sota__app_8h.html#a3762fdeb5e2b31c892f5c09246b1c780" title="The confirm timeout fired, possibly in a timer task: arrange for sota_engine_service() to run soon on...">sota_app_wake()</a>. </p>
+<p>Call from a task that may block: the managed task, or the API layer after <a class="el" href="sota__app_8h.html#a3762fdeb5e2b31c892f5c09246b1c780" title="The confirm timeout fired, possibly in a timer task: arrange for sota_engine_service() to run soon on...">sota_app_wake()</a>. </p>
 
 </div>
 </div>

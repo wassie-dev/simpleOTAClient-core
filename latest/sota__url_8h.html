@@ -145,9 +145,6 @@ static const char *&#160;</td><td class="memItemRight" valign="bottom"><b>sota_u
 <tr class="memitem:a0e295c8a83fb9e20c033b40ba244d390" id="r_a0e295c8a83fb9e20c033b40ba244d390"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="sota__url_8h.html#a7edf5f2bb51046d94cae407593cbfd26">sota_url_status_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__url_8h.html#a0e295c8a83fb9e20c033b40ba244d390">sota_redirect_target</a> (const char *base, const char *location, char *out, size_t cap)</td></tr>
 <tr class="memdesc:a0e295c8a83fb9e20c033b40ba244d390"><td class="mdescLeft">&#160;</td><td class="mdescRight">Where a download redirect from base leads, into out.  <br /></td></tr>
 <tr class="separator:a0e295c8a83fb9e20c033b40ba244d390"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae0d019b75699cd37b60345fbf8c21630" id="r_ae0d019b75699cd37b60345fbf8c21630"><td class="memItemLeft" align="right" valign="top">static const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__url_8h.html#ae0d019b75699cd37b60345fbf8c21630">sota_select_server_url</a> (const char *current, const char *candidate, <a class="el" href="sota__url_8h.html#a7edf5f2bb51046d94cae407593cbfd26">sota_url_status_t</a> *status)</td></tr>
-<tr class="memdesc:ae0d019b75699cd37b60345fbf8c21630"><td class="mdescLeft">&#160;</td><td class="mdescRight">candidate when it is valid, else current.  <br /></td></tr>
-<tr class="separator:ae0d019b75699cd37b60345fbf8c21630"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a69ef714ff05e59702dc99141683900a9" id="r_a69ef714ff05e59702dc99141683900a9"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__url_8h.html#a69ef714ff05e59702dc99141683900a9">sota_build_api_url</a> (const char *base, const char *path, char *out, size_t out_len)</td></tr>
 <tr class="memdesc:a69ef714ff05e59702dc99141683900a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">base + path into out, with trailing slashes of base removed.  <br /></td></tr>
 <tr class="separator:a69ef714ff05e59702dc99141683900a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -230,51 +227,6 @@ static const char *&#160;</td><td class="memItemRight" valign="bottom"><b>sota_u
 
 <p>Where a download redirect from base leads, into out. </p>
 <p>location is an absolute <a href="https://">https://</a> URL, or a path starting with '/' on base's host. A redirect to plain HTTP is SOTA_URL_NOT_HTTPS; out is untouched unless the result is SOTA_URL_OK. out must not overlap base or location. </p>
-
-</div>
-</div>
-<a id="ae0d019b75699cd37b60345fbf8c21630" name="ae0d019b75699cd37b60345fbf8c21630"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae0d019b75699cd37b60345fbf8c21630">&#9670;&#160;</a></span>sota_select_server_url()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static const char * sota_select_server_url </td>
-          <td>(</td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>current</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>candidate</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="sota__url_8h.html#a7edf5f2bb51046d94cae407593cbfd26">sota_url_status_t</a> *&#160;</td>
-          <td class="paramname"><em>status</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>candidate when it is valid, else current. </p>
-<p>*status gets the verdict. </p>
 
 </div>
 </div>

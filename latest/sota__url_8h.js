@@ -12,6 +12,5 @@ var sota__url_8h =
     [ "sota_validate_server_url", "sota__url_8h.html#aa69cb29426a25f8854d8833ac3c87fb0", null ],
     [ "sota_url_status_name", "sota__url_8h.html#ad1481499a1f38562e45b49f2408967f1", null ],
     [ "sota_redirect_target", "sota__url_8h.html#a0e295c8a83fb9e20c033b40ba244d390", null ],
-    [ "sota_select_server_url", "sota__url_8h.html#ae0d019b75699cd37b60345fbf8c21630", null ],
     [ "sota_build_api_url", "sota__url_8h.html#a69ef714ff05e59702dc99141683900a9", null ]
 ];

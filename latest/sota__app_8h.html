@@ -113,9 +113,8 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:a3bdfa2f3b713ec8f67386cc983d23c11" id="r_a3bdfa2f3b713ec8f67386cc983d23c11"><td class="memItemLeft" align="right" valign="top"><a id="a3bdfa2f3b713ec8f67386cc983d23c11" name="a3bdfa2f3b713ec8f67386cc983d23c11"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>SOTA_LOG_LEVEL</b>&#160;&#160;&#160;SOTA_LOG_INFO</td></tr>
-<tr class="memdesc:a3bdfa2f3b713ec8f67386cc983d23c11"><td class="mdescLeft">&#160;</td><td class="mdescRight">The most detailed level compiled in; lines above it are left out. <br /></td></tr>
+<tr class="memitem:a3bdfa2f3b713ec8f67386cc983d23c11" id="r_a3bdfa2f3b713ec8f67386cc983d23c11"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__app_8h.html#a3bdfa2f3b713ec8f67386cc983d23c11">SOTA_LOG_LEVEL</a>&#160;&#160;&#160;SOTA_LOG_DEBUG</td></tr>
+<tr class="memdesc:a3bdfa2f3b713ec8f67386cc983d23c11"><td class="mdescLeft">&#160;</td><td class="mdescRight">The most detailed level compiled in; lines above it are left out.  <br /></td></tr>
 <tr class="separator:a3bdfa2f3b713ec8f67386cc983d23c11"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a42c03805c69dde4770cd6133617d47bc" id="r_a42c03805c69dde4770cd6133617d47bc"><td class="memItemLeft" align="right" valign="top"><a id="a42c03805c69dde4770cd6133617d47bc" name="a42c03805c69dde4770cd6133617d47bc"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>SOTA_LOG_AT</b>(level, ...)&#160;&#160;&#160;    do { if (<a class="el" href="sota__app_8h.html#a3bdfa2f3b713ec8f67386cc983d23c11">SOTA_LOG_LEVEL</a> &gt;= (level)) <a class="el" href="sota__app_8h.html#a95af2c241e9ba1c3e9ed907ce024ac56">sota_app_log</a>((level), __VA_ARGS__); } while (0)</td></tr>
@@ -152,7 +151,7 @@ Enumerations</h2></td></tr>
 , <a class="el" href="sota__app_8h.html#ae119204e0e8b94533cd7b90ec7cf6774a4b8cf2ae3f4c14f499c4328fc39dfa5f">SOTA_EVENT_ROLLING_BACK</a>
 <br />
  }</td></tr>
-<tr class="memdesc:ae119204e0e8b94533cd7b90ec7cf6774"><td class="mdescLeft">&#160;</td><td class="mdescRight">In the order of simpleota_event_id_t, so the ESP-IDF adapter can pass them through.  <a href="sota__app_8h.html#ae119204e0e8b94533cd7b90ec7cf6774">More...</a><br /></td></tr>
+<tr class="memdesc:ae119204e0e8b94533cd7b90ec7cf6774"><td class="mdescLeft">&#160;</td><td class="mdescRight">In the order of simpleota_event_id_t, so the API layer can pass them through.  <a href="sota__app_8h.html#ae119204e0e8b94533cd7b90ec7cf6774">More...</a><br /></td></tr>
 <tr class="separator:ae119204e0e8b94533cd7b90ec7cf6774"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a06fc87d81c62e9abb8790b6e5713c55b" id="r_a06fc87d81c62e9abb8790b6e5713c55b"><td class="memItemLeft" align="right" valign="top"><a id="a06fc87d81c62e9abb8790b6e5713c55b" name="a06fc87d81c62e9abb8790b6e5713c55b"></a>enum &#160;</td><td class="memItemRight" valign="bottom">{ <br />
 &#160;&#160;<b>SOTA_LOG_NONE</b>
@@ -181,8 +180,26 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>sota_app_wake</b> (vo
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>What the engine tells the application: events, log lines, and a wake-up when the confirm timeout fires. </p>
-<p>Implemented by each client's adapter and by the host tests' fake. </p>
-</div><h2 class="groupheader">Enumeration Type Documentation</h2>
+<p>Implemented by the public API layer (port/esp32/simpleota.c) and by the host tests' fake. </p>
+</div><h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a3bdfa2f3b713ec8f67386cc983d23c11" name="a3bdfa2f3b713ec8f67386cc983d23c11"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3bdfa2f3b713ec8f67386cc983d23c11">&#9670;&#160;</a></span>SOTA_LOG_LEVEL</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SOTA_LOG_LEVEL&#160;&#160;&#160;SOTA_LOG_DEBUG</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The most detailed level compiled in; lines above it are left out. </p>
+<p>The ESP-IDF component sets it to CONFIG_LOG_MAXIMUM_LEVEL. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Enumeration Type Documentation</h2>
 <a id="ae119204e0e8b94533cd7b90ec7cf6774" name="ae119204e0e8b94533cd7b90ec7cf6774"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae119204e0e8b94533cd7b90ec7cf6774">&#9670;&#160;</a></span>sota_event_id_t</h2>
 
@@ -195,7 +212,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>sota_app_wake</b> (vo
       </table>
 </div><div class="memdoc">
 
-<p>In the order of simpleota_event_id_t, so the ESP-IDF adapter can pass them through. </p>
+<p>In the order of simpleota_event_id_t, so the API layer can pass them through. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ae119204e0e8b94533cd7b90ec7cf6774aa6a474d374406fe3f3d8ef078a7d1608" name="ae119204e0e8b94533cd7b90ec7cf6774aa6a474d374406fe3f3d8ef078a7d1608"></a>SOTA_EVENT_CHECK_DONE&#160;</td><td class="fielddoc"><p>A check completed; no update offered. </p>
 </td></tr>

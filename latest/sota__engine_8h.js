@@ -22,7 +22,6 @@ var sota__engine_8h =
       [ "SOTA_CONFIRM_FAILED", "sota__engine_8h.html#aec2dbcf918debb2367ec23f1a45695c8aab346c14626445fb8ec5440e19064ef8", null ]
     ] ],
     [ "sota_engine_init", "sota__engine_8h.html#aa6003d9cfbad771a68841d2754a803e7", null ],
-    [ "sota_engine_set_confirm_timeout", "sota__engine_8h.html#abf2da72f8a3128fa1803ba572efb7b68", null ],
     [ "sota_engine_add_key", "sota__engine_8h.html#adefae207028c67d5f056bab7557d61f8", null ],
     [ "sota_engine_validate_boot", "sota__engine_8h.html#a40c92c4275f567b6fdfb236268b88486", null ],
     [ "sota_engine_check", "sota__engine_8h.html#a9204102dd4e00756e7595b2121d01cf8", null ],

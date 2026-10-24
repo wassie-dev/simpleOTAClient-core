@@ -99,7 +99,7 @@ $(document).ready(function(){initNavTree('sota__net_8h.html',''); initResizable(
 </div><!--header-->
 <div class="contents">
 
-<p>HTTP, implemented by each client's adapter (HTTPClient on Arduino, esp_http_client on ESP-IDF) and by the host tests' fake.  
+<p>HTTP, implemented by the platform port (esp_http_client on ESP32, for both clients) and by the host tests' fake.  
 <a href="#details">More...</a></p>
 
 <p><a href="sota__net_8h_source.html">Go to the source code of this file.</a></p>
@@ -140,8 +140,8 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>sota_net_dl_close</b>
 <tr class="separator:a3e1c38ae68d3d01bf96a7c000975e948"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>HTTP, implemented by each client's adapter (HTTPClient on Arduino, esp_http_client on ESP-IDF) and by the host tests' fake. </p>
-<p>user is the <a class="el" href="structsota__config__t.html" title="Strings are borrowed: they must outlive the engine.">sota_config_t</a>'s user pointer, so an adapter can keep its TLS settings per engine. TLS trust is entirely the adapter's. </p>
+<div class="textblock"><p>HTTP, implemented by the platform port (esp_http_client on ESP32, for both clients) and by the host tests' fake. </p>
+<p>user is the <a class="el" href="structsota__config__t.html" title="Strings are borrowed: they must outlive the engine.">sota_config_t</a>'s user pointer, where the port keeps its TLS settings. TLS trust is entirely the port's. </p>
 </div><h2 class="groupheader">Enumeration Type Documentation</h2>
 <a id="adf764cbdea00d65edcd07bb9953ad2b7" name="adf764cbdea00d65edcd07bb9953ad2b7"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adf764cbdea00d65edcd07bb9953ad2b7">&#9670;&#160;</a></span>anonymous enum</h2>
