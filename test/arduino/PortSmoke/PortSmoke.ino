@@ -14,7 +14,8 @@ void setup() {
   simpleota_start();
   simpleota_check_now();
   simpleota_stop();
-  if (simpleota_check()) simpleota_apply();
+  bool update = false;
+  if (simpleota_check(&update) == ESP_OK && update) simpleota_apply();
   simpleota_confirm();
   simpleota_is_trial_boot();
   simpleota_current_build();

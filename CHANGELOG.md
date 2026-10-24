@@ -38,6 +38,11 @@ one place.
   `sota_net.h` and `sota_app.h` (events, logging, wake-up) from the client.
 - `port/esp32/`: `sota_image_ota.c`, `sota_boot_ota.c`, `sota_sys_esp32.c`
   and `sota_wdt_esp32.c`, the trial watchdog from both clients.
+- API version 1.0 (`SIMPLEOTA_API_VERSION`). `simpleota_check(&update)`
+  returns `ESP_OK` when the server answered and `ESP_FAIL` when it did not,
+  so polling apps can tell a failed check from no update. The header states
+  the compatibility rules (zero means default, additions only within 1.x)
+  and lists the stable `reason` tokens.
 - The public API, `include/simpleota.h`, with `port/esp32/simpleota.c` and
   the `esp_http_client` transport, `sota_net_esp32.c`: the ESP-IDF client's
   API, now the API of both clients. `sota_framework.{h,c}` holds what

@@ -10,6 +10,10 @@ static bool connected(void *ctx)
     return true;
 }
 
+#if SIMPLEOTA_API_VERSION < SIMPLEOTA_API_VERSION_NUM(1, 0)
+#error "simpleota.h is older than this app expects"
+#endif
+
 void app_main(void)
 {
     if (nvs_flash_init() != ESP_OK) return;
@@ -21,7 +25,8 @@ void app_main(void)
     simpleota_start();
     simpleota_check_now();
     simpleota_stop();
-    if (simpleota_check()) simpleota_apply();
+    bool update = false;
+    if (simpleota_check(&update) == ESP_OK && update) simpleota_apply();
     simpleota_confirm();
     simpleota_is_trial_boot();
     simpleota_current_build();
