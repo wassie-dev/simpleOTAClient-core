@@ -126,6 +126,22 @@ size_t&#160;</td><td class="memItemRight" valign="bottom"><b>bytes_total</b></td
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>One lifecycle event, valid only during the event_cb call. </p>
+<p><code>reason</code> for SIMPLEOTA_EVENT_UPDATE_FAILED, which the dashboard shows too:</p><ul>
+<li><code>downgrade_refused</code>: the offered build is not above the running one.</li>
+<li><code>insecure_url</code>: the download URL is not <a href="https://">https://</a>.</li>
+<li><code>signature_invalid</code>: a required signature is missing or wrong.</li>
+<li><code>https_begin_failed</code>: the download connection could not be opened.</li>
+<li><code>http_status_&lt;N&gt;</code>: the download returned HTTP N, or a fourth redirect.</li>
+<li><code>redirect_not_https</code>, <code>redirect_malformed</code>: a download redirect led to plain HTTP, or had no usable Location.</li>
+<li><code>update_begin_failed</code>: no second OTA slot, or the image is too big.</li>
+<li><code>update_write_failed</code>: a flash write failed.</li>
+<li><code>stream_error</code>, <code>download_stalled</code>, <code>short_read</code>: the download broke, received nothing for CONFIG_SIMPLEOTA_HTTP_TIMEOUT_MS, or ended early.</li>
+<li><code>checksum_mismatch</code>: the download did not match its SHA-256.</li>
+<li><code>update_end_failed</code>: the image failed ESP-IDF's check, or the boot slot could not be switched.</li>
+<li><code>state_save_failed</code>: the trial record could not be saved.</li>
+</ul>
+<p><code>reason</code> for SIMPLEOTA_EVENT_ROLLING_BACK: <code>confirm_timeout</code>, or the reset that ended the trial: <code>panic</code>, <code>int_wdt</code>, <code>task_wdt</code>, <code>watchdog</code>, <code>brownout</code>, <code>power_on</code>, <code>deep_sleep</code> or <code>reset</code>.</p>
+<p>For SIMPLEOTA_EVENT_CHECK_DONE it is the server's status, such as <code>up_to_date</code>, which the platform defines. </p>
 </div><h2 class="groupheader">Field Documentation</h2>
 <a id="a8a1856ff1821013b649745d9779a69f4" name="a8a1856ff1821013b649745d9779a69f4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8a1856ff1821013b649745d9779a69f4">&#9670;&#160;</a></span>reason</h2>

@@ -3,9 +3,15 @@ var simpleota_8h =
     [ "simpleota_event_t", "structsimpleota__event__t.html", "structsimpleota__event__t" ],
     [ "simpleota_signing_key_t", "structsimpleota__signing__key__t.html", "structsimpleota__signing__key__t" ],
     [ "simpleota_config_t", "structsimpleota__config__t.html", "structsimpleota__config__t" ],
-    [ "SIMPLEOTA_SECURITY_BASIC", "simpleota_8h.html#a6291f05081a5f441c562f79cfd36017c", null ],
-    [ "SIMPLEOTA_SECURITY_TOKEN", "simpleota_8h.html#abcf58b3f571f767973e09fba185d0ebc", null ],
-    [ "SIMPLEOTA_SECURITY_SIGNED", "simpleota_8h.html#a495b0d93d8a133a352673b992d9c7f27", null ],
+    [ "SIMPLEOTA_API_VERSION_MAJOR", "simpleota_8h.html#add01cd811c76c3c381ced4c4c7d75685", null ],
+    [ "SIMPLEOTA_API_VERSION_MINOR", "simpleota_8h.html#a97081c2a686d0bc356feee82bb9c54ea", null ],
+    [ "SIMPLEOTA_API_VERSION_NUM", "simpleota_8h.html#a4b97fd8cd40bccd77cd78f8e8f3d6d8f", null ],
+    [ "SIMPLEOTA_API_VERSION", "simpleota_8h.html#a124d4783dfc4298d91da7596029b40bf", null ],
+    [ "simpleota_security_t", "simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23b", [
+      [ "SIMPLEOTA_SECURITY_NONE", "simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23badda7b5c4e39c4c83abb400652113198d", null ],
+      [ "SIMPLEOTA_SECURITY_BASIC", "simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23ba54d33169411fd3310912bf5ccdab507f", null ],
+      [ "SIMPLEOTA_SECURITY_SIGNED", "simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23baf4595d1af85b9e4f6d4545fdf13d8b36", null ]
+    ] ],
     [ "simpleota_result_t", "simpleota_8h.html#a54a445d7e191230328761624fa687859", [
       [ "SIMPLEOTA_OK", "simpleota_8h.html#a54a445d7e191230328761624fa687859aebbf3c4dfcb4e7c5606dacb4889502de", null ],
       [ "SIMPLEOTA_CHECKSUM_FAIL", "simpleota_8h.html#a54a445d7e191230328761624fa687859aa79305ae2dc6c81d7823849963634e04", null ],
@@ -30,7 +36,7 @@ var simpleota_8h =
     [ "simpleota_start", "simpleota_8h.html#a7f6a81a9592b5559a9ca4a1c0ac253e2", null ],
     [ "simpleota_stop", "simpleota_8h.html#afbe91a16d63c1e22382ef7a3663faf86", null ],
     [ "simpleota_check_now", "simpleota_8h.html#a478f572b9393376cb2e38f5c3a6dca47", null ],
-    [ "simpleota_check", "simpleota_8h.html#a7c22a4b890c7e767ca446a1455ed21f2", null ],
+    [ "simpleota_check", "simpleota_8h.html#a0c2802e57933e26ee625aea680dc84ea", null ],
     [ "simpleota_apply", "simpleota_8h.html#ac9b45d3bdae71ba619bc4801d860767d", null ],
     [ "simpleota_set_server_url", "simpleota_8h.html#a5f3dcafc84228ebe2b810f9cea0259c6", null ],
     [ "simpleota_last_offered_version", "simpleota_8h.html#a0751ae1b3b3690eebb20a0c20a2f5129", null ],

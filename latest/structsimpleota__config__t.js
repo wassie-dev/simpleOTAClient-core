@@ -9,7 +9,7 @@ var structsimpleota__config__t =
     [ "partition_profile", "structsimpleota__config__t.html#ad24677bf3d1c419861a9cd0a1293e303", null ],
     [ "channel", "structsimpleota__config__t.html#a44e420d7221d152b7bd532414ee6b05c", null ],
     [ "labels_json", "structsimpleota__config__t.html#a963dfd2d9f7c694dd15f5218fea476bb", null ],
-    [ "security_mode", "structsimpleota__config__t.html#a656d4c159b9788849a2c19005d9ca22a", null ],
+    [ "security_mode", "structsimpleota__config__t.html#a844e7c37050b44e55d7193b164f90f87", null ],
     [ "version_label", "structsimpleota__config__t.html#a226ffb230a1dfcd80d5eab5805a1fcc3", null ],
     [ "image_build", "structsimpleota__config__t.html#afea57a73f5863d3c193c72788b3f553d", null ],
     [ "nvs_schema_version", "structsimpleota__config__t.html#a59f2bb19d85b8196c08c6531b24d4730", null ],

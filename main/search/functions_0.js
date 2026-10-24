@@ -1,7 +1,7 @@
 var searchData=
 [
   ['simpleota_5fapply_0',['simpleota_apply',['../simpleota_8h.html#ac9b45d3bdae71ba619bc4801d860767d',1,'simpleota.h']]],
-  ['simpleota_5fcheck_1',['simpleota_check',['../simpleota_8h.html#a7c22a4b890c7e767ca446a1455ed21f2',1,'simpleota.h']]],
+  ['simpleota_5fcheck_1',['simpleota_check',['../simpleota_8h.html#a0c2802e57933e26ee625aea680dc84ea',1,'simpleota.h']]],
   ['simpleota_5fcheck_5fnow_2',['simpleota_check_now',['../simpleota_8h.html#a478f572b9393376cb2e38f5c3a6dca47',1,'simpleota.h']]],
   ['simpleota_5fconfirm_3',['simpleota_confirm',['../simpleota_8h.html#a0a7efd9201a01f5e6ee07efac3491e45',1,'simpleota.h']]],
   ['simpleota_5fcurrent_5fbuild_4',['simpleota_current_build',['../simpleota_8h.html#a052ef41e92370276e97140c96d7f2a00',1,'simpleota.h']]],

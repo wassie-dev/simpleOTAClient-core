@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['security_5fmode_0',['security_mode',['../structsimpleota__config__t.html#a656d4c159b9788849a2c19005d9ca22a',1,'simpleota_config_t::security_mode'],['../structsota__device__info__t.html#a4aab75861ce4afc6a00fdbd67008060b',1,'sota_device_info_t::security_mode']]],
+  ['security_5fmode_0',['security_mode',['../structsimpleota__config__t.html#a844e7c37050b44e55d7193b164f90f87',1,'simpleota_config_t::security_mode'],['../structsota__device__info__t.html#a4aab75861ce4afc6a00fdbd67008060b',1,'sota_device_info_t::security_mode']]],
   ['server_5furl_1',['server_url',['../structsota__config__t.html#a58a5718f7b391969037e59e56b1ee5a9',1,'sota_config_t']]],
   ['signature_2',['signature',['../structsota__offer__t.html#a652b76ef37f19b68408409ec9b37eaad',1,'sota_offer_t']]],
   ['signed_5foffer_3',['signed_offer',['../structsota__offer__t.html#a4c590a197eed4b24bf9f1c86f054a7d4',1,'sota_offer_t']]],

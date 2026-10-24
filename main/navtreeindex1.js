@@ -1,5 +1,10 @@
 var NAVTREEINDEX1 =
 {
+"sota__state_8h_source.html":[3,0,0,13],
+"sota__sys_8h.html":[3,0,0,14],
+"sota__sys_8h.html#a0961c14739bde3f79251e6af49b07959":[3,0,0,14,8],
+"sota__sys_8h.html#a1e19df6ff3800d034e372585ed4fa03a":[3,0,0,14,9],
+"sota__sys_8h.html#a2ae0afd83190ce5332908835e6944efa":[3,0,0,14,6],
 "sota__sys_8h.html#a39836ae2eda7dd98747bf4d4e836e4d5":[3,0,0,14,11],
 "sota__sys_8h.html#a757aed15182322264a2309e745972f1a":[3,0,0,14,10],
 "sota__sys_8h.html#a8c0127c2a7e1fb816823a84cf13f1105":[3,0,0,14,2],
@@ -68,7 +73,7 @@ var NAVTREEINDEX1 =
 "structsimpleota__config__t.html#a44e420d7221d152b7bd532414ee6b05c":[2,0,0,7],
 "structsimpleota__config__t.html#a59f2bb19d85b8196c08c6531b24d4730":[2,0,0,12],
 "structsimpleota__config__t.html#a5a5ec9be14dcf796431041e837e1ae78":[2,0,0,20],
-"structsimpleota__config__t.html#a656d4c159b9788849a2c19005d9ca22a":[2,0,0,9],
+"structsimpleota__config__t.html#a844e7c37050b44e55d7193b164f90f87":[2,0,0,9],
 "structsimpleota__config__t.html#a8f45a23a115bb9a87564ed6301a262ed":[2,0,0,15],
 "structsimpleota__config__t.html#a963dfd2d9f7c694dd15f5218fea476bb":[2,0,0,8],
 "structsimpleota__config__t.html#a9d0fab48ab9ff19217894c3cf9de3b24":[2,0,0,3],

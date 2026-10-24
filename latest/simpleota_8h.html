@@ -118,25 +118,37 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
-<tr><td colspan="2"><div class="groupHeader">Security modes</div></td></tr>
-<tr><td colspan="2"><div class="groupText"><p>Values for <a class="el" href="structsimpleota__config__t.html#a656d4c159b9788849a2c19005d9ca22a" title="One of the security modes above, or NULL.">simpleota_config_t::security_mode</a>, as the SimpleOTA platform names them.</p>
-<p>The server offers a device only artifacts of the same mode, or any artifact when the device reports none. </p>
-</div></td></tr>
-<tr class="memitem:a6291f05081a5f441c562f79cfd36017c" id="r_a6291f05081a5f441c562f79cfd36017c"><td class="memItemLeft" align="right" valign="top"><a id="a6291f05081a5f441c562f79cfd36017c" name="a6291f05081a5f441c562f79cfd36017c"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>SIMPLEOTA_SECURITY_BASIC</b>&#160;&#160;&#160;&quot;basic&quot;</td></tr>
-<tr class="memdesc:a6291f05081a5f441c562f79cfd36017c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unsigned artifacts, verified by checksum. <br /></td></tr>
-<tr class="separator:a6291f05081a5f441c562f79cfd36017c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abcf58b3f571f767973e09fba185d0ebc" id="r_abcf58b3f571f767973e09fba185d0ebc"><td class="memItemLeft" align="right" valign="top"><a id="abcf58b3f571f767973e09fba185d0ebc" name="abcf58b3f571f767973e09fba185d0ebc"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>SIMPLEOTA_SECURITY_TOKEN</b>&#160;&#160;&#160;&quot;token&quot;</td></tr>
-<tr class="memdesc:abcf58b3f571f767973e09fba185d0ebc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The platform's "token" mode. <br /></td></tr>
-<tr class="separator:abcf58b3f571f767973e09fba185d0ebc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a495b0d93d8a133a352673b992d9c7f27" id="r_a495b0d93d8a133a352673b992d9c7f27"><td class="memItemLeft" align="right" valign="top"><a id="a495b0d93d8a133a352673b992d9c7f27" name="a495b0d93d8a133a352673b992d9c7f27"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>SIMPLEOTA_SECURITY_SIGNED</b>&#160;&#160;&#160;&quot;signed&quot;</td></tr>
-<tr class="memdesc:a495b0d93d8a133a352673b992d9c7f27"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ed25519-signed firmware only; needs a pinned key. <br /></td></tr>
-<tr class="separator:a495b0d93d8a133a352673b992d9c7f27"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">API version</div></td></tr>
+<tr><td colspan="2"><div class="groupText"><p>The version of this API, not of either package: the minor version grows when something is added, the major one only for a breaking change.</p>
+<p>Both the Arduino library and the ESP-IDF component ship this header unchanged. </p><div class="fragment"><div class="line"><span class="preprocessor">#if SIMPLEOTA_API_VERSION &gt;= SIMPLEOTA_API_VERSION_NUM(1, 1)</span></div>
+<div class="line"><span class="comment">// use something added in 1.1</span></div>
+<div class="line"><span class="preprocessor">#endif</span></div>
+</div><!-- fragment --> </div></td></tr>
+<tr class="memitem:add01cd811c76c3c381ced4c4c7d75685" id="r_add01cd811c76c3c381ced4c4c7d75685"><td class="memItemLeft" align="right" valign="top"><a id="add01cd811c76c3c381ced4c4c7d75685" name="add01cd811c76c3c381ced4c4c7d75685"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>SIMPLEOTA_API_VERSION_MAJOR</b>&#160;&#160;&#160;1</td></tr>
+<tr class="memdesc:add01cd811c76c3c381ced4c4c7d75685"><td class="mdescLeft">&#160;</td><td class="mdescRight">Breaking changes. <br /></td></tr>
+<tr class="separator:add01cd811c76c3c381ced4c4c7d75685"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a97081c2a686d0bc356feee82bb9c54ea" id="r_a97081c2a686d0bc356feee82bb9c54ea"><td class="memItemLeft" align="right" valign="top"><a id="a97081c2a686d0bc356feee82bb9c54ea" name="a97081c2a686d0bc356feee82bb9c54ea"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>SIMPLEOTA_API_VERSION_MINOR</b>&#160;&#160;&#160;0</td></tr>
+<tr class="memdesc:a97081c2a686d0bc356feee82bb9c54ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Additions. <br /></td></tr>
+<tr class="separator:a97081c2a686d0bc356feee82bb9c54ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b97fd8cd40bccd77cd78f8e8f3d6d8f" id="r_a4b97fd8cd40bccd77cd78f8e8f3d6d8f"><td class="memItemLeft" align="right" valign="top"><a id="a4b97fd8cd40bccd77cd78f8e8f3d6d8f" name="a4b97fd8cd40bccd77cd78f8e8f3d6d8f"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>SIMPLEOTA_API_VERSION_NUM</b>(major,  minor)&#160;&#160;&#160;((major) * 1000 + (minor))</td></tr>
+<tr class="memdesc:a4b97fd8cd40bccd77cd78f8e8f3d6d8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">A version as one comparable number. <br /></td></tr>
+<tr class="separator:a4b97fd8cd40bccd77cd78f8e8f3d6d8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a124d4783dfc4298d91da7596029b40bf" id="r_a124d4783dfc4298d91da7596029b40bf"><td class="memItemLeft" align="right" valign="top"><a id="a124d4783dfc4298d91da7596029b40bf" name="a124d4783dfc4298d91da7596029b40bf"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>SIMPLEOTA_API_VERSION</b>&#160;&#160;&#160;    <a class="el" href="simpleota_8h.html#a4b97fd8cd40bccd77cd78f8e8f3d6d8f">SIMPLEOTA_API_VERSION_NUM</a>(<a class="el" href="simpleota_8h.html#add01cd811c76c3c381ced4c4c7d75685">SIMPLEOTA_API_VERSION_MAJOR</a>, <a class="el" href="simpleota_8h.html#a97081c2a686d0bc356feee82bb9c54ea">SIMPLEOTA_API_VERSION_MINOR</a>)</td></tr>
+<tr class="memdesc:a124d4783dfc4298d91da7596029b40bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">This header's version, as <a class="el" href="simpleota_8h.html#a4b97fd8cd40bccd77cd78f8e8f3d6d8f" title="A version as one comparable number.">SIMPLEOTA_API_VERSION_NUM()</a> gives it. <br /></td></tr>
+<tr class="separator:a124d4783dfc4298d91da7596029b40bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
+<tr class="memitem:a2238b7cc1e6703ad5a0c3ff2a538b23b" id="r_a2238b7cc1e6703ad5a0c3ff2a538b23b"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23b">simpleota_security_t</a> { <a class="el" href="simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23badda7b5c4e39c4c83abb400652113198d">SIMPLEOTA_SECURITY_NONE</a> = 0
+, <a class="el" href="simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23ba54d33169411fd3310912bf5ccdab507f">SIMPLEOTA_SECURITY_BASIC</a>
+, <a class="el" href="simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23baf4595d1af85b9e4f6d4545fdf13d8b36">SIMPLEOTA_SECURITY_SIGNED</a>
+ }</td></tr>
+<tr class="memdesc:a2238b7cc1e6703ad5a0c3ff2a538b23b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The security mode a device reports on check-ins.  <a href="simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23b">More...</a><br /></td></tr>
+<tr class="separator:a2238b7cc1e6703ad5a0c3ff2a538b23b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a54a445d7e191230328761624fa687859" id="r_a54a445d7e191230328761624fa687859"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="simpleota_8h.html#a54a445d7e191230328761624fa687859">simpleota_result_t</a> { <br />
 &#160;&#160;<a class="el" href="simpleota_8h.html#a54a445d7e191230328761624fa687859aebbf3c4dfcb4e7c5606dacb4889502de">SIMPLEOTA_OK</a> = 0
 , <a class="el" href="simpleota_8h.html#a54a445d7e191230328761624fa687859aa79305ae2dc6c81d7823849963634e04">SIMPLEOTA_CHECKSUM_FAIL</a> = 1
@@ -180,11 +192,11 @@ Functions</h2></td></tr>
 <tr class="memitem:a478f572b9393376cb2e38f5c3a6dca47" id="r_a478f572b9393376cb2e38f5c3a6dca47"><td class="memItemLeft" align="right" valign="top">esp_err_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="simpleota_8h.html#a478f572b9393376cb2e38f5c3a6dca47">simpleota_check_now</a> (void)</td></tr>
 <tr class="memdesc:a478f572b9393376cb2e38f5c3a6dca47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wake the managed task to check immediately.  <br /></td></tr>
 <tr class="separator:a478f572b9393376cb2e38f5c3a6dca47"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7c22a4b890c7e767ca446a1455ed21f2" id="r_a7c22a4b890c7e767ca446a1455ed21f2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="simpleota_8h.html#a7c22a4b890c7e767ca446a1455ed21f2">simpleota_check</a> (void)</td></tr>
-<tr class="memdesc:a7c22a4b890c7e767ca446a1455ed21f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Polling mode: check in, and keep any offer for <a class="el" href="simpleota_8h.html#ac9b45d3bdae71ba619bc4801d860767d" title="Polling mode: download, verify and flash the offer from the last simpleota_check(),...">simpleota_apply()</a>.  <br /></td></tr>
-<tr class="separator:a7c22a4b890c7e767ca446a1455ed21f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c2802e57933e26ee625aea680dc84ea" id="r_a0c2802e57933e26ee625aea680dc84ea"><td class="memItemLeft" align="right" valign="top">esp_err_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="simpleota_8h.html#a0c2802e57933e26ee625aea680dc84ea">simpleota_check</a> (bool *update_available)</td></tr>
+<tr class="memdesc:a0c2802e57933e26ee625aea680dc84ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Polling mode: check in, and keep any offer for <a class="el" href="simpleota_8h.html#ac9b45d3bdae71ba619bc4801d860767d" title="Polling mode: download, verify and flash the offer from the last simpleota_check(),...">simpleota_apply()</a>.  <br /></td></tr>
+<tr class="separator:a0c2802e57933e26ee625aea680dc84ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac9b45d3bdae71ba619bc4801d860767d" id="r_ac9b45d3bdae71ba619bc4801d860767d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="simpleota_8h.html#a54a445d7e191230328761624fa687859">simpleota_result_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="simpleota_8h.html#ac9b45d3bdae71ba619bc4801d860767d">simpleota_apply</a> (void)</td></tr>
-<tr class="memdesc:ac9b45d3bdae71ba619bc4801d860767d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Polling mode: download, verify and flash the offer from the last <a class="el" href="simpleota_8h.html#a7c22a4b890c7e767ca446a1455ed21f2" title="Polling mode: check in, and keep any offer for simpleota_apply().">simpleota_check()</a>, then reboot unless disable_auto_reboot is set.  <br /></td></tr>
+<tr class="memdesc:ac9b45d3bdae71ba619bc4801d860767d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Polling mode: download, verify and flash the offer from the last <a class="el" href="simpleota_8h.html#a0c2802e57933e26ee625aea680dc84ea" title="Polling mode: check in, and keep any offer for simpleota_apply().">simpleota_check()</a>, then reboot unless disable_auto_reboot is set.  <br /></td></tr>
 <tr class="separator:ac9b45d3bdae71ba619bc4801d860767d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5f3dcafc84228ebe2b810f9cea0259c6" id="r_a5f3dcafc84228ebe2b810f9cea0259c6"><td class="memItemLeft" align="right" valign="top">esp_err_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="simpleota_8h.html#a5f3dcafc84228ebe2b810f9cea0259c6">simpleota_set_server_url</a> (const char *url)</td></tr>
 <tr class="memdesc:a5f3dcafc84228ebe2b810f9cea0259c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Point check-ins and status posts at another SimpleOTA server.  <br /></td></tr>
@@ -208,7 +220,7 @@ Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The SimpleOTA client for ESP32, the same API in the ESP-IDF component and the Arduino library. </p>
 <p>Thin client for the SimpleOTA firmware update platform (<a href="https://simpleota.com">https://simpleota.com</a>). Polls the check endpoint, streams and flashes offered firmware with on-the-fly SHA-256 and Ed25519 signature verification, reports lifecycle events, and runs every new image as a trial that rolls back unless it is confirmed.</p>
-<p>The application owns network bring-up (Wi-Fi/Ethernet) and decides when the client may talk to the network via the optional is_connected callback; the client does the rest from its own background task (managed mode). In polling mode the application calls <a class="el" href="simpleota_8h.html#a7c22a4b890c7e767ca446a1455ed21f2" title="Polling mode: check in, and keep any offer for simpleota_apply().">simpleota_check()</a> and <a class="el" href="simpleota_8h.html#ac9b45d3bdae71ba619bc4801d860767d" title="Polling mode: download, verify and flash the offer from the last simpleota_check(),...">simpleota_apply()</a> from its own task instead, and confirms a trial with <a class="el" href="simpleota_8h.html#a0a7efd9201a01f5e6ee07efac3491e45" title="Confirm the running trial image, after the app&#39;s own health checks pass (manual_confirm,...">simpleota_confirm()</a>.</p>
+<p>The application owns network bring-up (Wi-Fi/Ethernet) and decides when the client may talk to the network via the optional is_connected callback; the client does the rest from its own background task (managed mode). In polling mode the application calls <a class="el" href="simpleota_8h.html#a0c2802e57933e26ee625aea680dc84ea" title="Polling mode: check in, and keep any offer for simpleota_apply().">simpleota_check()</a> and <a class="el" href="simpleota_8h.html#ac9b45d3bdae71ba619bc4801d860767d" title="Polling mode: download, verify and flash the offer from the last simpleota_check(),...">simpleota_apply()</a> from its own task instead, and confirms a trial with <a class="el" href="simpleota_8h.html#a0a7efd9201a01f5e6ee07efac3491e45" title="Confirm the running trial image, after the app&#39;s own health checks pass (manual_confirm,...">simpleota_confirm()</a>.</p>
 <p>Quick start: </p><div class="fragment"><div class="line"><a class="code hl_struct" href="structsimpleota__config__t.html">simpleota_config_t</a> cfg = {0};      <span class="comment">// {} in an Arduino sketch</span></div>
 <div class="line">cfg.<a class="code hl_variable" href="structsimpleota__config__t.html#ab709351fed92e56e6b7cbb275dab0594">token</a> = <span class="stringliteral">&quot;sota_pk_...&quot;</span>;        <span class="comment">// project (or device) token</span></div>
 <div class="line">cfg.<a class="code hl_variable" href="structsimpleota__config__t.html#a5a5ec9be14dcf796431041e837e1ae78">is_connected</a> = wifi_up;       <span class="comment">// or start after the IP arrives</span></div>
@@ -216,14 +228,44 @@ Functions</h2></td></tr>
 <div class="line">ESP_ERROR_CHECK(<a class="code hl_function" href="simpleota_8h.html#a7f6a81a9592b5559a9ca4a1c0ac253e2">simpleota_start</a>());</div>
 <div class="ttc" id="asimpleota_8h_html_a6f2ef4dd89e7ee75b32f0f2fe666972c"><div class="ttname"><a href="simpleota_8h.html#a6f2ef4dd89e7ee75b32f0f2fe666972c">simpleota_init</a></div><div class="ttdeci">esp_err_t simpleota_init(const simpleota_config_t *config)</div><div class="ttdoc">Initialize the client: copy config, apply defaults, parse and pin signing keys, load persisted state,...</div></div>
 <div class="ttc" id="asimpleota_8h_html_a7f6a81a9592b5559a9ca4a1c0ac253e2"><div class="ttname"><a href="simpleota_8h.html#a7f6a81a9592b5559a9ca4a1c0ac253e2">simpleota_start</a></div><div class="ttdeci">esp_err_t simpleota_start(void)</div><div class="ttdoc">Start the managed background task: check on the interval, apply what is offered, confirm a trial on i...</div></div>
-<div class="ttc" id="astructsimpleota__config__t_html"><div class="ttname"><a href="structsimpleota__config__t.html">simpleota_config_t</a></div><div class="ttdoc">Configuration.</div><div class="ttdef"><b>Definition</b> simpleota.h:129</div></div>
-<div class="ttc" id="astructsimpleota__config__t_html_a5a5ec9be14dcf796431041e837e1ae78"><div class="ttname"><a href="structsimpleota__config__t.html#a5a5ec9be14dcf796431041e837e1ae78">simpleota_config_t::is_connected</a></div><div class="ttdeci">bool(* is_connected)(void *user_ctx)</div><div class="ttdoc">Return false while the link is down (e.g.</div><div class="ttdef"><b>Definition</b> simpleota.h:171</div></div>
-<div class="ttc" id="astructsimpleota__config__t_html_ab709351fed92e56e6b7cbb275dab0594"><div class="ttname"><a href="structsimpleota__config__t.html#ab709351fed92e56e6b7cbb275dab0594">simpleota_config_t::token</a></div><div class="ttdeci">const char * token</div><div class="ttdoc">REQUIRED.</div><div class="ttdef"><b>Definition</b> simpleota.h:130</div></div>
+<div class="ttc" id="astructsimpleota__config__t_html"><div class="ttname"><a href="structsimpleota__config__t.html">simpleota_config_t</a></div><div class="ttdoc">Configuration.</div><div class="ttdef"><b>Definition</b> simpleota.h:185</div></div>
+<div class="ttc" id="astructsimpleota__config__t_html_a5a5ec9be14dcf796431041e837e1ae78"><div class="ttname"><a href="structsimpleota__config__t.html#a5a5ec9be14dcf796431041e837e1ae78">simpleota_config_t::is_connected</a></div><div class="ttdeci">bool(* is_connected)(void *user_ctx)</div><div class="ttdoc">Return false while the link is down (e.g.</div><div class="ttdef"><b>Definition</b> simpleota.h:227</div></div>
+<div class="ttc" id="astructsimpleota__config__t_html_ab709351fed92e56e6b7cbb275dab0594"><div class="ttname"><a href="structsimpleota__config__t.html#ab709351fed92e56e6b7cbb275dab0594">simpleota_config_t::token</a></div><div class="ttdeci">const char * token</div><div class="ttdoc">REQUIRED.</div><div class="ttdef"><b>Definition</b> simpleota.h:186</div></div>
 </div><!-- fragment --><p>The device needs a partition table with two OTA app slots, which Arduino-ESP32's default has. On ESP-IDF, rollback by the bootloader needs CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y, which Arduino-ESP32 sets. Both ship with the first serial flash and cannot change over OTA. Without bootloader rollback the client rolls a failed trial back itself (CONFIG_SIMPLEOTA_SOFTWARE_ROLLBACK): on the confirm timeout, or on any reset before the confirm, as the bootloader would. It cannot catch an image that crashes before <a class="el" href="simpleota_8h.html#a6f2ef4dd89e7ee75b32f0f2fe666972c" title="Initialize the client: copy config, apply defaults, parse and pin signing keys, load persisted state,...">simpleota_init()</a> on every boot.</p>
 <p>The client is a process-wide singleton (one instance per device); a second <a class="el" href="simpleota_8h.html#a6f2ef4dd89e7ee75b32f0f2fe666972c" title="Initialize the client: copy config, apply defaults, parse and pin signing keys, load persisted state,...">simpleota_init()</a> returns ESP_ERR_INVALID_STATE.</p>
 <p>Thread-safety: configure and init from one task. After init the public functions are safe to call from any task, except that polling mode and <a class="el" href="simpleota_8h.html#a5f3dcafc84228ebe2b810f9cea0259c6" title="Point check-ins and status posts at another SimpleOTA server.">simpleota_set_server_url()</a> belong to one task of the application's.</p>
-<p>Logs use the tag "simpleota". Warnings and errors show by default; esp_log_level_set("simpleota", ESP_LOG_DEBUG) after <a class="el" href="simpleota_8h.html#a6f2ef4dd89e7ee75b32f0f2fe666972c" title="Initialize the client: copy config, apply defaults, parse and pin signing keys, load persisted state,...">simpleota_init()</a> shows every step. </p>
+<p>Logs use the tag "simpleota". Warnings and errors show by default; esp_log_level_set("simpleota", ESP_LOG_DEBUG) after <a class="el" href="simpleota_8h.html#a6f2ef4dd89e7ee75b32f0f2fe666972c" title="Initialize the client: copy config, apply defaults, parse and pin signing keys, load persisted state,...">simpleota_init()</a> shows every step.</p>
+<p>Compatibility, which every later 1.x release keeps:</p><ul>
+<li>A configuration field left at zero (or NULL, or false) gets its default. New fields follow the same rule, so a config filled from <code>{0}</code> keeps building and keeps its behaviour.</li>
+<li>Functions, fields, result values and event ids are only added, never changed or removed; check SIMPLEOTA_API_VERSION before using a newer one.</li>
+<li>The <code>reason</code> tokens listed at <a class="el" href="structsimpleota__event__t.html" title="One lifecycle event, valid only during the event_cb call.">simpleota_event_t</a> are stable. New tokens may be added, so treat an unknown one as a generic failure. </li>
+</ul>
 </div><h2 class="groupheader">Enumeration Type Documentation</h2>
+<a id="a2238b7cc1e6703ad5a0c3ff2a538b23b" name="a2238b7cc1e6703ad5a0c3ff2a538b23b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2238b7cc1e6703ad5a0c3ff2a538b23b">&#9670;&#160;</a></span>simpleota_security_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23b">simpleota_security_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The security mode a device reports on check-ins. </p>
+<p>The server offers it only artifacts of the same mode, or any artifact when it reports none. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a2238b7cc1e6703ad5a0c3ff2a538b23badda7b5c4e39c4c83abb400652113198d" name="a2238b7cc1e6703ad5a0c3ff2a538b23badda7b5c4e39c4c83abb400652113198d"></a>SIMPLEOTA_SECURITY_NONE&#160;</td><td class="fielddoc"><p>Report none: every artifact matches. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a2238b7cc1e6703ad5a0c3ff2a538b23ba54d33169411fd3310912bf5ccdab507f" name="a2238b7cc1e6703ad5a0c3ff2a538b23ba54d33169411fd3310912bf5ccdab507f"></a>SIMPLEOTA_SECURITY_BASIC&#160;</td><td class="fielddoc"><p>Unsigned artifacts, verified by checksum. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a2238b7cc1e6703ad5a0c3ff2a538b23baf4595d1af85b9e4f6d4545fdf13d8b36" name="a2238b7cc1e6703ad5a0c3ff2a538b23baf4595d1af85b9e4f6d4545fdf13d8b36"></a>SIMPLEOTA_SECURITY_SIGNED&#160;</td><td class="fielddoc"><p>Signed artifacts only, each verified against a pinned key before it can boot. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
 <a id="a54a445d7e191230328761624fa687859" name="a54a445d7e191230328761624fa687859"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a54a445d7e191230328761624fa687859">&#9670;&#160;</a></span>simpleota_result_t</h2>
 
@@ -245,7 +287,7 @@ Functions</h2></td></tr>
 </td></tr>
 <tr><td class="fieldname"><a id="a54a445d7e191230328761624fa687859a40a3140ff124daadb7c10b6fe088c783" name="a54a445d7e191230328761624fa687859a40a3140ff124daadb7c10b6fe088c783"></a>SIMPLEOTA_FLASH_FAIL&#160;</td><td class="fielddoc"><p>Network, URL, flash or state write failure. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a54a445d7e191230328761624fa687859abf10cb824ba7005b43f6beccbf5f587c" name="a54a445d7e191230328761624fa687859abf10cb824ba7005b43f6beccbf5f587c"></a>SIMPLEOTA_NO_OFFER&#160;</td><td class="fielddoc"><p>No offer from a successful <a class="el" href="simpleota_8h.html#a7c22a4b890c7e767ca446a1455ed21f2" title="Polling mode: check in, and keep any offer for simpleota_apply().">simpleota_check()</a>. </p>
+<tr><td class="fieldname"><a id="a54a445d7e191230328761624fa687859abf10cb824ba7005b43f6beccbf5f587c" name="a54a445d7e191230328761624fa687859abf10cb824ba7005b43f6beccbf5f587c"></a>SIMPLEOTA_NO_OFFER&#160;</td><td class="fielddoc"><p>No offer from a successful <a class="el" href="simpleota_8h.html#a0c2802e57933e26ee625aea680dc84ea" title="Polling mode: check in, and keep any offer for simpleota_apply().">simpleota_check()</a>. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a54a445d7e191230328761624fa687859ad8c4de481e4b673cde888e06efe92b8d" name="a54a445d7e191230328761624fa687859ad8c4de481e4b673cde888e06efe92b8d"></a>SIMPLEOTA_SIGNATURE_FAIL&#160;</td><td class="fielddoc"><p>Required signature missing or wrong. </p>
 </td></tr>
@@ -326,7 +368,7 @@ Functions</h2></td></tr>
 <dl class="retval"><dt>Return values</dt><dd>
   <table class="retval">
     <tr><td class="paramname">ESP_OK</td><td>Ready. </td></tr>
-    <tr><td class="paramname">ESP_ERR_INVALID_ARG</td><td>A missing token or one with control characters, an unparseable signing key, or a base_url that is not <a href="https://">https://</a>. </td></tr>
+    <tr><td class="paramname">ESP_ERR_INVALID_ARG</td><td>A missing token or one with control characters, an unparseable signing key, a security_mode out of range, or a base_url that is not <a href="https://">https://</a>. </td></tr>
     <tr><td class="paramname">ESP_ERR_INVALID_STATE</td><td>Already initialized, or neither the certificate bundle nor a cert_pem is available. </td></tr>
     <tr><td class="paramname">ESP_ERR_NO_MEM</td><td>Out of memory. </td></tr>
   </table>
@@ -419,25 +461,42 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a7c22a4b890c7e767ca446a1455ed21f2" name="a7c22a4b890c7e767ca446a1455ed21f2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7c22a4b890c7e767ca446a1455ed21f2">&#9670;&#160;</a></span>simpleota_check()</h2>
+<a id="a0c2802e57933e26ee625aea680dc84ea" name="a0c2802e57933e26ee625aea680dc84ea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c2802e57933e26ee625aea680dc84ea">&#9670;&#160;</a></span>simpleota_check()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool simpleota_check </td>
+          <td class="memname">esp_err_t simpleota_check </td>
           <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">bool *&#160;</td>
+          <td class="paramname"><em>update_available</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Polling mode: check in, and keep any offer for <a class="el" href="simpleota_8h.html#ac9b45d3bdae71ba619bc4801d860767d" title="Polling mode: download, verify and flash the offer from the last simpleota_check(),...">simpleota_apply()</a>. </p>
-<p>Sends queued reports first, except during a trial.</p>
-<dl class="section return"><dt>Returns</dt><dd>true when an update is offered; false when none is, on a failed check, before init, and (with a warning) while the managed task runs. </dd></dl>
+<p>Sends queued reports first, except during a trial. </p><div class="fragment"><div class="line"><span class="keywordtype">bool</span> update = <span class="keyword">false</span>;</div>
+<div class="line"><span class="keywordflow">if</span> (<a class="code hl_function" href="simpleota_8h.html#a0c2802e57933e26ee625aea680dc84ea">simpleota_check</a>(&amp;update) == ESP_OK &amp;&amp; update) <a class="code hl_function" href="simpleota_8h.html#ac9b45d3bdae71ba619bc4801d860767d">simpleota_apply</a>();</div>
+<div class="ttc" id="asimpleota_8h_html_a0c2802e57933e26ee625aea680dc84ea"><div class="ttname"><a href="simpleota_8h.html#a0c2802e57933e26ee625aea680dc84ea">simpleota_check</a></div><div class="ttdeci">esp_err_t simpleota_check(bool *update_available)</div><div class="ttdoc">Polling mode: check in, and keep any offer for simpleota_apply().</div></div>
+<div class="ttc" id="asimpleota_8h_html_ac9b45d3bdae71ba619bc4801d860767d"><div class="ttname"><a href="simpleota_8h.html#ac9b45d3bdae71ba619bc4801d860767d">simpleota_apply</a></div><div class="ttdeci">simpleota_result_t simpleota_apply(void)</div><div class="ttdoc">Polling mode: download, verify and flash the offer from the last simpleota_check(),...</div></div>
+</div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">update_available</td><td>Set to true when an update is offered, and to false otherwise, whatever is returned. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="retval"><dt>Return values</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">ESP_OK</td><td>The server answered. An offer it sent that cannot be used logs a warning and counts as no update. </td></tr>
+    <tr><td class="paramname">ESP_FAIL</td><td>No response, or not a 2xx: try again later. </td></tr>
+    <tr><td class="paramname">ESP_ERR_INVALID_ARG</td><td>update_available is NULL. </td></tr>
+    <tr><td class="paramname">ESP_ERR_INVALID_STATE</td><td>Not initialized, or (with a warning) the managed task runs. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -457,7 +516,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Polling mode: download, verify and flash the offer from the last <a class="el" href="simpleota_8h.html#a7c22a4b890c7e767ca446a1455ed21f2" title="Polling mode: check in, and keep any offer for simpleota_apply().">simpleota_check()</a>, then reboot unless disable_auto_reboot is set. </p>
+<p>Polling mode: download, verify and flash the offer from the last <a class="el" href="simpleota_8h.html#a0c2802e57933e26ee625aea680dc84ea" title="Polling mode: check in, and keep any offer for simpleota_apply().">simpleota_check()</a>, then reboot unless disable_auto_reboot is set. </p>
 <dl class="section return"><dt>Returns</dt><dd>What happened. With auto-reboot, a successful apply restarts the device before it returns. SIMPLEOTA_NO_OFFER, with a warning, while the managed task runs. </dd></dl>
 
 </div>
@@ -479,7 +538,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Point check-ins and status posts at another SimpleOTA server. </p>
-<p>Firmware downloads still use the offer's pre-signed URL. Not while <a class="el" href="simpleota_8h.html#a7c22a4b890c7e767ca446a1455ed21f2" title="Polling mode: check in, and keep any offer for simpleota_apply().">simpleota_check()</a> or <a class="el" href="simpleota_8h.html#ac9b45d3bdae71ba619bc4801d860767d" title="Polling mode: download, verify and flash the offer from the last simpleota_check(),...">simpleota_apply()</a> runs on another task.</p>
+<p>Firmware downloads still use the offer's pre-signed URL. Not while <a class="el" href="simpleota_8h.html#a0c2802e57933e26ee625aea680dc84ea" title="Polling mode: check in, and keep any offer for simpleota_apply().">simpleota_check()</a> or <a class="el" href="simpleota_8h.html#ac9b45d3bdae71ba619bc4801d860767d" title="Polling mode: download, verify and flash the offer from the last simpleota_check(),...">simpleota_apply()</a> runs on another task.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">url</td><td>The new base URL; same rules as base_url: <a href="https://">https://</a> with a host. </td></tr>
