@@ -49,8 +49,8 @@ reporting the wrong build, or stuck in a trial. This file is the contract.
 | `sota_build` | u32 | Build number the device reports as running. 0 or missing: none yet. | all |
 | `sota_hash` | str | sha256 hex (64 chars) of that build's image, or empty. | all |
 | `sota_ver` | str | Version label of that build, at most 64 chars, else empty. | all |
-| `sota_image` | str | ELF SHA-256 prefix (16 hex chars) of the image `sota_build` was last seen running on. Missing: not noted yet. | core 0.1.0 (Arduino 1.0.0, ESP-IDF 1.0.0) |
-| `sota_trial` | u8 | 0 or missing: no trial. 1: an update is staged, its image has not booted. 3: its image has booted once. 2: a rollback happened, its report not yet queued. Any value other than 0 and 2 is a trial. | Arduino 0.2, ESP-IDF 0.1; 3 since core 0.1.0 |
+| `sota_image` | str | ELF SHA-256 prefix (16 hex chars) of the image `sota_build` was last seen running on. Missing: not noted yet. | core 1.0.0 (Arduino 1.0.0, ESP-IDF 1.0.0) |
+| `sota_trial` | u8 | 0 or missing: no trial. 1: an update is staged, its image has not booted. 3: its image has booted once. 2: a rollback happened, its report not yet queued. Any value other than 0 and 2 is a trial. | Arduino 0.2, ESP-IDF 0.1; 3 since core 1.0.0 |
 | `sota_staged` | u8 | Present only while a trial record is written but the boot slot has not switched: 1 started, 2 previous identity saved in full. | Arduino 0.5, ESP-IDF 0.2 |
 | `sota_new_part` | u32 | Flash address the update was written to. | ESP-IDF all, Arduino 1.0.0 |
 | `sota_prev_part` | u32 | Flash address of the image the update replaced. | all with rollback |

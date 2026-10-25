@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 1.0.0 (2026-10-25)
 
 The first release: the logic both clients carried their own copies of, in
 one place.

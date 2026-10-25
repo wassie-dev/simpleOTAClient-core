@@ -5,7 +5,7 @@
 #
 # Copies <html-dir> (Doxygen's output) to <site-dir>/<version>, replacing
 # that version only, so earlier versions stay published. <version> is a tag
-# (v0.1.0) or "main". Then rebuilds what links the versions together:
+# (v1.0.0) or "main". Then rebuilds what links the versions together:
 #   latest/       a copy of the newest release tag (not a pre-release such
 #                 as v1.0.0-rc.1), or of main before the first one
 #   index.html    redirects to latest/
