@@ -205,6 +205,18 @@ jobs:
 
       - uses: arduino/setup-arduino-cli@v2
 
+      # Core 2.x runs esptool.py, which needs pyserial; the runner's Python
+      # has none. Put the pinned wheel on PYTHONPATH rather than install it.
+      - name: Provide pyserial
+        if: startsWith(matrix.core, '2.')
+        run: |
+          set -euo pipefail
+          whl="$RUNNER_TEMP/pyserial-3.5-py2.py3-none-any.whl"
+          curl -sSfL -o "$whl" \
+            https://files.pythonhosted.org/packages/py2.py3/p/pyserial/pyserial-3.5-py2.py3-none-any.whl
+          echo "c4451db6ba391ca6ca299fb3ec7bae67a5c55dde170964c7a14ceefec02f2cf0  $whl" | sha256sum -c -
+          echo "PYTHONPATH=$whl" >> "$GITHUB_ENV"
+
       - name: Compile the port smoke sketch
         run: |
           set -euo pipefail
