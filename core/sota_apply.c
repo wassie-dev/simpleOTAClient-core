@@ -11,7 +11,7 @@
 #include "sota_engine_priv.h"
 #include "sota_image.h"
 #include "sota_net.h"
-#include "sota_sha256.h"
+#include "sota_hash.h"
 #include "sota_sys.h"
 #include "sota_url.h"
 
@@ -45,6 +45,7 @@ static sota_apply_result_t give_up(sota_engine_t *e, job_t *job, const char *rea
     /* The download's TLS session goes before the status post opens one:
      * two at once can exhaust an ESP32's heap and lose the report. */
     if (job->downloading) sota_net_dl_close(e->cfg.user);
+    if (job->verifier) sota_verifier_abort(job->verifier);
     free(job->verifier);
     free(job->chunk);
     SOTA_LOGE("update failed: %s", reason);
@@ -91,7 +92,7 @@ static void progress(sota_engine_t *e, size_t total, size_t expected, size_t *la
  * NULL, or the reason it failed, with e->net_failed set when the network
  * caused it. */
 static const char *download(sota_engine_t *e, job_t *job, size_t expected,
-                            sota_sha256_ctx *sha)
+                            sota_hash_ctx *sha)
 {
     size_t total = 0;
     size_t last = (size_t)-1;
@@ -274,9 +275,12 @@ sota_apply_result_t sota_engine_apply(sota_engine_t *e)
         return give_up(e, &job, "update_begin_failed", SOTA_APPLY_FLASH_FAIL);
     }
 
-    sota_sha256_ctx sha;
+    /* The hash is finished whatever the download did: that releases it. */
+    sota_hash_ctx sha;
+    uint8_t digest[32];
     sota_sha256_init(&sha);
     const char *failed = download(e, &job, expected, &sha);
+    sota_sha256_final(&sha, digest);
     sota_net_dl_close(e->cfg.user);
     job.downloading = false;
     if (failed) return give_up(e, &job, failed, SOTA_APPLY_FLASH_FAIL);
@@ -284,9 +288,7 @@ sota_apply_result_t sota_engine_apply(sota_engine_t *e)
 
     /* The checksum first, which tells a broken transfer apart; then the
      * signature, which fails only for intact bytes nobody approved. */
-    uint8_t digest[32];
     char hex[65];
-    sota_sha256_final(&sha, digest);
     to_hex(digest, sizeof(digest), hex);
     if (strcmp(hex, e->offer.checksum) != 0) {
         return give_up(e, &job, "checksum_mismatch", SOTA_APPLY_CHECKSUM_FAIL);

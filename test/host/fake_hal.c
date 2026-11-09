@@ -15,7 +15,7 @@
 #include "sota_image.h"
 #include "sota_json.h"
 #include "sota_net.h"
-#include "sota_sha256.h"
+#include "sota_hash.h"
 #include "sota_sys.h"
 #include "sota_trial.h"
 
@@ -71,7 +71,7 @@ void fake_server_offer(uint32_t build, const char *dep)
     }
     memcpy(fs.image, &build, sizeof(build));
     uint8_t digest[32];
-    sota_sha256_ctx ctx;
+    sota_hash_ctx ctx;
     sota_sha256_init(&ctx);
     sota_sha256_update(&ctx, fs.image, fs.image_len);
     sota_sha256_final(&ctx, digest);

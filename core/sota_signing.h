@@ -35,7 +35,8 @@
 #else
 /** 1 when the build can verify signed updates. */
 #define SOTA_SIGNED_UPDATES 1
-#include "monocypher-ed25519.h"
+#include "monocypher.h"
+#include "sota_hash.h"
 #endif
 
 #ifdef __cplusplus
@@ -95,23 +96,31 @@ bool sota_decode_signature_b64(const char *b64, uint8_t out[64]);
  * Streaming Ed25519 verifier over one firmware image, for up to two
  * candidate public keys (key rotation windows).
  *
- * Runs one Monocypher incremental check context per candidate key; the
- * signature is accepted if it verifies under ANY candidate. Contexts are a
- * few hundred bytes each (embedded SHA-512 state); the whole struct is
- * about 700 bytes, so the apply path allocates it on the heap rather than
- * on a task stack next to the download buffer.
+ * Runs one Monocypher incremental check context per candidate key, each
+ * hashing with the port's SHA-512 (sota_hash.h); the signature is accepted
+ * if it verifies under ANY candidate. The whole struct is about 900 bytes,
+ * so the apply path allocates it on the heap rather than on a task stack
+ * next to the download buffer.
  *
  * Usage: sota_verifier_begin() once, sota_verifier_update() per downloaded
- * chunk, sota_verifier_final() once.
+ * chunk, then sota_verifier_final() once, or sota_verifier_abort() when the
+ * download is given up, so the port's hashes are released either way.
  */
 #define SOTA_VERIFIER_MAX_KEYS 2
 
 #if SOTA_SIGNED_UPDATES
 
+/** One key's check: Monocypher's state, then the hash it runs on, where
+ *  its custom-hash interface expects it. */
+typedef struct {
+    crypto_check_ctx_abstract ctx; /**< Signature, key and the hash's vtable. */
+    sota_hash_ctx hash;            /**< The port's SHA-512. */
+} sota_ed25519_check_t;
+
 /** A streaming signature check against each candidate key at once. */
 typedef struct {
-    crypto_check_ed25519_ctx ctx[SOTA_VERIFIER_MAX_KEYS]; /**< One check per key. */
-    uint8_t num_keys;                                     /**< Checks in use. */
+    sota_ed25519_check_t ctx[SOTA_VERIFIER_MAX_KEYS]; /**< One check per key. */
+    uint8_t num_keys;                                 /**< Checks in use. */
 } sota_sig_verifier_t;
 
 /**
@@ -131,6 +140,9 @@ void sota_verifier_update(sota_sig_verifier_t *v, const uint8_t *data, size_t le
 
 /** @return true if the signature verifies under any candidate key. */
 bool sota_verifier_final(sota_sig_verifier_t *v);
+
+/** Give the check up without a result. Does nothing after final(). */
+void sota_verifier_abort(sota_sig_verifier_t *v);
 
 #else /* !SOTA_SIGNED_UPDATES */
 
@@ -163,6 +175,12 @@ static inline bool sota_verifier_final(sota_sig_verifier_t *v)
 {
     (void)v;
     return false;
+}
+
+/** Does nothing. */
+static inline void sota_verifier_abort(sota_sig_verifier_t *v)
+{
+    (void)v;
 }
 
 #endif /* SOTA_SIGNED_UPDATES */

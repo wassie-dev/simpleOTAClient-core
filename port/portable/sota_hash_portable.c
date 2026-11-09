@@ -1,8 +1,28 @@
-/* sota_sha256.c - minimal FIPS 180-4 SHA-256. See header. */
+/**
+ * sota_hash_portable.c - sota_hash.h with no dependencies, for the host
+ * tests and for a port to a platform without a crypto library: a minimal
+ * FIPS 180-4 SHA-256 (the construction of the standard's reference,
+ * checked against the NIST vectors in test/host/test_signing.c), and
+ * Monocypher's SHA-512 from monocypher-ed25519.c beside this file. The
+ * ESP32 port uses mbedTLS instead (port/esp32/sota_hash_mbedtls.c), so
+ * neither file is copied into the clients.
+ */
 
-#include "sota_sha256.h"
+#include "sota_hash.h"
 
 #include <string.h>
+
+#include "sota_signing.h"
+
+/* A running SHA-256, kept in a sota_hash_ctx. */
+typedef struct {
+    uint32_t state[8];  /* The hash state. */
+    uint64_t bitlen;    /* Bits hashed so far. */
+    uint8_t buffer[64]; /* A partial block. */
+    size_t buffer_len;  /* Bytes in buffer. */
+} sha256_t;
+
+typedef char sha256_fits_ctx[sizeof(sha256_t) <= SOTA_HASH_CTX_SIZE ? 1 : -1];
 
 static const uint32_t K[64] = {
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1,
@@ -20,7 +40,7 @@ static const uint32_t K[64] = {
 
 #define ROTR(x, n) (((x) >> (n)) | ((x) << (32 - (n))))
 
-static void sha256_block(sota_sha256_ctx *ctx, const uint8_t block[64]) {
+static void sha256_block(sha256_t *ctx, const uint8_t block[64]) {
     uint32_t w[64];
     for (int i = 0; i < 16; ++i) {
         w[i] = ((uint32_t)block[4 * i] << 24) | ((uint32_t)block[4 * i + 1] << 16) |
@@ -63,7 +83,7 @@ static void sha256_block(sota_sha256_ctx *ctx, const uint8_t block[64]) {
     ctx->state[7] += h;
 }
 
-void sota_sha256_init(sota_sha256_ctx *ctx) {
+static void sha256_init(sha256_t *ctx) {
     ctx->state[0] = 0x6a09e667;
     ctx->state[1] = 0xbb67ae85;
     ctx->state[2] = 0x3c6ef372;
@@ -76,7 +96,7 @@ void sota_sha256_init(sota_sha256_ctx *ctx) {
     ctx->buffer_len = 0;
 }
 
-void sota_sha256_update(sota_sha256_ctx *ctx, const uint8_t *data, size_t len) {
+static void sha256_update(sha256_t *ctx, const uint8_t *data, size_t len) {
     ctx->bitlen += (uint64_t)len * 8;
 
     if (ctx->buffer_len) {
@@ -102,7 +122,7 @@ void sota_sha256_update(sota_sha256_ctx *ctx, const uint8_t *data, size_t len) {
     }
 }
 
-void sota_sha256_final(sota_sha256_ctx *ctx, uint8_t out[32]) {
+static void sha256_final(sha256_t *ctx, uint8_t out[32]) {
     uint64_t bitlen = ctx->bitlen;
 
     /* Padding: 0x80, zeros, then the 64-bit big-endian bit length. */
@@ -114,17 +134,17 @@ void sota_sha256_final(sota_sha256_ctx *ctx, uint8_t out[32]) {
     /* Feed the padding through update(); the length appended below uses
      * the `bitlen` snapshot taken above, so the ctx->bitlen churn from
      * these calls is irrelevant. */
-    sota_sha256_update(ctx, &pad_byte, 1);
+    sha256_update(ctx, &pad_byte, 1);
     while (pad_zeros) {
         size_t n = pad_zeros > 64 ? 64 : pad_zeros;
-        sota_sha256_update(ctx, zeros, n);
+        sha256_update(ctx, zeros, n);
         pad_zeros -= n;
     }
     uint8_t len_be[8];
     for (int i = 0; i < 8; ++i) {
         len_be[i] = (uint8_t)(bitlen >> (56 - 8 * i));
     }
-    sota_sha256_update(ctx, len_be, 8);
+    sha256_update(ctx, len_be, 8);
 
     for (int i = 0; i < 8; ++i) {
         out[4 * i] = (uint8_t)(ctx->state[i] >> 24);
@@ -133,3 +153,31 @@ void sota_sha256_final(sota_sha256_ctx *ctx, uint8_t out[32]) {
         out[4 * i + 3] = (uint8_t)(ctx->state[i]);
     }
 }
+
+void sota_sha256_init(sota_hash_ctx *ctx) { sha256_init((sha256_t *)ctx); }
+
+void sota_sha256_update(sota_hash_ctx *ctx, const uint8_t *data, size_t len) {
+    sha256_update((sha256_t *)ctx, data, len);
+}
+
+void sota_sha256_final(sota_hash_ctx *ctx, uint8_t out[32]) {
+    sha256_final((sha256_t *)ctx, out);
+}
+
+#if SOTA_SIGNED_UPDATES
+
+#include "monocypher-ed25519.h"
+
+typedef char sha512_fits_ctx[sizeof(crypto_sha512_ctx) <= SOTA_HASH_CTX_SIZE ? 1 : -1];
+
+void sota_sha512_init(sota_hash_ctx *ctx) { crypto_sha512_init((crypto_sha512_ctx *)ctx); }
+
+void sota_sha512_update(sota_hash_ctx *ctx, const uint8_t *data, size_t len) {
+    crypto_sha512_update((crypto_sha512_ctx *)ctx, data, len);
+}
+
+void sota_sha512_final(sota_hash_ctx *ctx, uint8_t out[64]) {
+    crypto_sha512_final((crypto_sha512_ctx *)ctx, out);
+}
+
+#endif /* SOTA_SIGNED_UPDATES */

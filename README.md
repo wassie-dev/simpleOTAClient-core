@@ -45,14 +45,14 @@ indirectly and the linker drops what a build does not use.
 | `sota_url.h` | Server base URL validation and joining. |
 | `sota_json.{h,c}` | The minimal JSON scanner and string escaper used for server responses and request bodies. |
 | `sota_signing.{h,c}` | The signed-firmware gate (a pinned key never accepts a stripped signature), PEM key parsing, base64 signatures, and the streaming two-key Ed25519 verifier. `-DSIMPLEOTA_DISABLE_SIGNED_UPDATES` leaves the verifier and Monocypher out of a build that never takes a signed update. |
-| `sota_sha256.{h,c}` | A dependency-free SHA-256, the same on every IDF version (mbedTLS 4 in IDF 6 has no legacy API). |
-| `monocypher*` | [Monocypher](https://monocypher.org/) 3.1.3, unmodified. See `core/LICENSE-vendor.md`. |
+| `monocypher.{h,c}` | [Monocypher](https://monocypher.org/) 3.1.3, unmodified, for Ed25519. See `core/LICENSE-vendor.md`. |
 
 The interfaces, one per concern:
 
 | Header | What it covers | Implemented by |
 | --- | --- | --- |
 | `sota_kv.h` | The stored state | the port |
+| `sota_hash.h` | SHA-256 for the checksum and SHA-512 for Ed25519 | the port |
 | `sota_image.h` | Writing an update into the next slot, and an early check that a download is an image for this chip | the port |
 | `sota_boot.h` | Which image runs and boots next; mark valid; roll back | the port |
 | `sota_sys.h` | Sleep and time, the lock, the confirm timer, the chip watchdog, restart, random bits for jitter, the default device ID | the port |
@@ -72,8 +72,13 @@ ESP-IDF (5.1 and later) and Arduino-ESP32 (2.x and 3.x) provide:
 | `sota_runner_esp32.c` | `sota_runner.h` on a FreeRTOS task |
 | `sota_wdt_esp32.c` | The trial watchdog on `wdt_hal` |
 | `sota_net_esp32.c` | `sota_net.h` on `esp_http_client` |
+| `sota_hash_mbedtls.c` | `sota_hash.h` on the mbedTLS that TLS already links, with the chip's SHA hardware: the hash modules on mbedTLS 2 and 3, PSA Crypto on mbedTLS 4 (ESP-IDF 6) |
 | `simpleota.c` | The public API, `include/simpleota.h`, and `sota_app.h` |
 | `sota_framework.{h,c}` | What differs between the ESP-IDF and Arduino builds |
+
+`port/portable/` has `sota_hash.h` with no dependencies (a small SHA-256,
+and Monocypher's SHA-512), for the host tests and for a port to a platform
+without a crypto library. It is not copied into the clients.
 
 So both clients are the same code with the same API, and each repository
 is packaging: the ESP-IDF component adds its `CMakeLists.txt`, `Kconfig`

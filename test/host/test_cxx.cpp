@@ -16,7 +16,7 @@
 #include "sota_json.h"
 #include "sota_report.h"
 #include "sota_runner.h"
-#include "sota_sha256.h"
+#include "sota_hash.h"
 #include "sota_kv.h"
 #include "sota_net.h"
 #include "sota_protocol.h"
@@ -57,7 +57,7 @@ int main()
     bool b = false;
     CHECK(sota_json_get_bool("{\"a\":true}", "a", &b) && b, "json links");
 
-    sota_sha256_ctx sha;
+    sota_hash_ctx sha;
     uint8_t digest[32];
     sota_sha256_init(&sha);
     sota_sha256_update(&sha, reinterpret_cast<const uint8_t *>("abc"), 3);
