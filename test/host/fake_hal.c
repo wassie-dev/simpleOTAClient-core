@@ -46,6 +46,7 @@ void fake_world_reset(bool bl_rollback)
     fw.state[0] = IMG_VALID;
     fw.writing = -1;
     fw.reset_reason = SOTA_RST_POWERON;
+    fw.random = 0x80000000u;
     memset(&fs, 0, sizeof(fs));
     fs.up = true;
     fs.dl_status = 200;
@@ -202,6 +203,7 @@ void sota_boot_rollback(uint32_t prev_part)
 
 void sota_sys_sleep_ms(uint32_t ms) { fw.sleep_ms += ms; }
 uint32_t sota_sys_now_ms(void) { return fw.sleep_ms; }
+uint32_t sota_sys_random(void) { return fw.random; }
 void sota_sys_lock(void) {}
 void sota_sys_unlock(void) {}
 
@@ -290,7 +292,7 @@ static int check_in(const char *body, char *resp, size_t cap)
              "\"checksum\":\"%s\",\"build_number\":%u,\"deployment_id\":\"%s\","
              "\"version\":\"%u.0.0\",\"size\":%u%s%s}",
              fs.checksum, (unsigned)fs.offer_build, fs.deployment, (unsigned)fs.offer_build,
-             (unsigned)fs.image_len, fs.extra ? "," : "", fs.extra ? fs.extra : "");
+             (unsigned)(fs.offer_size ? fs.offer_size : fs.image_len), fs.extra ? "," : "", fs.extra ? fs.extra : "");
     return answer(resp, cap, offer);
 }
 

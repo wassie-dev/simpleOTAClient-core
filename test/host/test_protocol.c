@@ -94,6 +94,20 @@ static void test_check_body(void)
               !sota_json_is_object("{\"a\":\"\x01\"}") &&
               !sota_json_is_object("{[[[[[[[[1]]]]]]]]}"),
           "anything that is not one closed object is refused");
+    check(sota_json_get_string("{\"u\":\"a\\u0026b\\u003D\\u00e9\\u20ac\\/\"}", "u", s, sizeof(s)) &&
+              strcmp(s, "a&b=\xc3\xa9\xe2\x82\xac/") == 0,
+          "\\uXXXX decodes to UTF-8, so an escaped & in a URL survives");
+    check(!sota_json_get_string("{\"u\":\"a\\u00\"}", "u", s, sizeof(s)) &&
+              !sota_json_get_string("{\"u\":\"a\\u0000b\"}", "u", s, sizeof(s)) &&
+              !sota_json_get_string("{\"u\":\"\\ud83d\\ude00\"}", "u", s, sizeof(s)) &&
+              !sota_json_get_string("{\"u\":\"\\u12", "u", s, sizeof(s)),
+          "a malformed, NUL or surrogate \\uXXXX fails");
+    check(!sota_json_get_string("{\"u\":\"https://dl.example/fw", "u", s, sizeof(s)) &&
+              !sota_json_get_string("{\"u\":\"abc\\", "u", s, sizeof(s)),
+          "a string cut off by the end of the response fails");
+    check(sota_json_get_string("{\"u\":\"1234567\"}", "u", s, 8) &&
+              !sota_json_get_string("{\"u\":\"123456\\u20ac\"}", "u", s, 8),
+          "a multi-byte escape that does not fit fails whole");
     check(!sota_json_get_u32("{\"n\":4294967296}", "n", &u),
           "a number past 32 bits is refused rather than wrapped");
 

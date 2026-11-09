@@ -37,6 +37,7 @@ typedef struct {
     uint32_t timer_s;
     bool wdt_armed;
     uint32_t sleep_ms;     /**< Total slept. */
+    uint32_t random;       /**< What sota_sys_random() returns; reset to the middle. */
     int writing;           /**< Slot being written, -1 when none. */
     uint8_t written[8192];
     size_t written_len;
@@ -50,6 +51,7 @@ typedef struct {
     size_t image_len;
     char checksum[65];
     bool chunked;          /**< No Content-Length on the download. */
+    uint32_t offer_size;   /**< The size the offer states, 0 = the image's. */
     int dl_status;
     int dl_fail_at;        /**< Byte offset where the download breaks, -1 = never. */
     int dl_fail_with;      /**< What a read returns from there on. */
