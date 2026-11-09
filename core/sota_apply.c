@@ -88,7 +88,8 @@ static void progress(sota_engine_t *e, size_t total, size_t expected, size_t *la
 }
 
 /* Stream the image into the slot, hashing and verifying as it goes. Returns
- * NULL, or the reason it failed. */
+ * NULL, or the reason it failed, with e->net_failed set when the network
+ * caused it. */
 static const char *download(sota_engine_t *e, job_t *job, size_t expected,
                             sota_sha256_ctx *sha)
 {
@@ -104,18 +105,27 @@ static const char *download(sota_engine_t *e, job_t *job, size_t expected,
                 sota_sys_sleep_ms(1);
                 continue;
             }
+            e->net_failed = true;
             return stalled ? "download_stalled" : "stream_error";
         }
         last_byte_ms = sota_sys_now_ms();
         /* More than was announced can never match: stop before the write. */
-        if (expected && (size_t)r > expected - total) return "short_read";
+        if (expected && (size_t)r > expected - total) {
+            e->net_failed = true;
+            return "short_read";
+        }
+        if (total == 0 && !sota_image_accepts(job->chunk, (size_t)r)) return "image_mismatch";
         if (!sota_image_write(job->chunk, (size_t)r)) return "update_write_failed";
         sota_sha256_update(sha, job->chunk, (size_t)r);
         if (job->verifier) sota_verifier_update(job->verifier, job->chunk, (size_t)r);
         total += (size_t)r;
         progress(e, total, expected, &last);
     }
-    return expected && total != expected ? "short_read" : NULL;
+    if (expected && total != expected) {
+        e->net_failed = true;
+        return "short_read";
+    }
+    return NULL;
 }
 
 /* The trial record goes in before the slot switch, so a power cut never
@@ -269,11 +279,7 @@ sota_apply_result_t sota_engine_apply(sota_engine_t *e)
     const char *failed = download(e, &job, expected, &sha);
     sota_net_dl_close(e->cfg.user);
     job.downloading = false;
-    if (failed) {
-        /* Everything but the flash write is the network's doing. */
-        e->net_failed = strcmp(failed, "update_write_failed") != 0;
-        return give_up(e, &job, failed, SOTA_APPLY_FLASH_FAIL);
-    }
+    if (failed) return give_up(e, &job, failed, SOTA_APPLY_FLASH_FAIL);
     sota_engine_post_status(e, "downloaded", NULL, e->offer.deployment, e->offer.build);
 
     /* The checksum first, which tells a broken transfer apart; then the

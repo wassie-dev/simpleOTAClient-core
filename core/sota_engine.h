@@ -86,6 +86,7 @@ typedef struct sota_engine {
     uint32_t report_failures;   /**< Report sends with no response this boot. */
     uint8_t net_failures;       /**< Managed steps in a row that failed on the network. */
     bool net_failed;            /**< The step under way has: no answer, or a broken download. */
+    uint32_t retry_after_s;     /**< Retry-After of the last check-in's 429 or 503, else 0. */
 
     sota_offer_t offer;         /**< offer.url is heap, NULL without an offer. */
     bool has_offer;             /**< offer holds an update from the last check. */
@@ -108,7 +109,8 @@ typedef struct sota_engine {
 bool sota_engine_init(sota_engine_t *e, const sota_config_t *cfg);
 
 /** Pin an Ed25519 public key (PEM). key_id may be NULL. False when the
- *  PEM does not parse or two keys are pinned already. */
+ *  PEM does not parse, two keys are pinned already, or the build leaves
+ *  signed updates out (SOTA_SIGNED_UPDATES). */
 bool sota_engine_add_key(sota_engine_t *e, const char *key_id, const char *pem);
 
 /** Work out what this boot means for a saved trial: start supervising it,

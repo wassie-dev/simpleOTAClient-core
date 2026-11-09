@@ -384,6 +384,11 @@ static void test_apply_failures(void)
     expect_failure("too many redirects", "http_status_302", SOTA_APPLY_FLASH_FAIL);
     memset(fs.redirect, 0, sizeof(fs.redirect));
 
+    fw.other_chip = true;
+    expect_failure("image for another chip", "image_mismatch", SOTA_APPLY_FLASH_FAIL);
+    check(fw.written_len == 0, "none of it is written");
+    fw.other_chip = false;
+
     fake_server_offer(1, "dep-old");
     fs.offer_old = true;
     expect_failure("offer of the running build", "downgrade_refused", SOTA_APPLY_DOWNGRADE);
@@ -612,6 +617,66 @@ static void test_network_retries(void)
     check(g_wait == 20, "a retry never waits longer than the check interval");
 }
 
+static void test_put_off(void)
+{
+    device_on_build_1(true);
+    fake_server_offer(2, "dep-2");
+    boot(SOTA_RST_POWERON);
+    fake_put_off = true;
+    check(run(act_step) == 0 && g_wait == SOTA_DEFAULT_CHECK_INTERVAL_S && fw.writing < 0 &&
+              fake_server_count("download_started", NULL) == 0 &&
+              fake_event_seen(SOTA_EVENT_UPDATE_AVAILABLE) == 1,
+          "an update the application puts off is announced but not downloaded");
+    fake_put_off = false;
+    check(run(act_step) == FAKE_JUMP_RESTART, "and installed once it agrees");
+
+    device_on_build_1(true);
+    fake_server_offer(2, "dep-2");
+    boot(SOTA_RST_POWERON);
+    fake_put_off = true;
+    check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
+          "polling mode does not ask: the application called apply");
+}
+
+static void test_retry_after(void)
+{
+    device_on_build_1(true);
+    boot(SOTA_RST_POWERON);
+    fs.busy_status = 429;
+    fs.busy_retry_after_s = 900;
+    fw.random = 0;
+    run(act_step);
+    check(g_wait == 900 && g_e.net_failures == 1,
+          "a 429's Retry-After replaces the 30 s retry, never sooner than asked");
+    fw.random = UINT32_MAX;
+    run(act_step);
+    check(g_wait == 990, "and up to a tenth later");
+    fs.busy_retry_after_s = 5;
+    fw.random = 0x80000000u;
+    run(act_step);
+    check(g_wait == 600, "a Retry-After shorter than the client's own wait changes nothing");
+    fs.busy_retry_after_s = 4000000u;
+    run(act_step);
+    check(g_wait >= SOTA_RETRY_AFTER_MAX_S && g_wait <= SOTA_RETRY_AFTER_MAX_S / 10u * 11u,
+          "an absurd Retry-After is capped at a day");
+    fs.busy_status = 500;
+    fs.busy_retry_after_s = 900;
+    run(act_step);
+    check(g_wait == SOTA_DEFAULT_CHECK_INTERVAL_S, "only a 429 or 503 is taken at its word");
+    fs.busy_status = 0;
+    run(act_step);
+    check(g_wait == SOTA_DEFAULT_CHECK_INTERVAL_S && g_e.retry_after_s == 0,
+          "an answer clears it");
+
+    device_on_build_1(true);
+    reach_trial();
+    fs.busy_status = 503;
+    fs.busy_retry_after_s = 900;
+    run(act_step);
+    check(on_trial() && g_wait == SOTA_TRIAL_RETRY_INTERVAL_S,
+          "a trial keeps its quick checks: its confirm timeout does not wait for the server");
+}
+
 static void test_signed(void)
 {
     uint8_t sk1[32], sk2[32], pk1[32], pk2[32];
@@ -780,6 +845,8 @@ int main(void)
     test_manual_reboot();
     test_report_retries();
     test_network_retries();
+    test_put_off();
+    test_retry_after();
     test_signed();
     test_one_engine();
     test_power_cuts(true, false);
