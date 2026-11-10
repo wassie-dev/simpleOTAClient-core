@@ -12,7 +12,7 @@
  * bytes with the same key, on the customer's machine,
  *
  *     SimpleOTA-Manifest-v1\n
- *     <project id>\n
+ *     <project id: the project's UUID, lowercase with hyphens>\n
  *     <signing key id>\n
  *     <build number, decimal>\n
  *     <sha256 of the image, 64 lowercase hex digits>\n

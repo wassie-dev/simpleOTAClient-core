@@ -289,14 +289,16 @@ typedef struct {
     esp_err_t (*crt_bundle_attach)(void *conf); /**< Another bundle's attach function.
                                                      Default: ESP-IDF's bundle. */
 
-    /** The id of the SimpleOTA project this device belongs to, as the
-     *  dashboard and the CLI show it. It is not a secret. With it and a
-     *  signing key, an update's manifest is checked whenever the offer
-     *  carries one, and a manifest for another project or another build
-     *  number is refused (reason signature_invalid) before the download.
-     *  SIMPLEOTA_SECURITY_SIGNED_BUILD needs it, and refuses an update
-     *  without a manifest too. Default: manifests are not checked. Init
-     *  fails when it has control characters. Since API 1.2. */
+    /** The id of the SimpleOTA project this device belongs to: the
+     *  project's UUID, lowercase with hyphens, as the CLI's key snippet
+     *  prints it. Not the project's slug, which can be renamed. It is not
+     *  a secret. With it and a signing key, an update's manifest is checked
+     *  whenever the offer carries one, and a manifest for another project
+     *  or another build number is refused (reason signature_invalid)
+     *  before the download. SIMPLEOTA_SECURITY_SIGNED_BUILD needs it, and
+     *  refuses an update without a manifest too. Default: manifests are
+     *  not checked. Init fails when it has control characters.
+     *  Since API 1.2. */
     const char *project_id;
 } simpleota_config_t;
 
