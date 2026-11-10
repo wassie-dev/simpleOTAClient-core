@@ -71,6 +71,7 @@ enum {
     STR_LABELS_JSON,
     STR_VERSION_LABEL,
     STR_CERT_PEM,
+    STR_PROJECT_ID,
     STR_COUNT,
 };
 
@@ -156,6 +157,7 @@ static bool copy_strings(const simpleota_config_t *cfg)
         [STR_LABELS_JSON] = cfg->labels_json,
         [STR_VERSION_LABEL] = cfg->version_label,
         [STR_CERT_PEM] = cfg->cert_pem,
+        [STR_PROJECT_ID] = cfg->project_id,
     };
     for (int i = 0; i < STR_COUNT; ++i) {
         if (src[i] && !(s.str[i] = strdup(src[i]))) return false;
@@ -168,26 +170,40 @@ static const char *security_mode_name(simpleota_security_t mode)
 {
     switch (mode) {
     case SIMPLEOTA_SECURITY_BASIC: return "basic";
-    case SIMPLEOTA_SECURITY_SIGNED: return "signed";
+    case SIMPLEOTA_SECURITY_SIGNED:
+    case SIMPLEOTA_SECURITY_SIGNED_BUILD: return "signed";
     default: return NULL;
     }
 }
 
+/* Modes in which the pinned keys bind: an unsigned update is refused. */
+static bool enforces_signatures(simpleota_security_t mode)
+{
+    return mode == SIMPLEOTA_SECURITY_SIGNED || mode == SIMPLEOTA_SECURITY_SIGNED_BUILD;
+}
+
 static esp_err_t init_engine(const simpleota_config_t *config)
 {
-    if ((unsigned)config->security_mode > SIMPLEOTA_SECURITY_SIGNED) {
+    if ((unsigned)config->security_mode > SIMPLEOTA_SECURITY_SIGNED_BUILD) {
         SOTA_LOGE("security_mode %d is not a simpleota_security_t", (int)config->security_mode);
         return ESP_ERR_INVALID_ARG;
     }
-    if (!SOTA_SIGNED_UPDATES &&
-        (config->num_signing_keys || config->security_mode == SIMPLEOTA_SECURITY_SIGNED)) {
+    bool enforcing = enforces_signatures(config->security_mode);
+    if (!SOTA_SIGNED_UPDATES && (config->num_signing_keys || enforcing)) {
         SOTA_LOGE("this build leaves signed updates out "
                   "(SIMPLEOTA_DISABLE_SIGNED_UPDATES): no signing keys, no SIGNED mode");
         return ESP_ERR_INVALID_ARG;
     }
     /* Reporting signed without a key would take signed builds unverified. */
-    if (config->security_mode == SIMPLEOTA_SECURITY_SIGNED && !config->num_signing_keys) {
-        SOTA_LOGE("security_mode SIGNED needs a signing key");
+    if (enforcing && !config->num_signing_keys) {
+        SOTA_LOGE("security_mode SIGNED and SIGNED_BUILD need a signing key");
+        return ESP_ERR_INVALID_ARG;
+    }
+    /* Without its own project id the device would have to take the
+     * server's, and a key shared between projects would bind nothing. */
+    bool strict = config->security_mode == SIMPLEOTA_SECURITY_SIGNED_BUILD;
+    if (strict && !(config->project_id && config->project_id[0])) {
+        SOTA_LOGE("security_mode SIGNED_BUILD needs project_id");
         return ESP_ERR_INVALID_ARG;
     }
     sota_url_status_t url = SOTA_URL_OK;
@@ -211,9 +227,11 @@ static esp_err_t init_engine(const simpleota_config_t *config)
                 .channel = s.str[STR_CHANNEL],
                 .security_mode = security_mode_name(config->security_mode),
                 .labels_json = s.str[STR_LABELS_JSON],
+                .require_manifest = strict,
                 .nvs_schema_version = config->nvs_schema_version ? config->nvs_schema_version : 1,
             },
         .version_label = s.str[STR_VERSION_LABEL],
+        .project_id = s.str[STR_PROJECT_ID],
         .image_build = config->image_build,
         .check_interval_s = config->check_interval_s,
         .confirm_timeout_s = config->confirm_timeout_s,
@@ -232,9 +250,9 @@ static esp_err_t init_engine(const simpleota_config_t *config)
             return ESP_ERR_INVALID_ARG;
         }
     }
-    /* The keys only bind in SIGNED mode: in any other, the server's word
-     * that an artifact is unsigned is taken (sota_signed_gate()). */
-    if (config->num_signing_keys && config->security_mode != SIMPLEOTA_SECURITY_SIGNED) {
+    /* The keys only bind in the signed modes: in any other, the server's
+     * word that an artifact is unsigned is taken (sota_signed_gate()). */
+    if (config->num_signing_keys && !enforcing) {
         SOTA_LOGW("signing keys are pinned but security_mode is not SIGNED: "
                   "unsigned updates are still accepted");
     }

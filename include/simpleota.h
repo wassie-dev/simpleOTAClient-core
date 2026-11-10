@@ -84,7 +84,7 @@ extern "C" {
  * @{
  */
 #define SIMPLEOTA_API_VERSION_MAJOR 1 /**< Breaking changes. */
-#define SIMPLEOTA_API_VERSION_MINOR 1 /**< Additions. */
+#define SIMPLEOTA_API_VERSION_MINOR 2 /**< Additions. */
 /** A version as one comparable number. */
 #define SIMPLEOTA_API_VERSION_NUM(major, minor) ((major) * 1000 + (minor))
 /** This header's version, as SIMPLEOTA_API_VERSION_NUM() gives it. */
@@ -102,6 +102,14 @@ typedef enum {
     SIMPLEOTA_SECURITY_SIGNED,   /**< Signed artifacts only, each verified against a
                                       pinned key before it can boot. Needs at least
                                       one signing key. */
+    /** SIGNED, and each update must also carry a manifest: a second
+     *  signature, made by the SimpleOTA CLI with the same key, over the
+     *  project id, the build number and the image's SHA-256. The server
+     *  then cannot pass an old signed image off as a newer build, or offer
+     *  another project's image when projects share a key. Needs a signing
+     *  key, project_id, and builds uploaded with a CLI that attests them.
+     *  Since API 1.2. */
+    SIMPLEOTA_SECURITY_SIGNED_BUILD,
 } simpleota_security_t;
 
 /** What simpleota_apply() did. The values are stable across releases. */
@@ -204,7 +212,8 @@ typedef struct {
                                         Left out, with a warning, when it is not one
                                         JSON object. */
     simpleota_security_t security_mode; /**< Default: SIMPLEOTA_SECURITY_NONE.
-                                             SIGNED needs a signing key. */
+                                             SIGNED and SIGNED_BUILD need a
+                                             signing key. */
     const char *version_label;     /**< Default: the label stored with the update that
                                         installed this image. */
     uint32_t image_build;          /**< This image's build number, reported when
@@ -235,15 +244,16 @@ typedef struct {
 
     /** Pinned public keys for signed firmware, at most 2. Parsed at init,
      *  which fails on a PEM that does not parse rather than run unpinned.
-     *  They bind only with security_mode SIMPLEOTA_SECURITY_SIGNED: in any
-     *  other mode an update the server marks unsigned is still accepted on
-     *  its checksum, and init logs a warning.
+     *  They bind only with security_mode SIMPLEOTA_SECURITY_SIGNED or
+     *  SIMPLEOTA_SECURITY_SIGNED_BUILD: in any other mode an update the
+     *  server marks unsigned is still accepted on its checksum, and init
+     *  logs a warning.
      *
      *  A device that will never take a signed update can leave the
      *  verifier out of its image, which saves about 13 KB of flash:
      *  CONFIG_SIMPLEOTA_DISABLE_SIGNED_UPDATES on ESP-IDF, or the build
      *  flag -DSIMPLEOTA_DISABLE_SIGNED_UPDATES on Arduino. Init then
-     *  refuses signing keys and SIGNED. */
+     *  refuses signing keys and both signed modes. */
     const simpleota_signing_key_t *signing_keys;
     uint8_t num_signing_keys;      /**< Entries in signing_keys. */
 
@@ -278,6 +288,16 @@ typedef struct {
     const char *cert_pem;
     esp_err_t (*crt_bundle_attach)(void *conf); /**< Another bundle's attach function.
                                                      Default: ESP-IDF's bundle. */
+
+    /** The id of the SimpleOTA project this device belongs to, as the
+     *  dashboard and the CLI show it. It is not a secret. With it and a
+     *  signing key, an update's manifest is checked whenever the offer
+     *  carries one, and a manifest for another project or another build
+     *  number is refused (reason signature_invalid) before the download.
+     *  SIMPLEOTA_SECURITY_SIGNED_BUILD needs it, and refuses an update
+     *  without a manifest too. Default: manifests are not checked. Init
+     *  fails when it has control characters. Since API 1.2. */
+    const char *project_id;
 } simpleota_config_t;
 
 /**
@@ -292,10 +312,12 @@ typedef struct {
  * @retval ESP_OK                 Ready.
  * @retval ESP_ERR_INVALID_ARG    A missing token or one with control
  *                                characters, an unparseable signing key,
- *                                a security_mode out of range or SIGNED
- *                                without a key, a base_url that is not
- *                                https://, or a signing key or SIGNED in a
- *                                build without signed updates.
+ *                                a security_mode out of range, a signed
+ *                                mode without a key, SIGNED_BUILD without
+ *                                a project_id, a project_id with control
+ *                                characters, a base_url that is not
+ *                                https://, or a signing key or signed mode
+ *                                in a build without signed updates.
  * @retval ESP_ERR_INVALID_STATE  Already initialized, or neither the
  *                                certificate bundle nor a cert_pem is
  *                                available.

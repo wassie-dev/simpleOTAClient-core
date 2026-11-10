@@ -39,6 +39,9 @@ typedef struct {
     const char *channel;            /**< Release channel. */
     const char *security_mode;      /**< "basic" or "signed", or NULL to report none. */
     const char *labels_json;        /**< A JSON object, embedded verbatim. */
+    bool require_manifest;          /**< Only offers with a signed manifest are
+                                         usable (sota_manifest.h); says so on
+                                         check-ins. */
     uint8_t nvs_schema_version;     /**< On-device data schema the firmware expects. */
 } sota_device_info_t;
 
@@ -55,6 +58,9 @@ typedef struct {
     bool signed_offer;              /**< security_mode is "signed". */
     bool has_signature;             /**< signature decoded to 64 ed25519 bytes. */
     uint8_t signature[64];          /**< The raw signature, when has_signature. */
+    bool has_manifest;              /**< manifest_signature decoded, and its
+                                         version is one this client checks. */
+    uint8_t manifest_sig[64];       /**< The raw signature, when has_manifest. */
 } sota_offer_t;
 
 /** What a check response says. */
@@ -82,7 +88,8 @@ bool sota_protocol_status_body(const char *device_id, const char *deployment,
  * Read a 2xx check response. offer->url and url_cap must be set; every
  * other member is overwritten. A signature that is not base64 of 64 bytes,
  * or names an algorithm other than ed25519, leaves has_signature false, so
- * the signed-firmware gate fails closed when keys are pinned.
+ * the signed-firmware gate fails closed when keys are pinned. The same goes
+ * for a manifest signature, and for a manifest_version other than 1.
  */
 sota_check_result_t sota_protocol_parse_check(const char *resp, sota_offer_t *offer);
 
