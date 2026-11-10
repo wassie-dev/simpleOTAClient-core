@@ -263,7 +263,7 @@ sota_apply_result_t sota_engine_apply(sota_engine_t *e)
                            e->offer.has_manifest);
     if (manifest == SOTA_MANIFEST_FAIL_CLOSED ||
         (manifest == SOTA_MANIFEST_VERIFY && !manifest_verifies(e))) {
-        SOTA_LOGE("the offer's manifest is missing or does not verify");
+        SOTA_LOGE("the offer's strict signature is missing or does not verify");
         return give_up(e, &job, "signature_invalid", SOTA_APPLY_SIGNATURE_FAIL);
     }
 

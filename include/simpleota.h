@@ -102,7 +102,7 @@ typedef enum {
     SIMPLEOTA_SECURITY_SIGNED,   /**< Signed artifacts only, each verified against a
                                       pinned key before it can boot. Needs at least
                                       one signing key. */
-    /** SIGNED, and each update must also carry a manifest: a second
+    /** SIGNED, and each update must also carry a strict signature: a second
      *  signature, made by the SimpleOTA CLI with the same key, over the
      *  project id, the build number and the image's SHA-256. The server
      *  then cannot pass an old signed image off as a newer build, or offer
@@ -292,13 +292,13 @@ typedef struct {
     /** The id of the SimpleOTA project this device belongs to: the
      *  project's UUID, lowercase with hyphens, as the CLI's key snippet
      *  prints it. Not the project's slug, which can be renamed. It is not
-     *  a secret. With it and a signing key, an update's manifest is checked
-     *  whenever the offer carries one, and a manifest for another project
-     *  or another build number is refused (reason signature_invalid)
-     *  before the download. SIMPLEOTA_SECURITY_STRICT needs it, and
-     *  refuses an update without a manifest too. Default: manifests are
-     *  not checked. Init fails when it has control characters.
-     *  Since API 1.2. */
+     *  a secret. With it and a signing key, an update's strict signature
+     *  is checked whenever the offer carries one, and one made for another
+     *  project or another build number is refused (reason
+     *  signature_invalid) before the download. SIMPLEOTA_SECURITY_STRICT
+     *  needs it, and refuses an update without a strict signature too.
+     *  Default: strict signatures are not checked. Init fails when it has
+     *  control characters. Since API 1.2. */
     const char *project_id;
 } simpleota_config_t;
 

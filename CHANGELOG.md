@@ -6,32 +6,33 @@ API 1.2: additions only. A configuration that leaves the new field at zero
 and keeps its security mode behaves as in 1.1, and nothing stored changes.
 
 Not for release before the platform and the CLI send what it reads: until
-then no offer carries a manifest, and a `STRICT` device takes no
+then no offer carries a strict signature, and a `STRICT` device takes no
 update.
 
 ### Added
 
-- **Signed manifests.** The image signature covers the firmware bytes only,
+- **Strict signatures.** The image signature covers the firmware bytes only,
   and the server assigns the build number, so a server that was taken over
   could offer an old signed image under a higher number, or another
   project's image when two projects share a key. The SimpleOTA CLI now
-  signs a second, small text with the same key once it knows the build
-  number (project id, key id, build number, image SHA-256), and the device
-  writes the same text from what it holds itself and checks that signature
-  before it downloads anything. `sota_manifest.h` has the format.
-- `SIMPLEOTA_SECURITY_STRICT`: `SIGNED`, and an update without a
-  manifest that verifies is refused (reason `signature_invalid`). It needs
+  makes a second signature with the same key once it knows the build
+  number, over a small text (project id, key id, build number, image
+  SHA-256), and the device writes the same text from what it holds itself
+  and checks that signature before it downloads anything. The code calls
+  the text a manifest; `sota_manifest.h` has the format.
+- `SIMPLEOTA_SECURITY_STRICT`: `SIGNED`, and an update without a strict
+  signature that verifies is refused (reason `signature_invalid`). It needs
   a signing key and `project_id`; init fails without either. The device
   reports `security_mode` `signed` and `"require_manifest":true` on
   check-ins.
 - `simpleota_config_t::project_id`. With it and a pinned key, a device in
-  any mode checks a manifest when the offer carries one, and refuses a
-  wrong one. That lets a fleet on `SIGNED` prove its manifests before it
-  moves to `STRICT`. Without it manifests are not looked at, as in
-  1.1.
+  any mode checks a strict signature when the offer carries one, and
+  refuses a wrong one. That lets a fleet on `SIGNED` prove its strict
+  signatures before it moves to `STRICT`. Without it they are not looked
+  at, as in 1.1.
 - The check response's optional `manifest_signature` (base64, 64 bytes) and
   `manifest_version` (1 when absent) are read. A version this client does
-  not know counts as no manifest.
+  not know counts as no strict signature.
 
 Costs about 1 KB of flash, and during the check a second verifier on the
 heap for a moment (about 700 bytes), freed before the download starts.
