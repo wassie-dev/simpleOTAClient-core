@@ -171,7 +171,7 @@ static const char *security_mode_name(simpleota_security_t mode)
     switch (mode) {
     case SIMPLEOTA_SECURITY_BASIC: return "basic";
     case SIMPLEOTA_SECURITY_SIGNED:
-    case SIMPLEOTA_SECURITY_SIGNED_BUILD: return "signed";
+    case SIMPLEOTA_SECURITY_STRICT: return "signed";
     default: return NULL;
     }
 }
@@ -179,12 +179,12 @@ static const char *security_mode_name(simpleota_security_t mode)
 /* Modes in which the pinned keys bind: an unsigned update is refused. */
 static bool enforces_signatures(simpleota_security_t mode)
 {
-    return mode == SIMPLEOTA_SECURITY_SIGNED || mode == SIMPLEOTA_SECURITY_SIGNED_BUILD;
+    return mode == SIMPLEOTA_SECURITY_SIGNED || mode == SIMPLEOTA_SECURITY_STRICT;
 }
 
 static esp_err_t init_engine(const simpleota_config_t *config)
 {
-    if ((unsigned)config->security_mode > SIMPLEOTA_SECURITY_SIGNED_BUILD) {
+    if ((unsigned)config->security_mode > SIMPLEOTA_SECURITY_STRICT) {
         SOTA_LOGE("security_mode %d is not a simpleota_security_t", (int)config->security_mode);
         return ESP_ERR_INVALID_ARG;
     }
@@ -196,14 +196,14 @@ static esp_err_t init_engine(const simpleota_config_t *config)
     }
     /* Reporting signed without a key would take signed builds unverified. */
     if (enforcing && !config->num_signing_keys) {
-        SOTA_LOGE("security_mode SIGNED and SIGNED_BUILD need a signing key");
+        SOTA_LOGE("security_mode SIGNED and STRICT need a signing key");
         return ESP_ERR_INVALID_ARG;
     }
     /* Without its own project id the device would have to take the
      * server's, and a key shared between projects would bind nothing. */
-    bool strict = config->security_mode == SIMPLEOTA_SECURITY_SIGNED_BUILD;
+    bool strict = config->security_mode == SIMPLEOTA_SECURITY_STRICT;
     if (strict && !(config->project_id && config->project_id[0])) {
-        SOTA_LOGE("security_mode SIGNED_BUILD needs project_id");
+        SOTA_LOGE("security_mode STRICT needs project_id");
         return ESP_ERR_INVALID_ARG;
     }
     sota_url_status_t url = SOTA_URL_OK;

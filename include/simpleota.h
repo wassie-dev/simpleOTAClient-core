@@ -107,9 +107,9 @@ typedef enum {
      *  project id, the build number and the image's SHA-256. The server
      *  then cannot pass an old signed image off as a newer build, or offer
      *  another project's image when projects share a key. Needs a signing
-     *  key, project_id, and builds uploaded with a CLI that attests them.
+     *  key, project_id, and builds the CLI has made strict-ready.
      *  Since API 1.2. */
-    SIMPLEOTA_SECURITY_SIGNED_BUILD,
+    SIMPLEOTA_SECURITY_STRICT,
 } simpleota_security_t;
 
 /** What simpleota_apply() did. The values are stable across releases. */
@@ -212,7 +212,7 @@ typedef struct {
                                         Left out, with a warning, when it is not one
                                         JSON object. */
     simpleota_security_t security_mode; /**< Default: SIMPLEOTA_SECURITY_NONE.
-                                             SIGNED and SIGNED_BUILD need a
+                                             SIGNED and STRICT need a
                                              signing key. */
     const char *version_label;     /**< Default: the label stored with the update that
                                         installed this image. */
@@ -245,7 +245,7 @@ typedef struct {
     /** Pinned public keys for signed firmware, at most 2. Parsed at init,
      *  which fails on a PEM that does not parse rather than run unpinned.
      *  They bind only with security_mode SIMPLEOTA_SECURITY_SIGNED or
-     *  SIMPLEOTA_SECURITY_SIGNED_BUILD: in any other mode an update the
+     *  SIMPLEOTA_SECURITY_STRICT: in any other mode an update the
      *  server marks unsigned is still accepted on its checksum, and init
      *  logs a warning.
      *
@@ -295,7 +295,7 @@ typedef struct {
      *  a secret. With it and a signing key, an update's manifest is checked
      *  whenever the offer carries one, and a manifest for another project
      *  or another build number is refused (reason signature_invalid)
-     *  before the download. SIMPLEOTA_SECURITY_SIGNED_BUILD needs it, and
+     *  before the download. SIMPLEOTA_SECURITY_STRICT needs it, and
      *  refuses an update without a manifest too. Default: manifests are
      *  not checked. Init fails when it has control characters.
      *  Since API 1.2. */
@@ -315,7 +315,7 @@ typedef struct {
  * @retval ESP_ERR_INVALID_ARG    A missing token or one with control
  *                                characters, an unparseable signing key,
  *                                a security_mode out of range, a signed
- *                                mode without a key, SIGNED_BUILD without
+ *                                mode without a key, STRICT without
  *                                a project_id, a project_id with control
  *                                characters, a base_url that is not
  *                                https://, or a signing key or signed mode

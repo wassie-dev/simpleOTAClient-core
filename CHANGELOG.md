@@ -6,7 +6,7 @@ API 1.2: additions only. A configuration that leaves the new field at zero
 and keeps its security mode behaves as in 1.1, and nothing stored changes.
 
 Not for release before the platform and the CLI send what it reads: until
-then no offer carries a manifest, and a `SIGNED_BUILD` device takes no
+then no offer carries a manifest, and a `STRICT` device takes no
 update.
 
 ### Added
@@ -19,7 +19,7 @@ update.
   number (project id, key id, build number, image SHA-256), and the device
   writes the same text from what it holds itself and checks that signature
   before it downloads anything. `sota_manifest.h` has the format.
-- `SIMPLEOTA_SECURITY_SIGNED_BUILD`: `SIGNED`, and an update without a
+- `SIMPLEOTA_SECURITY_STRICT`: `SIGNED`, and an update without a
   manifest that verifies is refused (reason `signature_invalid`). It needs
   a signing key and `project_id`; init fails without either. The device
   reports `security_mode` `signed` and `"require_manifest":true` on
@@ -27,7 +27,7 @@ update.
 - `simpleota_config_t::project_id`. With it and a pinned key, a device in
   any mode checks a manifest when the offer carries one, and refuses a
   wrong one. That lets a fleet on `SIGNED` prove its manifests before it
-  moves to `SIGNED_BUILD`. Without it manifests are not looked at, as in
+  moves to `STRICT`. Without it manifests are not looked at, as in
   1.1.
 - The check response's optional `manifest_signature` (base64, 64 bytes) and
   `manifest_version` (1 when absent) are read. A version this client does
