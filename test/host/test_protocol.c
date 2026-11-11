@@ -104,14 +104,40 @@ static void test_check_body(void)
           "\\uXXXX decodes to UTF-8, so an escaped & in a URL survives");
     check(!sota_json_get_string("{\"u\":\"a\\u00\"}", "u", s, sizeof(s)) &&
               !sota_json_get_string("{\"u\":\"a\\u0000b\"}", "u", s, sizeof(s)) &&
-              !sota_json_get_string("{\"u\":\"\\ud83d\\ude00\"}", "u", s, sizeof(s)) &&
               !sota_json_get_string("{\"u\":\"\\u12", "u", s, sizeof(s)),
-          "a malformed, NUL or surrogate \\uXXXX fails");
+          "a short or NUL \\uXXXX fails");
+    check(!sota_json_get_string("{\"u\":\"a\\u12g4\"}", "u", s, sizeof(s)),
+          "a \\uXXXX with a bad hex digit fails (\\u12g4)");
+    check(!sota_json_get_string("{\"u\":\"a\\u004G\"}", "u", s, sizeof(s)) &&
+              !sota_json_get_string("{\"u\":\"a\\u00zz\"}", "u", s, sizeof(s)),
+          "a \\uXXXX with a bad hex digit fails (\\u004G, \\u00zz)");
+    check(sota_json_get_string("{\"u\":\"\\u0fff\\uFFFD\"}", "u", s, sizeof(s)) &&
+              strcmp(s, "\xe0\xbf\xbf\xef\xbf\xbd") == 0,
+          "U+0FFF and U+FFFD decode to 3-byte UTF-8");
+    check(sota_json_get_string("{\"u\":\"a\\bb\\fc\"}", "u", s, sizeof(s)) &&
+              strcmp(s, "a\bb\fc") == 0,
+          "\\b and \\f decode");
+    check(sota_json_get_string("{\"u\":\"\\ud83d\\ude00 2.0\"}", "u", s, sizeof(s)) &&
+              strcmp(s, "\xf0\x9f\x98\x80 2.0") == 0 &&
+              sota_json_get_string("{\"u\":\"\\uD800\\uDC00\\uDBFF\\uDFFF\"}", "u", s, sizeof(s)) &&
+              strcmp(s, "\xf0\x90\x80\x80\xf4\x8f\xbf\xbf") == 0,
+          "a surrogate pair decodes to 4-byte UTF-8");
+    check(!sota_json_get_string("{\"u\":\"\\ud83d\"}", "u", s, sizeof(s)) &&
+              !sota_json_get_string("{\"u\":\"\\ud83dx\"}", "u", s, sizeof(s)) &&
+              !sota_json_get_string("{\"u\":\"\\ud83d\\n\"}", "u", s, sizeof(s)) &&
+              !sota_json_get_string("{\"u\":\"\\ud83d\\u0041\"}", "u", s, sizeof(s)) &&
+              !sota_json_get_string("{\"u\":\"\\ud83d\\ud83d\"}", "u", s, sizeof(s)) &&
+              !sota_json_get_string("{\"u\":\"\\ude00\"}", "u", s, sizeof(s)) &&
+              !sota_json_get_string("{\"u\":\"\\ude00\\ud83d\"}", "u", s, sizeof(s)) &&
+              !sota_json_get_string("{\"u\":\"\\ud83d\\ude", "u", s, sizeof(s)),
+          "a lone, mis-ordered or cut-off surrogate fails");
     check(!sota_json_get_string("{\"u\":\"https://dl.example/fw", "u", s, sizeof(s)) &&
               !sota_json_get_string("{\"u\":\"abc\\", "u", s, sizeof(s)),
           "a string cut off by the end of the response fails");
     check(sota_json_get_string("{\"u\":\"1234567\"}", "u", s, 8) &&
-              !sota_json_get_string("{\"u\":\"123456\\u20ac\"}", "u", s, 8),
+              !sota_json_get_string("{\"u\":\"123456\\u20ac\"}", "u", s, 8) &&
+              sota_json_get_string("{\"u\":\"123\\ud83d\\ude00\"}", "u", s, 8) &&
+              !sota_json_get_string("{\"u\":\"1234\\ud83d\\ude00\"}", "u", s, 8),
           "a multi-byte escape that does not fit fails whole");
     check(!sota_json_get_u32("{\"n\":4294967296}", "n", &u),
           "a number past 32 bits is refused rather than wrapped");
@@ -204,6 +230,11 @@ static void test_parse(void)
                     &o, url, sizeof(url)) == SOTA_CHECK_MALFORMED &&
               url[0] == '\0',
           "an offer without url, checksum or build is malformed");
+    check(parse("{\"update_available\":true,\"url\":\"https://x/fw\",\"checksum\":\"" HASH
+                "\",\"build_number\":7,\"version\":\"1.5 \\ud83d\\ude80\"}",
+                &o, url, sizeof(url)) == SOTA_CHECK_OFFER &&
+              strcmp(o.version, "1.5 \xf0\x9f\x9a\x80") == 0,
+          "an emoji in the version label, escaped as a surrogate pair, is kept");
     check(parse(minimal, &o, url, 8) == SOTA_CHECK_MALFORMED && url[0] == '\0',
           "a url longer than the buffer is malformed, never truncated");
     check(parse(minimal, &o, NULL, 0) == SOTA_CHECK_MALFORMED, "no url buffer");

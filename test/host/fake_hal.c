@@ -21,6 +21,8 @@
 
 fake_world_t fw;
 fake_server_t fs;
+size_t fake_malloc_watch;
+int fake_malloc_watched;
 jmp_buf fake_reset_target;
 sota_event_id_t fake_events[64];
 int fake_event_count;
@@ -28,6 +30,13 @@ int fake_wakes;
 bool fake_put_off;
 
 static const uint32_t k_addr[2] = {FAKE_SLOT_A, FAKE_SLOT_B};
+
+/* (malloc) is the real one: the macro only takes malloc( . */
+void *fake_malloc(size_t n)
+{
+    if (n == fake_malloc_watch) ++fake_malloc_watched;
+    return (malloc)(n);
+}
 
 static int slot_of(uint32_t addr)
 {
@@ -140,7 +149,7 @@ bool sota_image_accepts(const uint8_t *head, size_t len)
 
 bool sota_image_write(const uint8_t *buf, size_t len)
 {
-    if (fw.writing < 0 || fw.written_len + len > sizeof(fw.written)) return false;
+    if (fw.writing < 0 || fw.fail_write || fw.written_len + len > sizeof(fw.written)) return false;
     memcpy(fw.written + fw.written_len, buf, len);
     fw.written_len += len;
     return true;
@@ -302,12 +311,18 @@ static int check_in(const char *body, char *resp, size_t cap)
     if (!fs.offer_build || (current >= fs.offer_build && !fs.offer_old)) {
         return answer(resp, cap, "{\"update_available\":false,\"status\":\"up_to_date\"}");
     }
+    char version[64];
+    if (fs.version) {
+        snprintf(version, sizeof(version), "%s", fs.version);
+    } else {
+        snprintf(version, sizeof(version), "%u.0.0", (unsigned)fs.offer_build);
+    }
     char offer[1024];
     snprintf(offer, sizeof(offer),
              "{\"update_available\":true,\"url\":\"https://dl.example/fw.bin\","
              "\"checksum\":\"%s\",\"build_number\":%u,\"deployment_id\":\"%s\","
-             "\"version\":\"%u.0.0\",\"size\":%u%s%s}",
-             fs.checksum, (unsigned)fs.offer_build, fs.deployment, (unsigned)fs.offer_build,
+             "\"version\":\"%s\",\"size\":%u%s%s}",
+             fs.checksum, (unsigned)fs.offer_build, fs.deployment, version,
              (unsigned)(fs.offer_size ? fs.offer_size : fs.image_len), fs.extra ? "," : "", fs.extra ? fs.extra : "");
     return answer(resp, cap, offer);
 }
@@ -333,7 +348,13 @@ int sota_net_post(void *user, const char *url, const char *token, const char *bo
         if (retry_after_s) *retry_after_s = fs.busy_retry_after_s;
         return fs.busy_status;
     }
-    if (ends_with(url, SOTA_PATH_CHECK)) return check_in(body, resp, cap);
+    if (ends_with(url, SOTA_PATH_CHECK)) {
+        if (fs.check_status) {
+            ++fs.checks;
+            return fs.check_status;
+        }
+        return check_in(body, resp, cap);
+    }
     if (ends_with(url, SOTA_PATH_STATUS)) return status(body, resp, cap);
     return 404;
 }

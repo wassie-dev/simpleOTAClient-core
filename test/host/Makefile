@@ -43,8 +43,8 @@ test_protocol: test_protocol.c $(OBJS)
 
 ENGINE := $(CORE)/sota_engine.c $(CORE)/sota_apply.c $(CORE)/sota_state.c
 
-test_engine: test_engine.c fake_hal.c fake_hal.h fake_kv.c fake_kv.h $(ENGINE) $(OBJS) $(wildcard $(CORE)/*.h)
-	$(CC) $(CFLAGS) $(INC) -o $@ test_engine.c fake_hal.c fake_kv.c $(ENGINE) $(OBJS)
+test_engine: test_engine.c fake_hal.c fake_hal.h fake_kv.c fake_kv.h fake_malloc.h $(ENGINE) $(OBJS) $(wildcard $(CORE)/*.h)
+	$(CC) $(CFLAGS) $(INC) -include fake_malloc.h -o $@ test_engine.c fake_hal.c fake_kv.c $(ENGINE) $(OBJS)
 
 # A build without signed updates: no Monocypher on the link line.
 UNSIGNED := $(ENGINE) $(CORE)/sota_json.c $(CORE)/sota_sha256.c $(CORE)/sota_signing.c $(CORE)/sota_manifest.c $(CORE)/sota_protocol.c

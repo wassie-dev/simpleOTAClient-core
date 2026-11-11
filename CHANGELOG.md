@@ -76,7 +76,8 @@ stored changes.
   429), and a download that broke, after 30 s, 2 min and 10 min before it
   falls back to the check interval. Until now one dropped connection cost a
   whole interval, an hour by default. Each failed download still posts its
-  `failed` status, so a flaky link reports up to three more per hour.
+  `failed` status, so a flaky link reports up to three more for each run
+  of failures.
 - The managed task spreads every wait of a minute or more by up to a tenth
   either way, so devices that power up together do not check in together
   from then on. `sota_sys_random()` is new in `sota_sys.h` for it.
@@ -92,11 +93,13 @@ stored changes.
   half a value. It now fails.
 - `sota_json_get_string()` decodes `\uXXXX` (to UTF-8) instead of dropping
   the backslash: a server or proxy that escapes `&` as `\u0026` no longer
-  breaks the pre-signed download URL. A malformed escape, U+0000 and
-  surrogates fail the value.
+  breaks the pre-signed download URL. A surrogate pair, as a server that
+  escapes all non-ASCII sends an emoji, decodes to one character. A
+  malformed escape, U+0000 and a surrogate outside a pair fail the value.
 - A download longer than the announced size stops at once, before the
   excess is written to flash, instead of running to the end of the stream.
-  The reason is `short_read`, as before.
+  The reason is `short_read`, as before. It is not retried early, since it
+  fails the same way every time; a download that ends short is.
 
 ## 1.0.0 (2026-10-25)
 

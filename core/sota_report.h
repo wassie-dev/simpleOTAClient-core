@@ -95,7 +95,8 @@ static inline uint32_t sota_retry_after_wait_s(uint32_t wait_s, uint32_t retry_a
 
 /** Waits from this long on are spread, so devices that start together (a
  *  power cut ending, a batch off the line) do not check in together for
- *  ever after. Shorter waits are retries and stay exact. */
+ *  ever after. Shorter waits stay exact: the connection, trial and report
+ *  polls, and the first network retry. The later retries are spread too. */
 #define SOTA_JITTER_MIN_S 60u
 
 /**
