@@ -39,6 +39,9 @@ nothing stored changes. Ports add `sota_sys_random()` to `sota_sys.h`.
   whole interval, an hour by default. Each failed download still posts its
   `failed` status, so a flaky link reports up to three more for each run
   of failures.
+- A check-in out of memory, and a download that cannot allocate its
+  redirect buffer (reported as `https_begin_failed`), are retried on the
+  same schedule as a network failure.
 - The managed task spreads every wait of a minute or more by up to a tenth
   either way, so devices that power up together do not check in together
   from then on. `sota_sys_random()` is new in `sota_sys.h` for it.
