@@ -10,3 +10,4 @@ test/host/test_protocol
 test/host/test_engine
 test/host/test_contract
 build/
+test/host/test_unsigned

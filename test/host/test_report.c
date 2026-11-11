@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 
+#include "sota_net.h"
 #include "sota_report.h"
 #include "sota_time.h"
 
@@ -69,6 +70,19 @@ int main(void)
           "retries after 30 s, 2 min and 10 min, then the interval");
     check(sota_retry_interval_s(1, 20) == 20 && sota_retry_interval_s(3, 300) == 300,
           "a retry never waits longer than the check interval");
+    check(sota_net_parse_retry_after("120") == 120 && sota_net_parse_retry_after(" 5 ") == 5 &&
+              sota_net_parse_retry_after("0") == 0 &&
+              sota_net_parse_retry_after("99999999999") == UINT32_MAX,
+          "Retry-After in seconds is read, saturating");
+    check(sota_net_parse_retry_after("") == 0 && sota_net_parse_retry_after("-5") == 0 &&
+              sota_net_parse_retry_after("12s") == 0 && sota_net_parse_retry_after("1.5") == 0 &&
+              sota_net_parse_retry_after("Wed, 21 Oct 2026 07:28:00 GMT") == 0,
+          "a date or anything else is ignored");
+    check(sota_retry_after_wait_s(30, 0, 7) == 30 && sota_retry_after_wait_s(30, 30, 7) == 30 &&
+              sota_retry_after_wait_s(30, 120, 0) == 120 &&
+              sota_retry_after_wait_s(30, 120, UINT32_MAX) == 132 &&
+              sota_retry_after_wait_s(30, UINT32_MAX, 0) == SOTA_RETRY_AFTER_MAX_S,
+          "Retry-After only lengthens a wait, by its value to a tenth more, a day at most");
     check(sota_jitter_s(3600, 0x80000000u) == 3600 && sota_jitter_s(3600, 0) == 3240 &&
               sota_jitter_s(3600, UINT32_MAX) == 3960,
           "an hour is spread from 54 to 66 minutes");

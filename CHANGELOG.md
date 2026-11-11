@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.1.0 (unreleased)
+
+API 1.1: additions only. A configuration that leaves the new field at zero
+behaves as in 1.0, and nothing stored changes.
+
+### Added
+
+- `simpleota_config_t::can_update`: in managed mode the application can put
+  an offered update off (low battery, a job that must not be interrupted).
+  Nothing is downloaded, and the next check, or `simpleota_check_now()`,
+  asks again. `sota_app_can_update()` is its hook in `sota_app.h`.
+- A check-in answered with 429 or 503 and a `Retry-After` in seconds waits
+  that long, a day at most, and up to a tenth longer so a fleet told the
+  same number does not come back at once. A trial keeps its quick checks:
+  its confirm timeout does not wait for a busy server. `sota_net_post()`
+  hands the header back through a new argument.
+- A download that is not a firmware image for this chip is dropped after
+  its first bytes with the new reason `image_mismatch`, before anything is
+  written, where it used to download in full and fail `esp_ota_end()`.
+  `sota_image_accepts()` is new in `sota_image.h`.
+- `-DSIMPLEOTA_DISABLE_SIGNED_UPDATES` builds the client without the
+  Ed25519 verifier, for devices that never take a signed update: about
+  13 KB less flash. `simpleota_init()` then refuses signing keys and
+  `SIMPLEOTA_SECURITY_SIGNED`, and a signed offer is handled as on a device
+  with no key pinned. The host tests link this variant without Monocypher.
+
 ## 1.0.1 (unreleased)
 
 Fixes from a security and robustness review. No public API change, and

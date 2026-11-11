@@ -36,7 +36,7 @@ indirectly and the linker drops what a build does not use.
 | `sota_engine.{h,c}` | The engine: boot validation, check-ins, the trial with its confirm and rollback, reports, and a managed task's next wait. |
 | `sota_apply.c` | Download, verify and flash an offer, then save the trial record and switch the boot slot, in that order. |
 | `sota_trial.h` | What a boot means for a saved trial record: trial, rolled back, abandoned, waiting, and so on. Reads records from every earlier release of both clients. |
-| `sota_report.h` | The outbox of `confirmed` / `rolled_back` reports (one NVS blob) and the poll interval policy. |
+| `sota_report.h` | The outbox of `confirmed` / `rolled_back` reports (one NVS blob) and the poll interval policy: retries after a network failure, a server's Retry-After, and the jitter that spreads a fleet's check-ins. |
 | `sota_state.{h,c}` | Everything a client persists (identity, trial record, outbox) and the order it is written in, so a power cut between any two writes is recoverable. The keys are a contract with releases in the field: see [docs/NVS_CONTRACT.md](docs/NVS_CONTRACT.md). |
 | `sota_protocol.{h,c}` | The check-in and status request bodies, written into a caller's buffer with every string escaped, and the check response read into an offer. No heap. |
 | `sota_kv.h` | The key-value store the state lives in. The platform port implements it (NVS on ESP32); the host tests use an in-memory fake that can cut power after any write. |
@@ -44,7 +44,7 @@ indirectly and the linker drops what a build does not use.
 | `sota_time.h` | Millisecond and second durations to FreeRTOS ticks, without 32-bit wrap. |
 | `sota_url.h` | Server base URL validation and joining. |
 | `sota_json.{h,c}` | The minimal JSON scanner and string escaper used for server responses and request bodies. |
-| `sota_signing.{h,c}` | The signed-firmware gate (a pinned key never accepts a stripped signature), PEM key parsing, base64 signatures, and the streaming two-key Ed25519 verifier. |
+| `sota_signing.{h,c}` | The signed-firmware gate (a pinned key never accepts a stripped signature), PEM key parsing, base64 signatures, and the streaming two-key Ed25519 verifier. `-DSIMPLEOTA_DISABLE_SIGNED_UPDATES` leaves the verifier and Monocypher out of a build that never takes a signed update. |
 | `sota_sha256.{h,c}` | A dependency-free SHA-256, the same on every IDF version (mbedTLS 4 in IDF 6 has no legacy API). |
 | `monocypher*` | [Monocypher](https://monocypher.org/) 3.1.3, unmodified. See `core/LICENSE-vendor.md`. |
 
@@ -53,12 +53,12 @@ The interfaces, one per concern:
 | Header | What it covers | Implemented by |
 | --- | --- | --- |
 | `sota_kv.h` | The stored state | the port |
-| `sota_image.h` | Writing an update into the next slot | the port |
+| `sota_image.h` | Writing an update into the next slot, and an early check that a download is an image for this chip | the port |
 | `sota_boot.h` | Which image runs and boots next; mark valid; roll back | the port |
 | `sota_sys.h` | Sleep and time, random numbers, the lock, the confirm timer, the chip watchdog, restart, the default device ID | the port |
 | `sota_runner.h` | The managed task: start, stop, wake | the port |
 | `sota_net.h` | HTTP: check-in and status posts, the firmware download | the port |
-| `sota_app.h` | Events, log lines, and a wake-up when the confirm timeout fires | the API layer, `simpleota.c` |
+| `sota_app.h` | Events, log lines, the application's say on when to update, and a wake-up when the confirm timeout fires | the API layer, `simpleota.c` |
 
 `port/esp32/` implements the port's half with the ESP-IDF APIs that both
 ESP-IDF (5.1 and later) and Arduino-ESP32 (2.x and 3.x) provide:

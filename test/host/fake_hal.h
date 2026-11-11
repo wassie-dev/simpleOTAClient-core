@@ -33,6 +33,7 @@ typedef struct {
     int running;
     int reset_reason;
     bool fail_begin, fail_finish, fail_boot_set, fail_mark_valid, fail_timer, fail_write;
+    bool other_chip;       /**< sota_image_accepts() refuses the download. */
     bool timer_armed;
     uint32_t timer_s;
     bool wdt_armed;
@@ -45,6 +46,8 @@ typedef struct {
 
 typedef struct {
     bool up;
+    int busy_status;       /**< Answer every request with this status, 0 = serve. */
+    uint32_t busy_retry_after_s; /**< The Retry-After sent with busy_status. */
     int check_status;      /**< The check-in's HTTP status instead of an answer, 0 = answer. */
     const char *version;   /**< The offer's version as JSON text, NULL = "<build>.0.0". */
     uint32_t offer_build;  /**< 0: nothing offered. */
@@ -78,6 +81,7 @@ extern jmp_buf fake_reset_target;
 extern sota_event_id_t fake_events[64];
 extern int fake_event_count;
 extern int fake_wakes;
+extern bool fake_put_off; /**< sota_app_can_update() answers false. */
 
 /** Slot A runs build 1, confirmed; slot B is empty. Clears the server. */
 void fake_world_reset(bool bl_rollback);

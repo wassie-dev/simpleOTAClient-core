@@ -115,6 +115,10 @@ static const char *download(sota_engine_t *e, job_t *job, size_t expected,
             *net = false;
             return "short_read";
         }
+        if (total == 0 && !sota_image_accepts(job->chunk, (size_t)r)) {
+            *net = false;
+            return "image_mismatch";
+        }
         if (!sota_image_write(job->chunk, (size_t)r)) {
             *net = false;
             return "update_write_failed";

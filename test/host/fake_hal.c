@@ -27,6 +27,7 @@ jmp_buf fake_reset_target;
 sota_event_id_t fake_events[64];
 int fake_event_count;
 int fake_wakes;
+bool fake_put_off;
 
 static const uint32_t k_addr[2] = {FAKE_SLOT_A, FAKE_SLOT_B};
 
@@ -63,6 +64,7 @@ void fake_world_reset(bool bl_rollback)
     fs.dl_fail_with = SOTA_NET_AGAIN;
     fake_event_count = 0;
     fake_wakes = 0;
+    fake_put_off = false;
     fake_kv_set_cut_hook(power_cut);
 }
 
@@ -137,6 +139,13 @@ bool sota_image_begin(size_t expected, uint32_t *slot, uint32_t *running)
     *slot = k_addr[fw.writing];
     *running = k_addr[fw.running];
     return true;
+}
+
+bool sota_image_accepts(const uint8_t *head, size_t len)
+{
+    (void)head;
+    (void)len;
+    return !fw.other_chip;
 }
 
 bool sota_image_write(const uint8_t *buf, size_t len)
@@ -257,6 +266,12 @@ void sota_app_event(void *user, const sota_event_t *event)
     if (fake_event_count < 64) fake_events[fake_event_count++] = event->id;
 }
 
+bool sota_app_can_update(void *user)
+{
+    (void)user;
+    return !fake_put_off;
+}
+
 void sota_app_wake(void *user)
 {
     (void)user;
@@ -330,10 +345,15 @@ static int status(const char *body, char *resp, size_t cap)
 }
 
 int sota_net_post(void *user, const char *url, const char *token, const char *body,
-                  char *resp, size_t cap)
+                  char *resp, size_t cap, uint32_t *retry_after_s)
 {
     (void)user;
+    if (retry_after_s) *retry_after_s = 0;
     if (!fs.up || strcmp(token, "tok") != 0) return -1;
+    if (fs.busy_status) {
+        if (retry_after_s) *retry_after_s = fs.busy_retry_after_s;
+        return fs.busy_status;
+    }
     if (ends_with(url, SOTA_PATH_CHECK)) {
         if (fs.check_status) {
             ++fs.checks;
