@@ -32,7 +32,7 @@ typedef struct {
     int boot;              /**< Slot the next boot selects. */
     int running;
     int reset_reason;
-    bool fail_finish, fail_boot_set, fail_mark_valid, fail_timer;
+    bool fail_finish, fail_boot_set, fail_mark_valid, fail_timer, fail_write;
     bool timer_armed;
     uint32_t timer_s;
     bool wdt_armed;
@@ -45,6 +45,8 @@ typedef struct {
 
 typedef struct {
     bool up;
+    int check_status;      /**< The check-in's HTTP status instead of an answer, 0 = answer. */
+    const char *version;   /**< The offer's version as JSON text, NULL = "<build>.0.0". */
     uint32_t offer_build;  /**< 0: nothing offered. */
     char deployment[32];
     uint8_t image[5000];

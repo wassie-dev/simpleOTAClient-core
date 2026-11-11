@@ -32,7 +32,8 @@ stored changes.
   malformed escape, U+0000 and a surrogate outside a pair fail the value.
 - A download longer than the announced size stops at once, before the
   excess is written to flash, instead of running to the end of the stream.
-  The reason is `short_read`, as before.
+  The reason is `short_read`, as before. It is not retried early, since it
+  fails the same way every time; a download that ends short is.
 
 ## 1.0.0 (2026-10-25)
 
