@@ -728,6 +728,19 @@ static void expect_no_retry(const char *what, const char *reason)
           msg);
 }
 
+/* One managed step that fails on the network: the first quick retry. */
+static void expect_retry(const char *what, const char *reason)
+{
+    int before = fake_server_count("failed", reason);
+    g_e.net_failures = 0;
+    run(act_step);
+    char msg[120];
+    snprintf(msg, sizeof(msg), "%s is retried after 30 s", what);
+    check(g_wait == 30 && g_e.net_failures == 1 &&
+              fake_server_count("failed", reason) == before + 1,
+          msg);
+}
+
 static void test_no_early_retry(void)
 {
     device_on_build_1(true);
@@ -742,12 +755,34 @@ static void test_no_early_retry(void)
     fs.check_status = 503;
     run(act_step);
     check(g_wait == 30, "a check-in the server cannot answer right now is retried");
+    fs.check_status = 401;
+    run(act_step);
+    check(g_wait == SOTA_DEFAULT_CHECK_INTERVAL_S && g_e.net_failures == 0,
+          "a refusal after it ends the quick retries");
     fs.check_status = 0;
     run(act_step);
     check(g_wait == SOTA_DEFAULT_CHECK_INTERVAL_S && g_e.net_failures == 0,
           "  until it answers");
 
     fake_server_offer(2, "dep-2");
+    fs.dl_status = 0;
+    expect_retry("a download that cannot connect", "https_begin_failed");
+    fs.dl_status = 408;
+    expect_retry("a download answered with 408", "http_status_408");
+    fs.dl_status = 429;
+    expect_retry("a download answered with 429", "http_status_429");
+    fs.dl_status = 200;
+    fs.dl_fail_at = 2048;
+    expect_retry("a stalled download", "download_stalled");
+    fs.dl_fail_at = -1;
+    g_e.net_failures = 0;
+
+    fs.url = "http://dl.example/fw.bin";
+    expect_no_retry("an offer of a plain HTTP URL", "insecure_url");
+    fs.url = NULL;
+    fw.fail_begin = true;
+    expect_no_retry("an image write that cannot begin", "update_begin_failed");
+    fw.fail_begin = false;
     fw.fail_write = true;
     expect_no_retry("a flash write failure", "update_write_failed");
     fw.fail_write = false;
@@ -762,7 +797,19 @@ static void test_no_early_retry(void)
     memcpy(fs.redirect, bad, sizeof(bad));
     fs.redirects_done = 0;
     expect_no_retry("a malformed redirect", "redirect_malformed");
+    const char *loop[] = {"/a", "/b", "/c", "/d", NULL};
+    memcpy(fs.redirect, loop, sizeof(loop));
+    fs.redirects_done = 0;
+    expect_no_retry("a redirect loop", "http_status_302");
     memset(fs.redirect, 0, sizeof(fs.redirect));
+    fw.fail_finish = true;
+    expect_no_retry("an image the bootloader rejects", "update_end_failed");
+    fw.fail_finish = false;
+    fw.fail_boot_set = true;
+    expect_no_retry("a slot switch the bootloader refuses", "update_end_failed");
+    fw.fail_boot_set = false;
+    fake_kv_fail_nth(0);
+    expect_no_retry("a trial record that cannot be saved", "state_save_failed");
 
     fs.chunked = true;
     fs.offer_size = (uint32_t)fs.image_len - 100u;
@@ -773,7 +820,27 @@ static void test_no_early_retry(void)
     check(g_wait == 30 && g_e.net_failures == 1 && fake_server_count("failed", "short_read") == 2,
           "a download that ends before the announced size is retried");
     fs.offer_size = 0;
-    check(run(act_step) == FAKE_JUMP_RESTART, "the retry installs the update");
+    fs.no_size = true;
+    check(run(act_step) == FAKE_JUMP_RESTART && fw.build[1] == 2,
+          "a download with neither a length nor a size in the offer installs");
+}
+
+/* The 2 and 10 min retries are spread too, so devices that lost the server
+ * together do not come back together. */
+static void test_retries_spread(void)
+{
+    device_on_build_1(true);
+    boot(SOTA_RST_POWERON);
+    fs.up = false;
+    run(act_step);
+    uint32_t first = g_wait;
+    fw.random = 0;
+    run(act_step);
+    uint32_t second = g_wait;
+    fw.random = UINT32_MAX;
+    run(act_step);
+    check(first == 30 && second == 108 && g_wait == 660,
+          "the 2 and 10 min retries vary by a tenth either way, the 30 s one does not");
 }
 
 static void test_signed(void)
@@ -971,6 +1038,7 @@ int main(void)
     test_put_off();
     test_retry_after();
     test_no_early_retry();
+    test_retries_spread();
     test_signed();
     test_one_engine();
     test_power_cuts(true, false);
