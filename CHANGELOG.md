@@ -28,8 +28,10 @@ update.
 - `simpleota_config_t::project_id`. With it and a pinned key, a device in
   any mode checks a strict signature when the offer carries one, and
   refuses a wrong one. That lets a fleet on `SIGNED` prove its strict
-  signatures before it moves to `STRICT`. Without it they are not looked
-  at, as in 1.1.
+  signatures before it moves to `STRICT`. It is a rehearsal, not the
+  protection: outside `STRICT` a server can leave the strict signature out,
+  and the update is taken on its image signature as before. Without
+  `project_id` strict signatures are not looked at, as in 1.1.
 - The check response's optional `manifest_signature` (base64, 64 bytes) and
   `manifest_version` (1 when absent) are read. A version this client does
   not know counts as no strict signature.

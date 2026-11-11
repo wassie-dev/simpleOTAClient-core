@@ -56,7 +56,8 @@ typedef enum {
  * about itself. A device that requires manifests refuses an offer without
  * one, so a server cannot strip it. Any other device checks a manifest it
  * is able to check (a project id is configured and a key pinned), which
- * lets a fleet try its manifests before it starts to require them.
+ * lets a fleet try its manifests before it starts to require them. That
+ * is no protection: a server can strip the manifest from such a device.
  *
  * @param required            The device requires a manifest.
  * @param has_project         A project id is configured.

@@ -297,8 +297,11 @@ typedef struct {
      *  project or another build number is refused (reason
      *  signature_invalid) before the download. SIMPLEOTA_SECURITY_STRICT
      *  needs it, and refuses an update without a strict signature too.
-     *  Default: strict signatures are not checked. Init fails when it has
-     *  control characters. Since API 1.2. */
+     *  Only that mode protects against a server replaying an old build:
+     *  in any other, a server can leave the strict signature out and the
+     *  update is taken on its image signature, as before. Default: strict
+     *  signatures are not checked. Init fails when it has control
+     *  characters. Since API 1.2. */
     const char *project_id;
 } simpleota_config_t;
 
