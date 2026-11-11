@@ -11,7 +11,8 @@ stored changes.
   429), and a download that broke, after 30 s, 2 min and 10 min before it
   falls back to the check interval. Until now one dropped connection cost a
   whole interval, an hour by default. Each failed download still posts its
-  `failed` status, so a flaky link reports up to three more per hour.
+  `failed` status, so a flaky link reports up to three more for each run
+  of failures.
 - The managed task spreads every wait of a minute or more by up to a tenth
   either way, so devices that power up together do not check in together
   from then on. `sota_sys_random()` is new in `sota_sys.h` for it.
