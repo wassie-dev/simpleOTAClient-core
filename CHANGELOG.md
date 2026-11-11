@@ -27,8 +27,9 @@ stored changes.
   half a value. It now fails.
 - `sota_json_get_string()` decodes `\uXXXX` (to UTF-8) instead of dropping
   the backslash: a server or proxy that escapes `&` as `\u0026` no longer
-  breaks the pre-signed download URL. A malformed escape, U+0000 and
-  surrogates fail the value.
+  breaks the pre-signed download URL. A surrogate pair, as a server that
+  escapes all non-ASCII sends an emoji, decodes to one character. A
+  malformed escape, U+0000 and a surrogate outside a pair fail the value.
 - A download longer than the announced size stops at once, before the
   excess is written to flash, instead of running to the end of the stream.
   The reason is `short_read`, as before.
