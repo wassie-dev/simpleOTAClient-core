@@ -32,7 +32,7 @@ typedef struct {
     int boot;              /**< Slot the next boot selects. */
     int running;
     int reset_reason;
-    bool fail_finish, fail_boot_set, fail_mark_valid, fail_timer, fail_write;
+    bool fail_begin, fail_finish, fail_boot_set, fail_mark_valid, fail_timer, fail_write;
     bool other_chip;       /**< sota_image_accepts() refuses the download. */
     bool timer_armed;
     uint32_t timer_s;
@@ -57,6 +57,8 @@ typedef struct {
     char checksum[65];
     bool chunked;          /**< No Content-Length on the download. */
     uint32_t offer_size;   /**< The size the offer states, 0 = the image's. */
+    bool no_size;          /**< The offer leaves out its size. */
+    const char *url;       /**< The offer's URL, NULL = https://dl.example/fw.bin. */
     int dl_status;
     int dl_fail_at;        /**< Byte offset where the download breaks, -1 = never. */
     int dl_fail_with;      /**< What a read returns from there on. */

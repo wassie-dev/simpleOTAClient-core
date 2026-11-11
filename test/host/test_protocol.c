@@ -138,6 +138,18 @@ static void test_check_body(void)
           "a high surrogate followed by a unit above the low range fails");
     check(!sota_json_get_string("{\"u\":\"\\udfff\"}", "u", s, sizeof(s)),
           "a lone \\udfff fails");
+    check(!sota_json_get_string("{\"u\":\"\\udc00\"}", "u", s, sizeof(s)),
+          "a lone \\udc00 fails");
+    {
+        static const char around[] = "/:@G`g";
+        bool all_fail = true;
+        for (const char *c = around; *c; ++c) {
+            char text[32];
+            snprintf(text, sizeof(text), "{\"u\":\"\\u4%c41\"}", *c);
+            all_fail = all_fail && !sota_json_get_string(text, "u", s, sizeof(s));
+        }
+        check(all_fail, "a \\uXXXX with a character next to a hex range fails (/ : @ G ` g)");
+    }
     check(sota_json_get_string("{\"u\":\"\\u007f\"}", "u", s, sizeof(s)) &&
               strcmp(s, "\x7f") == 0,
           "U+007F decodes to 1 byte");
