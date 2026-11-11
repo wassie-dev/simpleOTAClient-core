@@ -13,12 +13,16 @@
 #include "fake_hal.h"
 #include "sota_net.h"
 #include "fake_kv.h"
+#include "fake_malloc.h"
 #include "monocypher-ed25519.h"
 #include "sota_boot.h"
 #include "sota_engine.h"
 #include "sota_engine_priv.h"
 #include "sota_kv.h"
 #include "sota_trial.h"
+
+/* The engine's offer URL buffer (OFFER_URL_CAP in sota_engine.c). */
+#define URL_BUF 2048u
 
 /* A simulated reset leaves the heap behind, as a real one does. */
 const char *__asan_default_options(void);
@@ -140,11 +144,33 @@ static void test_up_to_date(void)
 {
     device_on_build_1(true);
     boot(SOTA_RST_POWERON);
+    fake_malloc_watch = URL_BUF;
+    fake_malloc_watched = 0;
     run(act_check);
     check(!g_checked && fs.checks == 1, "no offer: check reports none");
+    check(fake_malloc_watched == 0, "  without allocating the URL buffer");
     check(fake_event_seen(SOTA_EVENT_CHECK_DONE) == 1, "CHECK_DONE emitted");
     run(act_apply);
     check(g_applied == SOTA_APPLY_NO_OFFER, "apply without an offer does nothing");
+    fake_server_offer(2, "dep-2");
+    run(act_check);
+    check(g_checked && fake_malloc_watched == 1, "an offer allocates the URL buffer");
+    fake_malloc_watch = 0;
+}
+
+/* A version label with an emoji, which a server escaping all non-ASCII
+ * sends as a surrogate pair, is kept through the update. */
+static void test_emoji_version(void)
+{
+    device_on_build_1(true);
+    fs.version = "\\ud83d\\ude00 2.0";
+    reach_trial();
+    run(act_check);
+    check(fw.running == 1 && !g_e.in_trial &&
+              strcmp(g_e.st.live.version, "\xf0\x9f\x98\x80 2.0") == 0,
+          "an emoji version label from a surrogate pair is stored as UTF-8");
+    boot(SOTA_RST_POWERON);
+    check(strcmp(g_e.st.live.version, "\xf0\x9f\x98\x80 2.0") == 0, "  and survives a reboot");
 }
 
 static void test_update_confirmed(void)
@@ -396,6 +422,10 @@ static void test_apply_failures(void)
     fake_server_offer(2, "dep-2");
 
     fs.chunked = true;
+    fs.offer_size = (uint32_t)fs.image_len - 100u;
+    expect_failure("longer than announced", "short_read", SOTA_APPLY_FLASH_FAIL);
+    check(fw.written_len <= fs.offer_size, "nothing is written past the announced size");
+    fs.offer_size = 0;
     check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
           "a download without a length uses the offered size");
 }
@@ -495,13 +525,14 @@ static void test_report_retries(void)
     run(act_timeout);
     fs.up = false;
     boot(SOTA_RST_SW);
-    uint32_t waits[3];
-    for (int i = 0; i < 3; ++i) {
+    uint32_t waits[4];
+    for (int i = 0; i < 4; ++i) {
         run(act_step);
         waits[i] = g_wait;
     }
+    /* The third wait is the check-in's own third retry (sota_retry_interval_s). */
     check(waits[0] == SOTA_TRIAL_RETRY_INTERVAL_S && waits[1] == SOTA_TRIAL_RETRY_INTERVAL_S &&
-              waits[2] == SOTA_DEFAULT_CHECK_INTERVAL_S,
+              waits[2] == 600 && waits[3] == SOTA_DEFAULT_CHECK_INTERVAL_S,
           "a report without a response retries quickly, then at the interval");
     boot(SOTA_RST_POWERON);
     check(g_e.outbox.count == 1, "it survives a reboot");
@@ -553,6 +584,200 @@ static void signed_offer(const uint8_t sk[32], const uint8_t pk[32], const char 
     fs.extra = g_extra;
 }
 
+static void test_network_retries(void)
+{
+    device_on_build_1(true);
+    boot(SOTA_RST_POWERON);
+    uint32_t waits[5];
+    fs.up = false;
+    for (int i = 0; i < 5; ++i) {
+        run(act_step);
+        waits[i] = g_wait;
+    }
+    check(waits[0] == 30 && waits[1] == 120 && waits[2] == 600 &&
+              waits[3] == SOTA_DEFAULT_CHECK_INTERVAL_S && waits[4] == waits[3],
+          "an unanswered check-in is retried after 30 s, 2 min, 10 min, then hourly");
+    fs.up = true;
+    run(act_step);
+    check(g_wait == SOTA_DEFAULT_CHECK_INTERVAL_S && g_e.net_failures == 0,
+          "an answer ends the retries");
+
+    fake_server_offer(2, "dep-2");
+    fs.dl_fail_at = 2048;
+    fs.dl_fail_with = SOTA_NET_ERROR;
+    run(act_step);
+    check(g_wait == 30 && fake_server_count("failed", "stream_error") == 1,
+          "a broken download is retried after 30 s");
+    g_e.net_failed = true; /* left over: a step without the link must not count it */
+    g_wait = sota_engine_step(&g_e, false);
+    check(g_wait == SOTA_CONNECT_POLL_S && g_e.net_failures == 1,
+          "a step without the link is not a failure of the server");
+    fs.dl_fail_at = -1;
+    fs.dl_status = 404;
+    run(act_step);
+    check(g_wait == SOTA_DEFAULT_CHECK_INTERVAL_S && g_e.net_failures == 0,
+          "a download the server refuses waits for the next regular check");
+    fs.dl_status = 503;
+    run(act_step);
+    check(g_wait == 30, "a download the server cannot serve right now is retried");
+    fs.dl_status = 200;
+    check(run(act_step) == FAKE_JUMP_RESTART, "the retry installs the update");
+
+    device_on_build_1(true);
+    boot(SOTA_RST_POWERON);
+    fw.random = 0;
+    run(act_step);
+    uint32_t low = g_wait;
+    fw.random = UINT32_MAX;
+    run(act_step);
+    check(low == 3240 && g_wait == 3960, "regular checks are spread a tenth either way");
+    g_cfg.check_interval_s = 20;
+    boot(SOTA_RST_POWERON);
+    fs.up = false;
+    run(act_step);
+    check(g_wait == 20, "a retry never waits longer than the check interval");
+
+    device_on_build_1(true);
+    boot(SOTA_RST_POWERON);
+    fs.up = false;
+    g_e.net_failures = UINT8_MAX;
+    run(act_step);
+    uint32_t first = g_wait;
+    run(act_step);
+    check(first == SOTA_DEFAULT_CHECK_INTERVAL_S && g_wait == SOTA_DEFAULT_CHECK_INTERVAL_S &&
+              g_e.net_failures == UINT8_MAX,
+          "the failure count stops at 255, so a long outage never restarts the quick retries");
+}
+
+/* One managed step that fails, not on the network: no early retry. */
+static void expect_no_retry(const char *what, const char *reason)
+{
+    int before = reason ? fake_server_count("failed", reason) : 0;
+    int checks = fs.checks;
+    run(act_step);
+    char msg[120];
+    snprintf(msg, sizeof(msg), "%s waits for the next regular check", what);
+    check(g_wait == SOTA_DEFAULT_CHECK_INTERVAL_S && g_e.net_failures == 0 &&
+              fs.checks == checks + 1 &&
+              (!reason || fake_server_count("failed", reason) == before + 1),
+          msg);
+}
+
+/* One managed step that fails on the network: the first quick retry. */
+static void expect_retry(const char *what, const char *reason)
+{
+    int before = fake_server_count("failed", reason);
+    g_e.net_failures = 0;
+    run(act_step);
+    char msg[120];
+    snprintf(msg, sizeof(msg), "%s is retried after 30 s", what);
+    check(g_wait == 30 && g_e.net_failures == 1 &&
+              fake_server_count("failed", reason) == before + 1,
+          msg);
+}
+
+static void test_no_early_retry(void)
+{
+    device_on_build_1(true);
+    boot(SOTA_RST_POWERON);
+    const int refused[] = {401, 403, 404};
+    for (int i = 0; i < 3; ++i) {
+        fs.check_status = refused[i];
+        char what[48];
+        snprintf(what, sizeof(what), "a check-in refused with %d", refused[i]);
+        expect_no_retry(what, NULL);
+    }
+    fs.check_status = 503;
+    run(act_step);
+    check(g_wait == 30, "a check-in the server cannot answer right now is retried");
+    fs.check_status = 401;
+    run(act_step);
+    check(g_wait == SOTA_DEFAULT_CHECK_INTERVAL_S && g_e.net_failures == 0,
+          "a refusal after it ends the quick retries");
+    fs.check_status = 0;
+    run(act_step);
+    check(g_wait == SOTA_DEFAULT_CHECK_INTERVAL_S && g_e.net_failures == 0,
+          "  until it answers");
+
+    fake_server_offer(2, "dep-2");
+    fs.dl_status = 0;
+    expect_retry("a download that cannot connect", "https_begin_failed");
+    fs.dl_status = 408;
+    expect_retry("a download answered with 408", "http_status_408");
+    fs.dl_status = 429;
+    expect_retry("a download answered with 429", "http_status_429");
+    fs.dl_status = 200;
+    fs.dl_fail_at = 2048;
+    expect_retry("a stalled download", "download_stalled");
+    fs.dl_fail_at = -1;
+    g_e.net_failures = 0;
+
+    fs.url = "http://dl.example/fw.bin";
+    expect_no_retry("an offer of a plain HTTP URL", "insecure_url");
+    fs.url = NULL;
+    fw.fail_begin = true;
+    expect_no_retry("an image write that cannot begin", "update_begin_failed");
+    fw.fail_begin = false;
+    fw.fail_write = true;
+    expect_no_retry("a flash write failure", "update_write_failed");
+    fw.fail_write = false;
+    fs.corrupt = true;
+    expect_no_retry("a checksum mismatch", "checksum_mismatch");
+    fs.corrupt = false;
+    const char *to_http[] = {"http://cdn.example/fw.bin", NULL};
+    memcpy(fs.redirect, to_http, sizeof(to_http));
+    fs.redirects_done = 0;
+    expect_no_retry("a redirect to plain HTTP", "redirect_not_https");
+    const char *bad[] = {"ftp://cdn.example/fw.bin", NULL};
+    memcpy(fs.redirect, bad, sizeof(bad));
+    fs.redirects_done = 0;
+    expect_no_retry("a malformed redirect", "redirect_malformed");
+    const char *loop[] = {"/a", "/b", "/c", "/d", NULL};
+    memcpy(fs.redirect, loop, sizeof(loop));
+    fs.redirects_done = 0;
+    expect_no_retry("a redirect loop", "http_status_302");
+    memset(fs.redirect, 0, sizeof(fs.redirect));
+    fw.fail_finish = true;
+    expect_no_retry("an image the bootloader rejects", "update_end_failed");
+    fw.fail_finish = false;
+    fw.fail_boot_set = true;
+    expect_no_retry("a slot switch the bootloader refuses", "update_end_failed");
+    fw.fail_boot_set = false;
+    fake_kv_fail_nth(0);
+    expect_no_retry("a trial record that cannot be saved", "state_save_failed");
+
+    fs.chunked = true;
+    fs.offer_size = (uint32_t)fs.image_len - 100u;
+    expect_no_retry("a download longer than announced", "short_read");
+    check(fw.written_len <= fs.offer_size, "  and nothing past the announced size is written");
+    fs.offer_size = (uint32_t)fs.image_len + 100u;
+    run(act_step);
+    check(g_wait == 30 && g_e.net_failures == 1 && fake_server_count("failed", "short_read") == 2,
+          "a download that ends before the announced size is retried");
+    fs.offer_size = 0;
+    fs.no_size = true;
+    check(run(act_step) == FAKE_JUMP_RESTART && fw.build[1] == 2,
+          "a download with neither a length nor a size in the offer installs");
+}
+
+/* The 2 and 10 min retries are spread too, so devices that lost the server
+ * together do not come back together. */
+static void test_retries_spread(void)
+{
+    device_on_build_1(true);
+    boot(SOTA_RST_POWERON);
+    fs.up = false;
+    run(act_step);
+    uint32_t first = g_wait;
+    fw.random = 0;
+    run(act_step);
+    uint32_t second = g_wait;
+    fw.random = UINT32_MAX;
+    run(act_step);
+    check(first == 30 && second == 108 && g_wait == 660,
+          "the 2 and 10 min retries vary by a tenth either way, the 30 s one does not");
+}
+
 static void test_signed(void)
 {
     uint8_t sk1[32], sk2[32], pk1[32], pk2[32];
@@ -593,6 +818,13 @@ static void test_signed(void)
     run(act_check);
     run(act_apply);
     check(g_applied == SOTA_APPLY_SIGNATURE_FAIL, "the key the offer names is the one used");
+
+    int downloads = fake_server_count("downloaded", NULL);
+    run(act_step);
+    check(g_wait == SOTA_DEFAULT_CHECK_INTERVAL_S && g_e.net_failures == 0 &&
+              fake_server_count("downloaded", NULL) == downloads + 1 &&
+              fake_server_count("failed", "signature_invalid") == 4,
+          "a signature that fails after the download waits for the next regular check");
 
     signed_offer(sk2, pk2, "unknown", false);
     check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
@@ -697,6 +929,7 @@ static void test_one_engine(void)
 int main(void)
 {
     test_up_to_date();
+    test_emoji_version();
     test_update_confirmed();
     test_confirm_timeout(true);
     test_confirm_timeout(false);
@@ -720,6 +953,9 @@ int main(void)
     test_rollback_disabled();
     test_manual_reboot();
     test_report_retries();
+    test_network_retries();
+    test_no_early_retry();
+    test_retries_spread();
     test_signed();
     test_one_engine();
     test_power_cuts(true, false);

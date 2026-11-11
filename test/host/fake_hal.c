@@ -21,12 +21,21 @@
 
 fake_world_t fw;
 fake_server_t fs;
+size_t fake_malloc_watch;
+int fake_malloc_watched;
 jmp_buf fake_reset_target;
 sota_event_id_t fake_events[64];
 int fake_event_count;
 int fake_wakes;
 
 static const uint32_t k_addr[2] = {FAKE_SLOT_A, FAKE_SLOT_B};
+
+/* (malloc) is the real one: the macro only takes malloc( . */
+void *fake_malloc(size_t n)
+{
+    if (n == fake_malloc_watch) ++fake_malloc_watched;
+    return (malloc)(n);
+}
 
 static int slot_of(uint32_t addr)
 {
@@ -46,6 +55,7 @@ void fake_world_reset(bool bl_rollback)
     fw.state[0] = IMG_VALID;
     fw.writing = -1;
     fw.reset_reason = SOTA_RST_POWERON;
+    fw.random = 0x80000000u;
     memset(&fs, 0, sizeof(fs));
     fs.up = true;
     fs.dl_status = 200;
@@ -121,6 +131,7 @@ int fake_event_seen(sota_event_id_t id)
 bool sota_image_begin(size_t expected, uint32_t *slot, uint32_t *running)
 {
     (void)expected;
+    if (fw.fail_begin) return false;
     fw.writing = fw.running ^ 1;
     fw.written_len = 0;
     *slot = k_addr[fw.writing];
@@ -130,7 +141,7 @@ bool sota_image_begin(size_t expected, uint32_t *slot, uint32_t *running)
 
 bool sota_image_write(const uint8_t *buf, size_t len)
 {
-    if (fw.writing < 0 || fw.written_len + len > sizeof(fw.written)) return false;
+    if (fw.writing < 0 || fw.fail_write || fw.written_len + len > sizeof(fw.written)) return false;
     memcpy(fw.written + fw.written_len, buf, len);
     fw.written_len += len;
     return true;
@@ -202,6 +213,7 @@ void sota_boot_rollback(uint32_t prev_part)
 
 void sota_sys_sleep_ms(uint32_t ms) { fw.sleep_ms += ms; }
 uint32_t sota_sys_now_ms(void) { return fw.sleep_ms; }
+uint32_t sota_sys_random(void) { return fw.random; }
 void sota_sys_lock(void) {}
 void sota_sys_unlock(void) {}
 
@@ -284,13 +296,25 @@ static int check_in(const char *body, char *resp, size_t cap)
     if (!fs.offer_build || (current >= fs.offer_build && !fs.offer_old)) {
         return answer(resp, cap, "{\"update_available\":false,\"status\":\"up_to_date\"}");
     }
+    char version[64];
+    if (fs.version) {
+        snprintf(version, sizeof(version), "%s", fs.version);
+    } else {
+        snprintf(version, sizeof(version), "%u.0.0", (unsigned)fs.offer_build);
+    }
+    char size[24] = "";
+    if (!fs.no_size) {
+        snprintf(size, sizeof(size), ",\"size\":%u",
+                 (unsigned)(fs.offer_size ? fs.offer_size : fs.image_len));
+    }
     char offer[1024];
     snprintf(offer, sizeof(offer),
-             "{\"update_available\":true,\"url\":\"https://dl.example/fw.bin\","
+             "{\"update_available\":true,\"url\":\"%s\","
              "\"checksum\":\"%s\",\"build_number\":%u,\"deployment_id\":\"%s\","
-             "\"version\":\"%u.0.0\",\"size\":%u%s%s}",
-             fs.checksum, (unsigned)fs.offer_build, fs.deployment, (unsigned)fs.offer_build,
-             (unsigned)fs.image_len, fs.extra ? "," : "", fs.extra ? fs.extra : "");
+             "\"version\":\"%s\"%s%s%s}",
+             fs.url ? fs.url : "https://dl.example/fw.bin", fs.checksum,
+             (unsigned)fs.offer_build, fs.deployment, version, size, fs.extra ? "," : "",
+             fs.extra ? fs.extra : "");
     return answer(resp, cap, offer);
 }
 
@@ -310,7 +334,13 @@ int sota_net_post(void *user, const char *url, const char *token, const char *bo
 {
     (void)user;
     if (!fs.up || strcmp(token, "tok") != 0) return -1;
-    if (ends_with(url, SOTA_PATH_CHECK)) return check_in(body, resp, cap);
+    if (ends_with(url, SOTA_PATH_CHECK)) {
+        if (fs.check_status) {
+            ++fs.checks;
+            return fs.check_status;
+        }
+        return check_in(body, resp, cap);
+    }
     if (ends_with(url, SOTA_PATH_STATUS)) return status(body, resp, cap);
     return 404;
 }

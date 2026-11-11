@@ -32,11 +32,12 @@ typedef struct {
     int boot;              /**< Slot the next boot selects. */
     int running;
     int reset_reason;
-    bool fail_finish, fail_boot_set, fail_mark_valid, fail_timer;
+    bool fail_begin, fail_finish, fail_boot_set, fail_mark_valid, fail_timer, fail_write;
     bool timer_armed;
     uint32_t timer_s;
     bool wdt_armed;
     uint32_t sleep_ms;     /**< Total slept. */
+    uint32_t random;       /**< What sota_sys_random() returns; reset to the middle. */
     int writing;           /**< Slot being written, -1 when none. */
     uint8_t written[8192];
     size_t written_len;
@@ -44,12 +45,17 @@ typedef struct {
 
 typedef struct {
     bool up;
+    int check_status;      /**< The check-in's HTTP status instead of an answer, 0 = answer. */
+    const char *version;   /**< The offer's version as JSON text, NULL = "<build>.0.0". */
     uint32_t offer_build;  /**< 0: nothing offered. */
     char deployment[32];
     uint8_t image[5000];
     size_t image_len;
     char checksum[65];
     bool chunked;          /**< No Content-Length on the download. */
+    uint32_t offer_size;   /**< The size the offer states, 0 = the image's. */
+    bool no_size;          /**< The offer leaves out its size. */
+    const char *url;       /**< The offer's URL, NULL = https://dl.example/fw.bin. */
     int dl_status;
     int dl_fail_at;        /**< Byte offset where the download breaks, -1 = never. */
     int dl_fail_with;      /**< What a read returns from there on. */

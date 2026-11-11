@@ -1,5 +1,44 @@
 # Changelog
 
+## 1.0.1 (unreleased)
+
+Fixes from a security and robustness review. No public API change, and
+nothing stored changes. Ports add `sota_sys_random()` to `sota_sys.h`.
+
+### Changed
+
+- The managed task retries a check-in that got no answer (or a 5xx, 408 or
+  429), and a download that broke, after 30 s, 2 min and 10 min before it
+  falls back to the check interval. Until now one dropped connection cost a
+  whole interval, an hour by default. Each failed download still posts its
+  `failed` status, so a flaky link reports up to three more for each run
+  of failures.
+- A check-in out of memory, and a download that cannot allocate its
+  redirect buffer (reported as `https_begin_failed`), are retried on the
+  same schedule as a network failure.
+- The managed task spreads every wait of a minute or more by up to a tenth
+  either way, so devices that power up together do not check in together
+  from then on. `sota_sys_random()` is new in `sota_sys.h` for it.
+- `simpleota_init()` warns when signing keys are pinned without
+  `SIMPLEOTA_SECURITY_SIGNED`: in any other mode an update the server marks
+  unsigned is accepted on its checksum, which the header now says too.
+- A check that offers nothing no longer allocates the 2 KB URL buffer.
+
+### Fixed
+
+- `sota_json_get_string()` took a string cut off by the end of the response
+  as complete, so a check response longer than the 4 KB buffer could yield
+  half a value. It now fails.
+- `sota_json_get_string()` decodes `\uXXXX` (to UTF-8) instead of dropping
+  the backslash: a server or proxy that escapes `&` as `\u0026` no longer
+  breaks the pre-signed download URL. A surrogate pair, as a server that
+  escapes all non-ASCII sends an emoji, decodes to one character. A
+  malformed escape, U+0000 and a surrogate outside a pair fail the value.
+- A download longer than the announced size stops at once, before the
+  excess is written to flash, instead of running to the end of the stream.
+  The reason is `short_read`, as before. It is not retried early, since it
+  fails the same way every time; a download that ends short is.
+
 ## 1.0.0 (2026-10-25)
 
 The first release: the logic both clients carried their own copies of, in
