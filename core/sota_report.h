@@ -84,7 +84,8 @@ static inline uint32_t sota_retry_interval_s(uint32_t failures, uint32_t check_i
 
 /**
  * wait_s moved by up to a tenth either way: random is any 32-bit value,
- * and its middle (0x80000000) leaves an even wait unchanged.
+ * and its middle (0x80000000) leaves the wait unchanged when the span (a
+ * fifth of the wait) is even.
  */
 static inline uint32_t sota_jitter_s(uint32_t wait_s, uint32_t random)
 {
