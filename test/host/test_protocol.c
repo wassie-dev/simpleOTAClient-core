@@ -128,6 +128,15 @@ static void test_check_body(void)
           "a lone, mis-ordered or cut-off surrogate fails");
     check(!sota_json_get_string("{\"u\":\"\\ud83dxxde00\"}", "u", s, sizeof(s)),
           "a high surrogate not followed by \\u fails (\\ud83dxxde00)");
+    check(!sota_json_get_string("{\"u\":\"\\ud83dxude00\"}", "u", s, sizeof(s)),
+          "a high surrogate followed by u without its backslash fails (\\ud83dxude00)");
+    check(!sota_json_get_string("{\"u\":\"\\ud83d\\\\xde00\"}", "u", s, sizeof(s)),
+          "a high surrogate followed by an escaped backslash fails (\\ud83d\\\\xde00)");
+    check(!sota_json_get_string("{\"u\":\"\\ud83d\\xde00\"}", "u", s, sizeof(s)),
+          "a high surrogate followed by a backslash and not u fails (\\ud83d\\xde00)");
+    check(sota_json_get_string("{\"u\":\"\\ud840\\udc00\"}", "u", s, sizeof(s)) &&
+              strcmp(s, "\xf0\xa0\x80\x80") == 0,
+          "U+20000 decodes to f0 a0 80 80");
     check(!sota_json_get_string("{\"u\":\"\\ud83d\\ue000\"}", "u", s, sizeof(s)) &&
               !sota_json_get_string("{\"u\":\"\\udbff\\uffff\"}", "u", s, sizeof(s)),
           "a high surrogate followed by a unit above the low range fails");
