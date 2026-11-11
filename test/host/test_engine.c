@@ -363,8 +363,8 @@ static void expect_failure(const char *what, const char *reason, sota_apply_resu
               fake_event_seen(SOTA_EVENT_UPDATE_FAILED) >= 1,
           msg);
     check(fw.boot == 0 && fw.running == 0 && g_e.st.trial == 0 && g_e.st.live.build == 1 &&
-              !g_e.has_offer,
-          "  and the device stays as it was");
+              !g_e.has_offer && fake_open_hashes == 0,
+          "  and the device stays as it was, with no hash left open");
 }
 
 static void test_apply_failures(void)
@@ -883,6 +883,7 @@ static void test_signed(void)
     run(act_check);
     run(act_apply);
     check(g_applied == SOTA_APPLY_SIGNATURE_FAIL, "the key the offer names is the one used");
+    check(fake_open_hashes == 0, "a refused signature leaves no hash open");
 
     int downloads = fake_server_count("downloaded", NULL);
     run(act_step);
@@ -891,8 +892,23 @@ static void test_signed(void)
               fake_server_count("failed", "signature_invalid") == 4,
           "a signature that fails after the download waits for the next regular check");
 
+    /* Two checks are running, one per pinned key, when these give up. */
     signed_offer(sk2, pk2, "unknown", false);
-    check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
+    fs.dl_fail_at = 2048;
+    fs.dl_fail_with = SOTA_NET_ERROR;
+    run(act_check);
+    run(act_apply);
+    fs.dl_fail_at = -1;
+    check(g_applied == SOTA_APPLY_FLASH_FAIL && fake_open_hashes == 0,
+          "a signed download that breaks leaves no hash open");
+    fs.corrupt = true;
+    run(act_check);
+    run(act_apply);
+    fs.corrupt = false;
+    check(g_applied == SOTA_APPLY_CHECKSUM_FAIL && fake_open_hashes == 0,
+          "nor one that fails its checksum");
+
+    check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART && fake_open_hashes == 0,
           "an unknown key id tries every pinned key, and a good signature applies");
     check(sota_engine_add_key(&g_e, NULL, pem1) == false, "a third key is refused");
 }
@@ -1029,6 +1045,7 @@ int main(void)
     test_power_cuts(true, true);
     test_power_cuts(false, false);
     test_power_cuts(false, true);
+    check(fake_open_hashes == 0, "every hash that was started was finished");
 
     printf("\n%s (%d failure%s)\n", g_failures ? "FAILED" : "PASSED", g_failures,
            g_failures == 1 ? "" : "s");

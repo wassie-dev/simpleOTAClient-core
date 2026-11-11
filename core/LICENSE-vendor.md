@@ -1,7 +1,8 @@
 # Third-party: Monocypher
 
-`monocypher.c`, `monocypher.h`, `monocypher-ed25519.c`, and
-`monocypher-ed25519.h` are a vendored, unmodified copy of
+`monocypher.c` and `monocypher.h` here, and `monocypher-ed25519.c` and
+`monocypher-ed25519.h` in `port/portable/` (used by the host tests, not
+copied into the clients), are a vendored, unmodified copy of
 [Monocypher](https://monocypher.org/) **3.1.3** (the last release with the
 incremental Ed25519 check API), byte-identical to the copies shipped in
 SimpleOTA-Arduino 0.6.0 and SimpleOTAClient-ESP-IDF 0.2.1.

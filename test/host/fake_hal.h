@@ -81,6 +81,7 @@ extern jmp_buf fake_reset_target;
 extern sota_event_id_t fake_events[64];
 extern int fake_event_count;
 extern int fake_wakes;
+extern int fake_open_hashes; /**< test_engine only (hash_count.c): hashes not finished. */
 extern bool fake_put_off; /**< sota_app_can_update() answers false. */
 
 /** Slot A runs build 1, confirmed; slot B is empty. Clears the server. */
