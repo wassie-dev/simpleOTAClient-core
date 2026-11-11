@@ -13,12 +13,16 @@
 #include "fake_hal.h"
 #include "sota_net.h"
 #include "fake_kv.h"
+#include "fake_malloc.h"
 #include "monocypher-ed25519.h"
 #include "sota_boot.h"
 #include "sota_engine.h"
 #include "sota_engine_priv.h"
 #include "sota_kv.h"
 #include "sota_trial.h"
+
+/* The engine's offer URL buffer (OFFER_URL_CAP in sota_engine.c). */
+#define URL_BUF 2048u
 
 /* A simulated reset leaves the heap behind, as a real one does. */
 const char *__asan_default_options(void);
@@ -140,11 +144,33 @@ static void test_up_to_date(void)
 {
     device_on_build_1(true);
     boot(SOTA_RST_POWERON);
+    fake_malloc_watch = URL_BUF;
+    fake_malloc_watched = 0;
     run(act_check);
     check(!g_checked && fs.checks == 1, "no offer: check reports none");
+    check(fake_malloc_watched == 0, "  without allocating the URL buffer");
     check(fake_event_seen(SOTA_EVENT_CHECK_DONE) == 1, "CHECK_DONE emitted");
     run(act_apply);
     check(g_applied == SOTA_APPLY_NO_OFFER, "apply without an offer does nothing");
+    fake_server_offer(2, "dep-2");
+    run(act_check);
+    check(g_checked && fake_malloc_watched == 1, "an offer allocates the URL buffer");
+    fake_malloc_watch = 0;
+}
+
+/* A version label with an emoji, which a server escaping all non-ASCII
+ * sends as a surrogate pair, is kept through the update. */
+static void test_emoji_version(void)
+{
+    device_on_build_1(true);
+    fs.version = "\\ud83d\\ude00 2.0";
+    reach_trial();
+    run(act_check);
+    check(fw.running == 1 && !g_e.in_trial &&
+              strcmp(g_e.st.live.version, "\xf0\x9f\x98\x80 2.0") == 0,
+          "an emoji version label from a surrogate pair is stored as UTF-8");
+    boot(SOTA_RST_POWERON);
+    check(strcmp(g_e.st.live.version, "\xf0\x9f\x98\x80 2.0") == 0, "  and survives a reboot");
 }
 
 static void test_update_confirmed(void)
@@ -677,6 +703,68 @@ static void test_retry_after(void)
           "a trial keeps its quick checks: its confirm timeout does not wait for the server");
 }
 
+/* One managed step that fails, not on the network: no early retry. */
+static void expect_no_retry(const char *what, const char *reason)
+{
+    int before = reason ? fake_server_count("failed", reason) : 0;
+    int checks = fs.checks;
+    run(act_step);
+    char msg[120];
+    snprintf(msg, sizeof(msg), "%s waits for the next regular check", what);
+    check(g_wait == SOTA_DEFAULT_CHECK_INTERVAL_S && g_e.net_failures == 0 &&
+              fs.checks == checks + 1 &&
+              (!reason || fake_server_count("failed", reason) == before + 1),
+          msg);
+}
+
+static void test_no_early_retry(void)
+{
+    device_on_build_1(true);
+    boot(SOTA_RST_POWERON);
+    const int refused[] = {401, 403, 404};
+    for (int i = 0; i < 3; ++i) {
+        fs.check_status = refused[i];
+        char what[48];
+        snprintf(what, sizeof(what), "a check-in refused with %d", refused[i]);
+        expect_no_retry(what, NULL);
+    }
+    fs.check_status = 503;
+    run(act_step);
+    check(g_wait == 30, "a check-in the server cannot answer right now is retried");
+    fs.check_status = 0;
+    run(act_step);
+    check(g_wait == SOTA_DEFAULT_CHECK_INTERVAL_S && g_e.net_failures == 0,
+          "  until it answers");
+
+    fake_server_offer(2, "dep-2");
+    fw.fail_write = true;
+    expect_no_retry("a flash write failure", "update_write_failed");
+    fw.fail_write = false;
+    fs.corrupt = true;
+    expect_no_retry("a checksum mismatch", "checksum_mismatch");
+    fs.corrupt = false;
+    const char *to_http[] = {"http://cdn.example/fw.bin", NULL};
+    memcpy(fs.redirect, to_http, sizeof(to_http));
+    fs.redirects_done = 0;
+    expect_no_retry("a redirect to plain HTTP", "redirect_not_https");
+    const char *bad[] = {"ftp://cdn.example/fw.bin", NULL};
+    memcpy(fs.redirect, bad, sizeof(bad));
+    fs.redirects_done = 0;
+    expect_no_retry("a malformed redirect", "redirect_malformed");
+    memset(fs.redirect, 0, sizeof(fs.redirect));
+
+    fs.chunked = true;
+    fs.offer_size = (uint32_t)fs.image_len - 100u;
+    expect_no_retry("a download longer than announced", "short_read");
+    check(fw.written_len <= fs.offer_size, "  and nothing past the announced size is written");
+    fs.offer_size = (uint32_t)fs.image_len + 100u;
+    run(act_step);
+    check(g_wait == 30 && g_e.net_failures == 1 && fake_server_count("failed", "short_read") == 2,
+          "a download that ends before the announced size is retried");
+    fs.offer_size = 0;
+    check(run(act_step) == FAKE_JUMP_RESTART, "the retry installs the update");
+}
+
 static void test_signed(void)
 {
     uint8_t sk1[32], sk2[32], pk1[32], pk2[32];
@@ -718,6 +806,13 @@ static void test_signed(void)
     run(act_apply);
     check(g_applied == SOTA_APPLY_SIGNATURE_FAIL, "the key the offer names is the one used");
     check(fake_open_hashes == 0, "a refused signature leaves no hash open");
+
+    int downloads = fake_server_count("downloaded", NULL);
+    run(act_step);
+    check(g_wait == SOTA_DEFAULT_CHECK_INTERVAL_S && g_e.net_failures == 0 &&
+              fake_server_count("downloaded", NULL) == downloads + 1 &&
+              fake_server_count("failed", "signature_invalid") == 4,
+          "a signature that fails after the download waits for the next regular check");
 
     /* Two checks are running, one per pinned key, when these give up. */
     signed_offer(sk2, pk2, "unknown", false);
@@ -837,6 +932,7 @@ static void test_one_engine(void)
 int main(void)
 {
     test_up_to_date();
+    test_emoji_version();
     test_update_confirmed();
     test_confirm_timeout(true);
     test_confirm_timeout(false);
@@ -863,6 +959,7 @@ int main(void)
     test_network_retries();
     test_put_off();
     test_retry_after();
+    test_no_early_retry();
     test_signed();
     test_one_engine();
     test_power_cuts(true, false);

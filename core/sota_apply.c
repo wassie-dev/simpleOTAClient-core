@@ -89,11 +89,12 @@ static void progress(sota_engine_t *e, size_t total, size_t expected, size_t *la
 }
 
 /* Stream the image into the slot, hashing and verifying as it goes. Returns
- * NULL, or the reason it failed, with e->net_failed set when the network
- * caused it. */
+ * NULL, or the reason it failed with *net set when the network is to blame
+ * and a retry may go through. */
 static const char *download(sota_engine_t *e, job_t *job, size_t expected,
-                            sota_hash_ctx *sha)
+                            sota_hash_ctx *sha, bool *net)
 {
+    *net = true;
     size_t total = 0;
     size_t last = (size_t)-1;
     uint32_t last_byte_ms = sota_sys_now_ms();
@@ -106,27 +107,29 @@ static const char *download(sota_engine_t *e, job_t *job, size_t expected,
                 sota_sys_sleep_ms(1);
                 continue;
             }
-            e->net_failed = true;
             return stalled ? "download_stalled" : "stream_error";
         }
         last_byte_ms = sota_sys_now_ms();
-        /* More than was announced can never match: stop before the write. */
+        /* More than was announced can never match: stop before the write.
+         * The same bytes come again on a retry, so this one waits. */
         if (expected && (size_t)r > expected - total) {
-            e->net_failed = true;
+            *net = false;
             return "short_read";
         }
-        if (total == 0 && !sota_image_accepts(job->chunk, (size_t)r)) return "image_mismatch";
-        if (!sota_image_write(job->chunk, (size_t)r)) return "update_write_failed";
+        if (total == 0 && !sota_image_accepts(job->chunk, (size_t)r)) {
+            *net = false;
+            return "image_mismatch";
+        }
+        if (!sota_image_write(job->chunk, (size_t)r)) {
+            *net = false;
+            return "update_write_failed";
+        }
         sota_sha256_update(sha, job->chunk, (size_t)r);
         if (job->verifier) sota_verifier_update(job->verifier, job->chunk, (size_t)r);
         total += (size_t)r;
         progress(e, total, expected, &last);
     }
-    if (expected && total != expected) {
-        e->net_failed = true;
-        return "short_read";
-    }
-    return NULL;
+    return expected && total != expected ? "short_read" : NULL;
 }
 
 /* The trial record goes in before the slot switch, so a power cut never
@@ -279,11 +282,15 @@ sota_apply_result_t sota_engine_apply(sota_engine_t *e)
     sota_hash_ctx sha;
     uint8_t digest[32];
     sota_sha256_init(&sha);
-    const char *failed = download(e, &job, expected, &sha);
+    bool net = false;
+    const char *failed = download(e, &job, expected, &sha, &net);
     sota_sha256_final(&sha, digest);
     sota_net_dl_close(e->cfg.user);
     job.downloading = false;
-    if (failed) return give_up(e, &job, failed, SOTA_APPLY_FLASH_FAIL);
+    if (failed) {
+        e->net_failed = net;
+        return give_up(e, &job, failed, SOTA_APPLY_FLASH_FAIL);
+    }
     sota_engine_post_status(e, "downloaded", NULL, e->offer.deployment, e->offer.build);
 
     /* The checksum first, which tells a broken transfer apart; then the

@@ -47,8 +47,8 @@ ENGINE := $(CORE)/sota_engine.c $(CORE)/sota_apply.c $(CORE)/sota_state.c
 
 # hash_count.c wraps the hash functions to count the ones left open.
 WRAP_HASH := -Wl,--wrap=sota_sha256_init,--wrap=sota_sha256_final,--wrap=sota_sha512_init,--wrap=sota_sha512_final
-test_engine: test_engine.c fake_hal.c fake_hal.h fake_kv.c fake_kv.h hash_count.c $(ENGINE) $(OBJS) $(wildcard $(CORE)/*.h)
-	$(CC) $(CFLAGS) $(INC) $(WRAP_HASH) -o $@ test_engine.c fake_hal.c fake_kv.c hash_count.c $(ENGINE) $(OBJS)
+test_engine: test_engine.c fake_hal.c fake_hal.h fake_kv.c fake_kv.h fake_malloc.h hash_count.c $(ENGINE) $(OBJS) $(wildcard $(CORE)/*.h)
+	$(CC) $(CFLAGS) $(INC) $(WRAP_HASH) -include fake_malloc.h -o $@ test_engine.c fake_hal.c fake_kv.c hash_count.c $(ENGINE) $(OBJS)
 
 # A build without signed updates: no Monocypher on the link line.
 UNSIGNED := $(ENGINE) $(CORE)/sota_json.c $(PORTABLE)/sota_hash_portable.c $(CORE)/sota_signing.c $(CORE)/sota_protocol.c
