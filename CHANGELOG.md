@@ -28,8 +28,8 @@ behaves as in 1.0, and nothing stored changes.
 
 ## 1.0.1 (unreleased)
 
-Fixes from a security and robustness review. No API change, and nothing
-stored changes.
+Fixes from a security and robustness review. No public API change, and
+nothing stored changes. Ports add `sota_sys_random()` to `sota_sys.h`.
 
 ### Changed
 

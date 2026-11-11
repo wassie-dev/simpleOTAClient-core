@@ -55,7 +55,7 @@ The interfaces, one per concern:
 | `sota_kv.h` | The stored state | the port |
 | `sota_image.h` | Writing an update into the next slot, and an early check that a download is an image for this chip | the port |
 | `sota_boot.h` | Which image runs and boots next; mark valid; roll back | the port |
-| `sota_sys.h` | Sleep and time, the lock, the confirm timer, the chip watchdog, restart, random bits for jitter, the default device ID | the port |
+| `sota_sys.h` | Sleep and time, random numbers, the lock, the confirm timer, the chip watchdog, restart, the default device ID | the port |
 | `sota_runner.h` | The managed task: start, stop, wake | the port |
 | `sota_net.h` | HTTP: check-in and status posts, the firmware download | the port |
 | `sota_app.h` | Events, log lines, the application's say on when to update, and a wake-up when the confirm timeout fires | the API layer, `simpleota.c` |
