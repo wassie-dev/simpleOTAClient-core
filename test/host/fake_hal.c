@@ -131,6 +131,7 @@ int fake_event_seen(sota_event_id_t id)
 bool sota_image_begin(size_t expected, uint32_t *slot, uint32_t *running)
 {
     (void)expected;
+    if (fw.fail_begin) return false;
     fw.writing = fw.running ^ 1;
     fw.written_len = 0;
     *slot = k_addr[fw.writing];
@@ -301,13 +302,19 @@ static int check_in(const char *body, char *resp, size_t cap)
     } else {
         snprintf(version, sizeof(version), "%u.0.0", (unsigned)fs.offer_build);
     }
+    char size[24] = "";
+    if (!fs.no_size) {
+        snprintf(size, sizeof(size), ",\"size\":%u",
+                 (unsigned)(fs.offer_size ? fs.offer_size : fs.image_len));
+    }
     char offer[1024];
     snprintf(offer, sizeof(offer),
-             "{\"update_available\":true,\"url\":\"https://dl.example/fw.bin\","
+             "{\"update_available\":true,\"url\":\"%s\","
              "\"checksum\":\"%s\",\"build_number\":%u,\"deployment_id\":\"%s\","
-             "\"version\":\"%s\",\"size\":%u%s%s}",
-             fs.checksum, (unsigned)fs.offer_build, fs.deployment, version,
-             (unsigned)(fs.offer_size ? fs.offer_size : fs.image_len), fs.extra ? "," : "", fs.extra ? fs.extra : "");
+             "\"version\":\"%s\"%s%s%s}",
+             fs.url ? fs.url : "https://dl.example/fw.bin", fs.checksum,
+             (unsigned)fs.offer_build, fs.deployment, version, size, fs.extra ? "," : "",
+             fs.extra ? fs.extra : "");
     return answer(resp, cap, offer);
 }
 
