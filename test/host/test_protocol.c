@@ -65,6 +65,11 @@ static void test_check_body(void)
           "every member, string values escaped, labels verbatim");
     d.labels_json = "{\"room\":\"lab\"},\"current_build_number\":0";
     char bad[512];
+    d.require_manifest = true;
+    check(sota_protocol_check_body(&d, &live, NULL, bad, sizeof(bad)) &&
+              strstr(bad, "\"security_mode\":\"signed\",\"require_manifest\":true,") != NULL,
+          "a device that requires manifests says so");
+    d.require_manifest = false;
     check(sota_protocol_check_body(&d, &live, NULL, bad, sizeof(bad)) &&
               strstr(bad, "labels") == NULL && strstr(bad, "4294967295") != NULL,
           "labels that are not one object are left out, so they cannot add members");
@@ -314,6 +319,31 @@ static void test_signatures(void)
                   o.signed_offer == cases[i].signed_offer &&
                   o.has_signature == cases[i].has_signature;
         check(ok, cases[i].name);
+    }
+
+    struct {
+        const char *extra;
+        bool has_manifest;
+        const char *name;
+    } manifests[] = {
+        {"", false, "no manifest"},
+        {",\"manifest_signature\":\"" SIG "\"", true, "a manifest, no version named: 1"},
+        {",\"manifest_signature\":\"" SIG "\",\"manifest_version\":1", true, "version 1"},
+        {",\"manifest_signature\":\"" SIG "\",\"manifest_version\":2", false,
+         "a later version: unusable"},
+        {",\"manifest_signature\":\"" SIG "\",\"manifest_version\":\"1\"", false,
+         "a version that is not a number: unusable"},
+        {",\"manifest_signature\":\"QUJD\"", false, "not 64 bytes: unusable"},
+        {",\"manifest_signature\":null", false, "not a string: unusable"},
+    };
+    for (size_t i = 0; i < sizeof(manifests) / sizeof(manifests[0]); ++i) {
+        snprintf(resp, sizeof(resp),
+                 "{\"update_available\":true,\"url\":\"https://x\",\"checksum\":\"" HASH
+                 "\",\"build_number\":7%s}",
+                 manifests[i].extra);
+        check(parse(resp, &o, url, sizeof(url)) == SOTA_CHECK_OFFER &&
+                  o.has_manifest == manifests[i].has_manifest,
+              manifests[i].name);
     }
 }
 

@@ -11,6 +11,7 @@
 #include "sota_boot.h"
 #include "sota_engine_priv.h"
 #include "sota_json.h"
+#include "sota_manifest.h"
 #include "sota_net.h"
 #include "sota_sys.h"
 #include "sota_trial.h"
@@ -69,7 +70,8 @@ bool sota_engine_init(sota_engine_t *e, const sota_config_t *cfg)
      * 24 h is a bug, not a configuration. */
     e->cfg.confirm_timeout_s = clamp(e->cfg.confirm_timeout_s, 10u, 86400u);
     if (!e->cfg.http_timeout_ms) e->cfg.http_timeout_ms = SOTA_DEFAULT_HTTP_TIMEOUT_MS;
-    if (!token_ok(e->cfg.token) || sota_validate_server_url(e->cfg.server_url) != SOTA_URL_OK) {
+    if (!token_ok(e->cfg.token) || sota_validate_server_url(e->cfg.server_url) != SOTA_URL_OK ||
+        (e->cfg.project_id && !sota_manifest_field_ok(e->cfg.project_id))) {
         return false;
     }
     s_owner = e;

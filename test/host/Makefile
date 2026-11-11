@@ -11,7 +11,7 @@ CXXFLAGS ?= -std=c++11 -Wall -Wextra -Werror
 CORE     := ../../core
 INC      := -I$(CORE)
 
-OBJS := monocypher.o monocypher-ed25519.o sota_json.o sota_sha256.o sota_signing.o sota_protocol.o
+OBJS := monocypher.o monocypher-ed25519.o sota_json.o sota_sha256.o sota_signing.o sota_manifest.o sota_protocol.o
 TESTS := test_signing test_report test_trial test_wdt test_url test_state test_contract test_protocol test_engine test_unsigned test_cxx
 
 test: $(TESTS)
@@ -47,7 +47,7 @@ test_engine: test_engine.c fake_hal.c fake_hal.h fake_kv.c fake_kv.h fake_malloc
 	$(CC) $(CFLAGS) $(INC) -include fake_malloc.h -o $@ test_engine.c fake_hal.c fake_kv.c $(ENGINE) $(OBJS)
 
 # A build without signed updates: no Monocypher on the link line.
-UNSIGNED := $(ENGINE) $(CORE)/sota_json.c $(CORE)/sota_sha256.c $(CORE)/sota_signing.c $(CORE)/sota_protocol.c
+UNSIGNED := $(ENGINE) $(CORE)/sota_json.c $(CORE)/sota_sha256.c $(CORE)/sota_signing.c $(CORE)/sota_manifest.c $(CORE)/sota_protocol.c
 test_unsigned: test_unsigned.c fake_hal.c fake_hal.h fake_kv.c fake_kv.h $(UNSIGNED) $(wildcard $(CORE)/*.h)
 	$(CC) $(CFLAGS) -DSIMPLEOTA_DISABLE_SIGNED_UPDATES $(INC) -o $@ test_unsigned.c fake_hal.c fake_kv.c $(UNSIGNED)
 
