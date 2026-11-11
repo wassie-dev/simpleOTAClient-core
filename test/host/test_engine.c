@@ -636,6 +636,17 @@ static void test_network_retries(void)
     fs.up = false;
     run(act_step);
     check(g_wait == 20, "a retry never waits longer than the check interval");
+
+    device_on_build_1(true);
+    boot(SOTA_RST_POWERON);
+    fs.up = false;
+    g_e.net_failures = UINT8_MAX;
+    run(act_step);
+    uint32_t first = g_wait;
+    run(act_step);
+    check(first == SOTA_DEFAULT_CHECK_INTERVAL_S && g_wait == SOTA_DEFAULT_CHECK_INTERVAL_S &&
+              g_e.net_failures == UINT8_MAX,
+          "the failure count stops at 255, so a long outage never restarts the quick retries");
 }
 
 /* One managed step that fails, not on the network: no early retry. */

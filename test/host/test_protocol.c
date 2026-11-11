@@ -126,6 +126,25 @@ static void test_check_body(void)
               !sota_json_get_string("{\"u\":\"\\ude00\\ud83d\"}", "u", s, sizeof(s)) &&
               !sota_json_get_string("{\"u\":\"\\ud83d\\ude", "u", s, sizeof(s)),
           "a lone, mis-ordered or cut-off surrogate fails");
+    check(!sota_json_get_string("{\"u\":\"\\ud83dxxde00\"}", "u", s, sizeof(s)),
+          "a high surrogate not followed by \\u fails (\\ud83dxxde00)");
+    check(!sota_json_get_string("{\"u\":\"\\ud83d\\ue000\"}", "u", s, sizeof(s)) &&
+              !sota_json_get_string("{\"u\":\"\\udbff\\uffff\"}", "u", s, sizeof(s)),
+          "a high surrogate followed by a unit above the low range fails");
+    check(!sota_json_get_string("{\"u\":\"\\udfff\"}", "u", s, sizeof(s)),
+          "a lone \\udfff fails");
+    check(sota_json_get_string("{\"u\":\"\\u007f\"}", "u", s, sizeof(s)) &&
+              strcmp(s, "\x7f") == 0,
+          "U+007F decodes to 1 byte");
+    check(sota_json_get_string("{\"u\":\"\\u0080\"}", "u", s, sizeof(s)) &&
+              strcmp(s, "\xc2\x80") == 0,
+          "U+0080 decodes to 2 bytes");
+    check(sota_json_get_string("{\"u\":\"\\u07ff\"}", "u", s, sizeof(s)) &&
+              strcmp(s, "\xdf\xbf") == 0,
+          "U+07FF decodes to 2 bytes");
+    check(sota_json_get_string("{\"u\":\"\\u0800\"}", "u", s, sizeof(s)) &&
+              strcmp(s, "\xe0\xa0\x80") == 0,
+          "U+0800 decodes to 3 bytes");
     check(!sota_json_get_string("{\"u\":\"https://dl.example/fw", "u", s, sizeof(s)) &&
               !sota_json_get_string("{\"u\":\"abc\\", "u", s, sizeof(s)),
           "a string cut off by the end of the response fails");
