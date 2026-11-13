@@ -7,10 +7,19 @@
 - The Arduino build verifies TLS against the ESP-IDF certificate bundle that
   Arduino-ESP32 links in, as the ESP-IDF build does, instead of only the ISRG
   Root X1 and X2 certificates. It keeps working if a host's certificate
-  moves to another public CA, such as Cloudflare's backup certificates
-  from Google Trust Services, SSL.com or Sectigo. The bundle adds about
-  62 KB of flash on Arduino-ESP32 2.x and 68 KB on 3.x to a sketch that did
-  not already use it. `cert_pem` still replaces it.
+  moves to another public CA, such as Cloudflare's backup certificates from
+  Google Trust Services or Sectigo, and on Arduino-ESP32 3.x SSL.com's 2022
+  roots. The default trust widens from those 2 roots to the bundle's public
+  roots: 136 on 2.x, whose bundle no longer gets updates, and 150 on 3.3.0.
+  As on ESP-IDF, the bundle keeps each root's name and key only, so a
+  root's expiry and constraints are not checked. The bundle adds about
+  63 KB of flash on 2.x and 68 KB on 3.x to a sketch that did not already
+  use it. `cert_pem` still replaces it.
+- Upgrading on Arduino-ESP32 3.x: `setCACertBundle()` installs its bundle
+  for the whole application, so it now becomes this client's trust too.
+  An application that passes it a bundle without SimpleOTA's roots should
+  set `cert_pem`. On 2.x, `WiFiClientSecure` keeps its own bundle and does
+  not affect this client.
 
 ## 1.0.0 (2026-10-25)
 

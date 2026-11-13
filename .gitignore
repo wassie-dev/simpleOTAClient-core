@@ -9,4 +9,5 @@ test/host/test_state
 test/host/test_protocol
 test/host/test_engine
 test/host/test_contract
+test/host/test_framework_*
 build/

@@ -231,4 +231,17 @@ jobs:
           arduino-cli core update-index
           arduino-cli core install esp32:esp32@${{ matrix.core }}
           arduino-cli compile --fqbn esp32:esp32:esp32 --warnings all \
+            --build-path "$RUNNER_TEMP/build" \
             --library "$RUNNER_TEMP/libraries/SimpleOTACore" test/arduino/PortSmoke
+
+      # The default TLS trust is the core's certificate bundle, so its attach
+      # function and its data must be in the image.
+      - name: Check the certificate bundle is linked
+        run: |
+          set -euo pipefail
+          tools="$(arduino-cli config get directories.data)/packages/esp32/tools"
+          nm=$(find "$tools" -name xtensa-esp32-elf-nm -type f | head -n 1)
+          syms=$("$nm" --defined-only "$RUNNER_TEMP/build/PortSmoke.ino.elf")
+          for sym in esp_crt_bundle_attach _binary_x509_crt_bundle_start; do
+            grep -qw "$sym" <<<"$syms" || { echo "::error::$sym is not linked"; exit 1; }
+          done

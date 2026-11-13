@@ -7,17 +7,18 @@
 
 #include "sota_framework.h"
 
+#include <stddef.h>
+
 #include "esp_log.h"
 
 #if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
 #include "esp_crt_bundle.h"
 #endif
 
-/* Arduino-ESP32 builds its ESP-IDF with the full certificate bundle. */
-bool sota_framework_default_trust(const char **cert_pem,
-                                  esp_err_t (**crt_bundle_attach)(void *conf))
+/* A Kconfig choice on ESP-IDF; Arduino-ESP32's prebuilt ESP-IDF has the
+ * full bundle. */
+bool sota_framework_default_trust(esp_err_t (**crt_bundle_attach)(void *conf))
 {
-    *cert_pem = NULL;
 #if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
     *crt_bundle_attach = esp_crt_bundle_attach;
     return true;

@@ -12,7 +12,10 @@ CORE     := ../../core
 INC      := -I$(CORE)
 
 OBJS := monocypher.o monocypher-ed25519.o sota_json.o sota_sha256.o sota_signing.o sota_protocol.o
-TESTS := test_signing test_report test_trial test_wdt test_url test_state test_contract test_protocol test_engine test_cxx
+FRAMEWORK_TESTS := test_framework_idf test_framework_idf_nobundle \
+                   test_framework_arduino test_framework_arduino_nobundle
+TESTS := test_signing test_report test_trial test_wdt test_url test_state test_contract test_protocol test_engine test_cxx \
+         $(FRAMEWORK_TESTS)
 
 test: $(TESTS)
 	@set -e; for t in $(TESTS); do echo "== $$t"; ./$$t; done
@@ -48,6 +51,23 @@ test_engine: test_engine.c fake_hal.c fake_hal.h fake_kv.c fake_kv.h $(ENGINE) $
 
 test_cxx: test_cxx.cpp $(OBJS) $(wildcard $(CORE)/*.h)
 	$(CXX) $(CXXFLAGS) $(INC) -o $@ test_cxx.cpp $(OBJS)
+
+PORT := ../../port/esp32
+FRAMEWORK_SRC := test_framework.c $(PORT)/sota_framework.c
+FRAMEWORK_DEPS := $(FRAMEWORK_SRC) $(PORT)/sota_framework.h $(wildcard esp_stub/*.h) $(wildcard $(CORE)/*.h)
+FRAMEWORK_INC := $(INC) -I$(PORT) -Iesp_stub
+
+test_framework_idf: $(FRAMEWORK_DEPS)
+	$(CC) $(CFLAGS) $(FRAMEWORK_INC) -DCONFIG_MBEDTLS_CERTIFICATE_BUNDLE=1 -o $@ $(FRAMEWORK_SRC)
+
+test_framework_idf_nobundle: $(FRAMEWORK_DEPS)
+	$(CC) $(CFLAGS) $(FRAMEWORK_INC) -o $@ $(FRAMEWORK_SRC)
+
+test_framework_arduino: $(FRAMEWORK_DEPS)
+	$(CC) $(CFLAGS) $(FRAMEWORK_INC) -DARDUINO -DCONFIG_MBEDTLS_CERTIFICATE_BUNDLE=1 -o $@ $(FRAMEWORK_SRC)
+
+test_framework_arduino_nobundle: $(FRAMEWORK_DEPS)
+	$(CC) $(CFLAGS) $(FRAMEWORK_INC) -DARDUINO -o $@ $(FRAMEWORK_SRC)
 
 %.o: $(CORE)/%.c $(wildcard $(CORE)/*.h)
 	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
