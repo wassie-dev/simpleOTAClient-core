@@ -226,8 +226,9 @@ esp_err_t simpleota_init(const simpleota_config_t *config)
 {
     if (s.initialized) return ESP_ERR_INVALID_STATE;
     if (!config || config->num_signing_keys > SOTA_VERIFIER_MAX_KEYS) return ESP_ERR_INVALID_ARG;
+    const char *ca = config->cert_pem;
     esp_err_t (*attach)(void *conf) = config->crt_bundle_attach;
-    if (!config->cert_pem && !attach && !sota_framework_default_trust(&attach)) {
+    if (!ca && !attach && !sota_framework_default_trust(&ca, &attach)) {
         SOTA_LOGE("no TLS trust anchor: the build has no certificate bundle, "
                       "so set cert_pem");
         return ESP_ERR_INVALID_STATE;
@@ -245,7 +246,8 @@ esp_err_t simpleota_init(const simpleota_config_t *config)
         return err;
     }
 
-    s.net.cert_pem = s.str[STR_CERT_PEM];
+    /* A default CA is static: only the application's is copied. */
+    s.net.cert_pem = config->cert_pem ? s.str[STR_CERT_PEM] : ca;
     s.net.crt_bundle_attach = attach;
     s.runner.engine = &s.engine;
     s.runner.initial_delay_ms = config->initial_delay_ms;

@@ -51,9 +51,12 @@
 
 /**
  * TLS trust when the application gives none: the certificate bundle's
- * attach function. False, with NULL, when the build has no bundle.
+ * attach function, or on an Arduino-ESP32 core without the bundle (before
+ * 2.0.4) a static PEM of root certificates. False, with both NULL, when
+ * there is neither.
  */
-bool sota_framework_default_trust(esp_err_t (**crt_bundle_attach)(void *conf));
+bool sota_framework_default_trust(const char **cert_pem,
+                                  esp_err_t (**crt_bundle_attach)(void *conf));
 
 /** Called by simpleota_init(): make the client's warnings visible. */
 void sota_framework_init_logging(const char *tag);

@@ -4,29 +4,32 @@
 
 ### Changed
 
-- The Arduino build needs Arduino-ESP32 2.0.4 or later, the first core that
-  links the ESP-IDF certificate bundle; an older core stops with a compile
-  error.
-- The Arduino build verifies TLS against that certificate bundle, as the
-  ESP-IDF build does, instead of only the ISRG Root X1 and X2 certificates.
-  It keeps working if a host's certificate moves to another public CA, such
-  as Cloudflare's backup certificates from Google Trust Services or
-  Sectigo, and from Arduino-ESP32 3.1 SSL.com's 2022 roots. The default
-  trust widens from those 2 roots to the bundle's public roots, for example
-  136 on 2.0.17, whose bundle no longer gets updates, and 150 on 3.3.0. As
-  on ESP-IDF, the bundle keeps each root's name and key only, so a root's
-  expiry and constraints are not checked. The bundle adds about 63 KB of
-  flash on 2.x and 63 to 68 KB on 3.x to a sketch that did not already link
-  it; on 2.x, `WiFiClientSecure` links its own copy, which does not count.
-  `cert_pem` still replaces it.
+- On Arduino-ESP32 2.0.4 and later, the first core that links the ESP-IDF
+  certificate bundle, the Arduino build verifies TLS against that bundle,
+  as the ESP-IDF build does, instead of only the ISRG Root X1 and X2
+  certificates. It keeps working if a host's certificate moves to another
+  public CA, such as Cloudflare's backup certificates from Google Trust
+  Services or Sectigo, and from Arduino-ESP32 3.1 SSL.com's 2022 roots.
+  The default trust widens from those 2 roots to the bundle's public roots,
+  for example 136 on 2.0.17, whose bundle no longer gets updates, and 150
+  on 3.3.0. As on ESP-IDF, the bundle keeps each root's name and key only,
+  so a root's expiry and constraints are not checked. The bundle adds about
+  63 KB of flash on 2.x and 63 to 68 KB on 3.x to a sketch that did not
+  already link it; on 2.x, `WiFiClientSecure` links its own copy, which
+  does not count. `cert_pem` still replaces it.
+- On Arduino-ESP32 2.0.0 to 2.0.3, which do not link the bundle, the
+  default adds GTS Root R4 to ISRG Root X1 and X2, so a certificate from
+  Google Trust Services' WE1 also verifies. Other CAs, such as SSL.com and
+  Sectigo, do not; set `cert_pem` to trust them.
 - Upgrading on Arduino-ESP32 3.0.4 and later: `setCACertBundle(bundle,
   size)` installs its bundle for the whole application, so it now becomes
   this client's trust too. An application that passes it a bundle without
   SimpleOTA's roots should set `cert_pem`. On 2.x, `WiFiClientSecure` keeps
   its own bundle and does not affect this client.
-- Upgrading a build with `CONFIG_MBEDTLS_CERTIFICATE_BUNDLE` turned off,
-  such as a custom sdkconfig: `simpleota_init()` now returns
-  `ESP_ERR_INVALID_STATE` unless `cert_pem` is set.
+- Upgrading an Arduino build on 2.0.4 or later with
+  `CONFIG_MBEDTLS_CERTIFICATE_BUNDLE` turned off, such as a custom
+  sdkconfig: `simpleota_init()` now returns `ESP_ERR_INVALID_STATE` unless
+  `cert_pem` is set.
 
 ## 1.0.0 (2026-10-25)
 

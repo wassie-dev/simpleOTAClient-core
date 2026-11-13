@@ -239,16 +239,17 @@ typedef struct {
     void (*event_cb)(const simpleota_event_t *event, void *user_ctx);
     void *user_ctx;                /**< Passed to is_connected and event_cb. */
 
-    /** TLS trust, always verified. Default, on both builds: the ESP-IDF
-     *  certificate bundle. esp_crt_bundle_set(), which Arduino-ESP32's
-     *  setCACertBundle(bundle, size) calls from 3.0.4, replaces that bundle
-     *  for the whole application, this client included; 2.x's
-     *  WiFiClientSecure keeps its own copy and does not. Set cert_pem to pin
-     *  a specific CA, or several concatenated, instead (then the bundle is
-     *  not used). */
+    /** TLS trust, always verified. Default: the ESP-IDF certificate bundle,
+     *  except on Arduino-ESP32 2.0.0 to 2.0.3, which do not link it: there,
+     *  ISRG Root X1 and X2 and GTS Root R4. esp_crt_bundle_set(), which
+     *  Arduino-ESP32's setCACertBundle(bundle, size) calls from 3.0.4,
+     *  replaces that bundle for the whole application, this client
+     *  included; 2.x's WiFiClientSecure keeps its own copy and does not. Set
+     *  cert_pem to pin a specific CA, or several concatenated, instead (then
+     *  the default is not used). */
     const char *cert_pem;
     esp_err_t (*crt_bundle_attach)(void *conf); /**< Another bundle's attach function.
-                                                     Default: ESP-IDF's bundle. */
+                                                     Default: the trust above. */
 } simpleota_config_t;
 
 /**

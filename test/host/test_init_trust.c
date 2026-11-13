@@ -22,15 +22,17 @@
 
 typedef esp_err_t (*attach_fn)(void *conf);
 
-static attach_fn g_default;       /* The framework's default; NULL for none. */
+static attach_fn g_default;       /* The framework's default bundle, or NULL. */
+static const char *g_default_pem; /* Or its default PEM, or NULL. */
 static int g_default_calls;
 static const sota_net_esp32_t *g_net; /* The engine's user pointer. */
 
-bool sota_framework_default_trust(attach_fn *crt_bundle_attach)
+bool sota_framework_default_trust(const char **cert_pem, attach_fn *crt_bundle_attach)
 {
     ++g_default_calls;
+    *cert_pem = g_default_pem;
     *crt_bundle_attach = g_default;
-    return g_default != NULL;
+    return g_default || g_default_pem;
 }
 void sota_framework_init_logging(const char *tag) { (void)tag; }
 
@@ -84,10 +86,12 @@ static void check(int cond, const char *msg)
 }
 
 /* Init with the given trust and framework default, recording the result. */
-static esp_err_t init_with(const char *cert_pem, attach_fn attach, attach_fn dflt)
+static esp_err_t init_with_pem_default(const char *cert_pem, attach_fn attach, attach_fn dflt,
+                                       const char *dflt_pem)
 {
     simpleota_deinit();
     g_default = dflt;
+    g_default_pem = dflt_pem;
     g_default_calls = 0;
     g_net = NULL;
     simpleota_config_t cfg;
@@ -98,9 +102,15 @@ static esp_err_t init_with(const char *cert_pem, attach_fn attach, attach_fn dfl
     return simpleota_init(&cfg);
 }
 
+static esp_err_t init_with(const char *cert_pem, attach_fn attach, attach_fn dflt)
+{
+    return init_with_pem_default(cert_pem, attach, dflt, NULL);
+}
+
 int main(void)
 {
     static const char pem[] = "-----BEGIN CERTIFICATE-----\n";
+    static const char default_pem[] = "-----BEGIN CERTIFICATE-----\nroots\n";
 
     check(init_with(NULL, NULL, NULL) == ESP_ERR_INVALID_STATE,
           "no cert_pem, no bundle and no default: init fails closed");
@@ -125,6 +135,15 @@ int main(void)
     check(init_with(NULL, app_bundle, NULL) == ESP_OK && g_net &&
               g_net->crt_bundle_attach == app_bundle,
           "crt_bundle_attach needs no default");
+
+    check(init_with_pem_default(NULL, NULL, NULL, default_pem) == ESP_OK && g_net &&
+              g_net->cert_pem == default_pem && !g_net->crt_bundle_attach,
+          "no cert_pem and no bundle: the framework's default PEM");
+
+    check(init_with_pem_default(pem, NULL, NULL, default_pem) == ESP_OK && g_net &&
+              g_net->cert_pem && g_net->cert_pem != default_pem &&
+              strcmp(g_net->cert_pem, pem) == 0 && g_default_calls == 0,
+          "cert_pem replaces the framework's default PEM");
 
     simpleota_deinit();
     return g_failures ? 1 : 0;

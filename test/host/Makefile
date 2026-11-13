@@ -13,22 +13,14 @@ INC      := -I$(CORE)
 
 OBJS := monocypher.o monocypher-ed25519.o sota_json.o sota_sha256.o sota_signing.o sota_protocol.o
 FRAMEWORK_TESTS := test_framework_idf test_framework_idf_nobundle \
-                   test_framework_arduino test_framework_arduino_nobundle
+                   test_framework_arduino test_framework_arduino_nobundle \
+                   test_framework_arduino_2_0_4 test_framework_arduino_2_0_3 \
+                   test_framework_arduino_unversioned
 TESTS := test_signing test_report test_trial test_wdt test_url test_state test_contract test_protocol test_engine test_cxx \
          $(FRAMEWORK_TESTS) test_init_trust
 
-test: $(TESTS) check_arduino_floor
+test: $(TESTS)
 	@set -e; for t in $(TESTS); do echo "== $$t"; ./$$t; done
-
-# An Arduino build refuses cores older than 2.0.4 and accepts 2.0.4.
-check_arduino_floor:
-	@echo "== $@"
-	@if $(CC) $(CFLAGS) $(FRAMEWORK_INC) -DARDUINO -DSTUB_ARDUINO_VERSION_PATCH=3 \
-	    -fsyntax-only $(PORT)/sota_framework.c 2>/dev/null; then \
-	  echo "FAIL  an Arduino-ESP32 2.0.3 build is accepted"; exit 1; fi
-	@$(CC) $(CFLAGS) $(FRAMEWORK_INC) -DARDUINO -DSTUB_ARDUINO_VERSION_PATCH=4 \
-	  -fsyntax-only $(PORT)/sota_framework.c
-	@echo "  ok  Arduino-ESP32 2.0.3 is refused and 2.0.4 builds"
 
 test_signing: test_signing.c $(OBJS)
 	$(CC) $(CFLAGS) $(INC) -o $@ test_signing.c $(OBJS)
@@ -63,21 +55,33 @@ test_cxx: test_cxx.cpp $(OBJS) $(wildcard $(CORE)/*.h)
 	$(CXX) $(CXXFLAGS) $(INC) -o $@ test_cxx.cpp $(OBJS)
 
 PORT := ../../port/esp32
-FRAMEWORK_SRC := test_framework.c $(PORT)/sota_framework.c
+FRAMEWORK_SRC := test_framework.c $(PORT)/sota_framework.c $(CORE)/sota_sha256.c
 FRAMEWORK_DEPS := $(FRAMEWORK_SRC) $(PORT)/sota_framework.h $(wildcard esp_stub/*.h) $(wildcard $(CORE)/*.h)
 FRAMEWORK_INC := $(INC) -I$(PORT) -Iesp_stub
+# The trust each build must default to: 0 none, 1 the bundle, 2 the PEM.
+FRAMEWORK_CC = $(CC) $(CFLAGS) $(FRAMEWORK_INC) -DTEST_NAME='"$@"' -o $@ $(FRAMEWORK_SRC)
+BUNDLE := -DCONFIG_MBEDTLS_CERTIFICATE_BUNDLE=1
 
 test_framework_idf: $(FRAMEWORK_DEPS)
-	$(CC) $(CFLAGS) $(FRAMEWORK_INC) -DCONFIG_MBEDTLS_CERTIFICATE_BUNDLE=1 -o $@ $(FRAMEWORK_SRC)
+	$(FRAMEWORK_CC) $(BUNDLE) -DEXPECT_TRUST=1
 
 test_framework_idf_nobundle: $(FRAMEWORK_DEPS)
-	$(CC) $(CFLAGS) $(FRAMEWORK_INC) -o $@ $(FRAMEWORK_SRC)
+	$(FRAMEWORK_CC) -DEXPECT_TRUST=0
 
 test_framework_arduino: $(FRAMEWORK_DEPS)
-	$(CC) $(CFLAGS) $(FRAMEWORK_INC) -DARDUINO -DCONFIG_MBEDTLS_CERTIFICATE_BUNDLE=1 -o $@ $(FRAMEWORK_SRC)
+	$(FRAMEWORK_CC) -DARDUINO $(BUNDLE) -DEXPECT_TRUST=1
 
 test_framework_arduino_nobundle: $(FRAMEWORK_DEPS)
-	$(CC) $(CFLAGS) $(FRAMEWORK_INC) -DARDUINO -o $@ $(FRAMEWORK_SRC)
+	$(FRAMEWORK_CC) -DARDUINO -DEXPECT_TRUST=0
+
+test_framework_arduino_2_0_4: $(FRAMEWORK_DEPS)
+	$(FRAMEWORK_CC) -DARDUINO -DSTUB_ARDUINO_VERSION_PATCH=4 $(BUNDLE) -DEXPECT_TRUST=1
+
+test_framework_arduino_2_0_3: $(FRAMEWORK_DEPS)
+	$(FRAMEWORK_CC) -DARDUINO -DSTUB_ARDUINO_VERSION_PATCH=3 $(BUNDLE) -DEXPECT_TRUST=2
+
+test_framework_arduino_unversioned: $(FRAMEWORK_DEPS)
+	$(FRAMEWORK_CC) -DARDUINO -DSTUB_NO_ARDUINO_VERSION $(BUNDLE) -DEXPECT_TRUST=2
 
 INIT_SRC := test_init_trust.c $(PORT)/simpleota.c
 
@@ -90,4 +94,4 @@ test_init_trust: $(INIT_SRC) ../../include/simpleota.h $(FRAMEWORK_DEPS)
 clean:
 	rm -f $(TESTS) $(OBJS)
 
-.PHONY: test clean check_arduino_floor
+.PHONY: test clean
