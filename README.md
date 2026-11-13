@@ -61,7 +61,7 @@ The interfaces, one per concern:
 | `sota_app.h` | Events, log lines, and a wake-up when the confirm timeout fires | the API layer, `simpleota.c` |
 
 `port/esp32/` implements the port's half with the ESP-IDF APIs that both
-ESP-IDF (5.1 and later) and Arduino-ESP32 (2.x and 3.x) provide:
+ESP-IDF (5.1 and later) and Arduino-ESP32 (2.0.4 and later) provide:
 
 | File | Implements |
 | --- | --- |
@@ -97,7 +97,8 @@ make -C test/host test
 
 CI also compiles everything, through the public API, in a small ESP-IDF app
 (`test/esp-idf`, several IDF versions and targets) and an Arduino sketch
-(`test/arduino`, cores 2.0.17 and 3.3.0).
+(`test/arduino`, cores 2.0.4, 2.0.17, 3.0.0 and 3.3.0), and checks that the
+certificate bundle is linked.
 
 `test_engine` runs the engine on a fake two-slot device, with and without
 bootloader rollback, and cuts power after every write and slot switch of

@@ -11,12 +11,24 @@
 
 #include "esp_log.h"
 
+#if defined(ARDUINO)
+#if __has_include("esp_arduino_version.h")
+#include "esp_arduino_version.h"
+#endif
+/* 2.0.4 is the first core whose prebuilt ESP-IDF links the bundle. */
+#if !defined(ESP_ARDUINO_VERSION)
+#error "SimpleOTAClient needs Arduino-ESP32 2.0.4 or later"
+#elif ESP_ARDUINO_VERSION < ESP_ARDUINO_VERSION_VAL(2, 0, 4)
+#error "SimpleOTAClient needs Arduino-ESP32 2.0.4 or later"
+#endif
+#endif
+
 #if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
 #include "esp_crt_bundle.h"
 #endif
 
-/* A Kconfig choice on ESP-IDF; Arduino-ESP32's prebuilt ESP-IDF has the
- * full bundle. */
+/* A Kconfig choice on ESP-IDF; Arduino-ESP32 2.0.4 and later have the full
+ * bundle. */
 bool sota_framework_default_trust(esp_err_t (**crt_bundle_attach)(void *conf))
 {
 #if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE

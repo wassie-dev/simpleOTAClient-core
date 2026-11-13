@@ -15,10 +15,20 @@ OBJS := monocypher.o monocypher-ed25519.o sota_json.o sota_sha256.o sota_signing
 FRAMEWORK_TESTS := test_framework_idf test_framework_idf_nobundle \
                    test_framework_arduino test_framework_arduino_nobundle
 TESTS := test_signing test_report test_trial test_wdt test_url test_state test_contract test_protocol test_engine test_cxx \
-         $(FRAMEWORK_TESTS)
+         $(FRAMEWORK_TESTS) test_init_trust
 
-test: $(TESTS)
+test: $(TESTS) check_arduino_floor
 	@set -e; for t in $(TESTS); do echo "== $$t"; ./$$t; done
+
+# An Arduino build refuses cores older than 2.0.4 and accepts 2.0.4.
+check_arduino_floor:
+	@echo "== $@"
+	@if $(CC) $(CFLAGS) $(FRAMEWORK_INC) -DARDUINO -DSTUB_ARDUINO_VERSION_PATCH=3 \
+	    -fsyntax-only $(PORT)/sota_framework.c 2>/dev/null; then \
+	  echo "FAIL  an Arduino-ESP32 2.0.3 build is accepted"; exit 1; fi
+	@$(CC) $(CFLAGS) $(FRAMEWORK_INC) -DARDUINO -DSTUB_ARDUINO_VERSION_PATCH=4 \
+	  -fsyntax-only $(PORT)/sota_framework.c
+	@echo "  ok  Arduino-ESP32 2.0.3 is refused and 2.0.4 builds"
 
 test_signing: test_signing.c $(OBJS)
 	$(CC) $(CFLAGS) $(INC) -o $@ test_signing.c $(OBJS)
@@ -69,10 +79,15 @@ test_framework_arduino: $(FRAMEWORK_DEPS)
 test_framework_arduino_nobundle: $(FRAMEWORK_DEPS)
 	$(CC) $(CFLAGS) $(FRAMEWORK_INC) -DARDUINO -o $@ $(FRAMEWORK_SRC)
 
+INIT_SRC := test_init_trust.c $(PORT)/simpleota.c
+
+test_init_trust: $(INIT_SRC) ../../include/simpleota.h $(FRAMEWORK_DEPS)
+	$(CC) $(CFLAGS) -D_POSIX_C_SOURCE=200809L $(FRAMEWORK_INC) -I../../include -o $@ $(INIT_SRC)
+
 %.o: $(CORE)/%.c $(wildcard $(CORE)/*.h)
 	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
 
 clean:
 	rm -f $(TESTS) $(OBJS)
 
-.PHONY: test clean
+.PHONY: test clean check_arduino_floor

@@ -198,7 +198,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        core: ["2.0.17", "3.3.0"]
+        # The oldest and newest supported core of each major.
+        core: ["2.0.4", "2.0.17", "3.0.0", "3.3.0"]
 
     steps:
       - uses: actions/checkout@v4
@@ -240,7 +241,7 @@ jobs:
         run: |
           set -euo pipefail
           tools="$(arduino-cli config get directories.data)/packages/esp32/tools"
-          nm=$(find "$tools" -name xtensa-esp32-elf-nm -type f | head -n 1)
+          nm=$(find "$tools" -name xtensa-esp32-elf-nm -type f -print -quit)
           syms=$("$nm" --defined-only "$RUNNER_TEMP/build/PortSmoke.ino.elf")
           for sym in esp_crt_bundle_attach _binary_x509_crt_bundle_start; do
             grep -qw "$sym" <<<"$syms" || { echo "::error::$sym is not linked"; exit 1; }
