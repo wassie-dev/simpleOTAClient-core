@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.1 (unreleased)
+
+### Changed
+
+- The Arduino build verifies TLS against the ESP-IDF certificate bundle that
+  Arduino-ESP32 links in, as the ESP-IDF build does, instead of only the ISRG
+  Root X1 and X2 certificates. It keeps working if a host's certificate
+  moves to another public CA, such as Cloudflare's backup certificates
+  from Google Trust Services, SSL.com or Sectigo. The bundle adds about
+  62 KB of flash on Arduino-ESP32 2.x and 68 KB on 3.x to a sketch that did
+  not already use it. `cert_pem` still replaces it.
+
 ## 1.0.0 (2026-10-25)
 
 The first release: the logic both clients carried their own copies of, in

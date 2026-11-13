@@ -3,7 +3,7 @@
  * @brief What differs between the two builds of the client:
  * the ESP-IDF component, configured by its Kconfig, and the Arduino
  * library, which links against Arduino-ESP32's prebuilt ESP-IDF and has
- * neither a Kconfig nor the certificate bundle.
+ * no Kconfig.
  */
 
 #ifndef SOTA_FRAMEWORK_H

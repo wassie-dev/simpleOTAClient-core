@@ -240,8 +240,9 @@ typedef struct {
     void *user_ctx;                /**< Passed to is_connected and event_cb. */
 
     /** TLS trust, always verified. Default: the ESP-IDF certificate bundle,
-     *  or on Arduino, which does not ship it, the ISRG Root X1 and X2
-     *  certificates that SimpleOTA's hosts chain to. Set cert_pem to pin a
+     *  on Arduino too, whose ESP-IDF includes it. esp_crt_bundle_set(), which
+     *  Arduino-ESP32 3.x's setCACertBundle() calls, replaces that bundle for
+     *  the whole application, this client included. Set cert_pem to pin a
      *  specific CA, or several concatenated, instead (then the bundle is not
      *  used). */
     const char *cert_pem;

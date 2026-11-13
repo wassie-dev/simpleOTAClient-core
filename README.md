@@ -80,9 +80,9 @@ is packaging: the ESP-IDF component adds its `CMakeLists.txt`, `Kconfig`
 and manifest, and the Arduino library its `library.properties`. The
 Arduino build, which has no Kconfig and links against Arduino-ESP32's
 prebuilt ESP-IDF, differs only in `sota_framework.c`: the Kconfig defaults,
-the ISRG roots as the default CA (Arduino-ESP32 has no certificate bundle),
 warnings shown at Arduino's default log level, and the bootloader hook that
-keeps a trial image pending until `simpleota_init()`.
+keeps a trial image pending until `simpleota_init()`. Both builds verify TLS
+against the ESP-IDF certificate bundle by default.
 
 `SOTA_LOG_LEVEL` sets which log lines are compiled in (all by default; the
 ESP-IDF component caps it at `CONFIG_LOG_MAXIMUM_LEVEL`), and `SOTA_DL_CHUNK`
