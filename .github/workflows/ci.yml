@@ -198,17 +198,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        core: ["2.0.17", "3.3.0"]
+        # The oldest and newest supported core of each major, and the last
+        # core without the certificate bundle, with the default TLS trust
+        # each must link.
+        include:
+          - { core: "2.0.3", trust: pem }
+          - { core: "2.0.4", trust: bundle }
+          - { core: "2.0.17", trust: bundle }
+          - { core: "3.0.0", trust: bundle }
+          - { core: "3.3.0", trust: bundle }
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: arduino/setup-arduino-cli@v2
 
-      # Core 2.x runs esptool.py, which needs pyserial; the runner's Python
-      # has none. Put the pinned wheel on PYTHONPATH rather than install it.
+      # Cores 2.x and 3.0.x run esptool.py, which needs pyserial; the
+      # runner's Python has none. Put the pinned wheel on PYTHONPATH rather
+      # than install it.
       - name: Provide pyserial
-        if: startsWith(matrix.core, '2.')
         run: |
           set -euo pipefail
           whl="$RUNNER_TEMP/pyserial-3.5-py2.py3-none-any.whl"
@@ -231,4 +239,28 @@ jobs:
           arduino-cli core update-index
           arduino-cli core install esp32:esp32@${{ matrix.core }}
           arduino-cli compile --fqbn esp32:esp32:esp32 --warnings all \
+            --build-path "$RUNNER_TEMP/build" \
             --library "$RUNNER_TEMP/libraries/SimpleOTACore" test/arduino/PortSmoke
+
+      # The default TLS trust in the image: the core's certificate bundle,
+      # its attach function and data, or on a core without it the PEM roots.
+      - name: Check the default TLS trust is linked
+        env:
+          TRUST: ${{ matrix.trust }}
+        run: |
+          set -euo pipefail
+          tools="$(arduino-cli config get directories.data)/packages/esp32/tools"
+          nm=$(find "$tools" -name xtensa-esp32-elf-nm -type f -print -quit)
+          syms=$("$nm" --defined-only "$RUNNER_TEMP/build/PortSmoke.ino.elf")
+          has() { grep -qw "$1" <<<"$syms"; }
+          if [ "$TRUST" = bundle ]; then
+            want="esp_crt_bundle_attach _binary_x509_crt_bundle_start"; unwanted="k_default_roots"
+          else
+            want="k_default_roots"; unwanted="esp_crt_bundle_attach"
+          fi
+          for sym in $want; do
+            has "$sym" || { echo "::error::$sym is not linked"; exit 1; }
+          done
+          for sym in $unwanted; do
+            ! has "$sym" || { echo "::error::$sym is linked"; exit 1; }
+          done
