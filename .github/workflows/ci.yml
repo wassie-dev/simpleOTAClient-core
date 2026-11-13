@@ -206,10 +206,10 @@ jobs:
 
       - uses: arduino/setup-arduino-cli@v2
 
-      # Core 2.x runs esptool.py, which needs pyserial; the runner's Python
-      # has none. Put the pinned wheel on PYTHONPATH rather than install it.
+      # Cores 2.x and 3.0.x run esptool.py, which needs pyserial; the
+      # runner's Python has none. Put the pinned wheel on PYTHONPATH rather
+      # than install it.
       - name: Provide pyserial
-        if: startsWith(matrix.core, '2.')
         run: |
           set -euo pipefail
           whl="$RUNNER_TEMP/pyserial-3.5-py2.py3-none-any.whl"
