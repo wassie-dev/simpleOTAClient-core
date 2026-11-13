@@ -29,7 +29,7 @@
 - Upgrading an Arduino build on 2.0.4 or later with
   `CONFIG_MBEDTLS_CERTIFICATE_BUNDLE` turned off, such as a custom
   sdkconfig: `simpleota_init()` now returns `ESP_ERR_INVALID_STATE` unless
-  `cert_pem` is set.
+  `cert_pem` or `crt_bundle_attach` is set.
 
 ## 1.0.0 (2026-10-25)
 
