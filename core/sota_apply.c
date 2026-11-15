@@ -306,7 +306,15 @@ sota_apply_result_t sota_engine_apply(sota_engine_t *e)
     }
     job.downloading = true;
 
-    size_t expected = len > 0 ? (size_t)len : e->offer.size;
+    /* The offer's size, which comes with its checksum, rules: the download
+     * host's Content-Length is checked against it before the slot is
+     * opened. Longer fails the same way every time; shorter may be a
+     * broken transfer, so it is retried. */
+    size_t expected = e->offer.size ? e->offer.size : len > 0 ? (size_t)len : 0;
+    if (len > 0 && (uint64_t)len != expected) {
+        e->net_failed = (uint64_t)len < expected;
+        return give_up(e, &job, "short_read", SOTA_APPLY_FLASH_FAIL);
+    }
     uint32_t slot = 0, running = 0;
     job.writing = sota_image_begin(expected, &slot, &running);
     job.chunk = (uint8_t *)malloc(SOTA_DL_CHUNK);
