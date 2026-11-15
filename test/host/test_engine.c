@@ -754,6 +754,18 @@ static void test_no_early_retry(void)
     run(act_step);
     check(g_wait == 30 && g_e.net_failures == 1 && fake_server_count("failed", "short_read") == 2,
           "a download that ends before the announced size is retried");
+    /* A Content-Length that matches what the host sends, but not the
+     * offer's size. */
+    fs.chunked = false;
+    g_e.net_failures = 0;
+    fs.offer_size = (uint32_t)fs.image_len - 100u;
+    fw.written_len = 0;
+    expect_no_retry("a Content-Length over the offer's size", "short_read");
+    check(fw.written_len == 0, "  and nothing of it is written");
+    fs.offer_size = (uint32_t)fs.image_len + 100u;
+    expect_retry("a Content-Length under the offer's size", "short_read");
+    check(fw.written_len == 0, "  and nothing of it is written");
+    fs.chunked = true;
     fs.offer_size = 0;
     fs.no_size = true;
     check(run(act_step) == FAKE_JUMP_RESTART && fw.build[1] == 2,
