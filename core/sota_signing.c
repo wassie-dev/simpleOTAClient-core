@@ -133,21 +133,50 @@ bool sota_decode_signature_b64(const char *b64, uint8_t out[64]) {
  * sota_sig_verifier_t
  * ------------------------------------------------------------------------- */
 
+/* Ed25519 over the port's SHA-512, through Monocypher's custom-hash
+ * interface. Its callbacks get the check context, which is the first
+ * member of a sota_ed25519_check_t. */
+static void hash_init(void *ctx)
+{
+    sota_sha512_init(&((sota_ed25519_check_t *)ctx)->hash);
+}
+
+static void hash_update(void *ctx, const uint8_t *message, size_t message_size)
+{
+    sota_sha512_update(&((sota_ed25519_check_t *)ctx)->hash, message, message_size);
+}
+
+static void hash_final(void *ctx, uint8_t hash[64])
+{
+    sota_sha512_final(&((sota_ed25519_check_t *)ctx)->hash, hash);
+}
+
+/* Only signing calls this; a check never does. */
+static void hash_all(uint8_t hash[64], const uint8_t *message, size_t message_size)
+{
+    sota_hash_ctx ctx;
+    sota_sha512_init(&ctx);
+    sota_sha512_update(&ctx, message, message_size);
+    sota_sha512_final(&ctx, hash);
+}
+
+static const crypto_sign_vtable k_sha512 = {
+    hash_all, hash_init, hash_update, hash_final, sizeof(sota_ed25519_check_t),
+};
+
 bool sota_verifier_begin(sota_sig_verifier_t *v, const uint8_t sig[64],
                          const uint8_t keys[][32], uint8_t num_keys) {
     v->num_keys = (num_keys > SOTA_VERIFIER_MAX_KEYS) ? SOTA_VERIFIER_MAX_KEYS
                                                       : num_keys;
     for (uint8_t i = 0; i < v->num_keys; ++i) {
-        crypto_ed25519_check_init((crypto_check_ctx_abstract *)&v->ctx[i], sig,
-                                  keys[i]);
+        crypto_check_init_custom_hash(&v->ctx[i].ctx, sig, keys[i], &k_sha512);
     }
     return v->num_keys > 0;
 }
 
 void sota_verifier_update(sota_sig_verifier_t *v, const uint8_t *data, size_t len) {
     for (uint8_t i = 0; i < v->num_keys; ++i) {
-        crypto_ed25519_check_update((crypto_check_ctx_abstract *)&v->ctx[i], data,
-                                    len);
+        crypto_check_update(&v->ctx[i].ctx, data, len);
     }
 }
 
@@ -156,12 +185,20 @@ bool sota_verifier_final(sota_sig_verifier_t *v) {
      * depend on which candidate key matched. */
     bool ok = false;
     for (uint8_t i = 0; i < v->num_keys; ++i) {
-        if (crypto_ed25519_check_final((crypto_check_ctx_abstract *)&v->ctx[i]) == 0) {
+        if (crypto_check_final(&v->ctx[i].ctx) == 0) {
             ok = true;
         }
     }
     v->num_keys = 0;  /* contexts are consumed; require a fresh begin() */
     return ok;
+}
+
+void sota_verifier_abort(sota_sig_verifier_t *v) {
+    uint8_t unused[64];
+    for (uint8_t i = 0; i < v->num_keys; ++i) {
+        sota_sha512_final(&v->ctx[i].hash, unused);
+    }
+    v->num_keys = 0;
 }
 
 #endif /* SOTA_SIGNED_UPDATES */

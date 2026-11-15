@@ -24,7 +24,7 @@
 #include <string.h>
 
 #include "sota_json.h"
-#include "sota_sha256.h"
+#include "sota_hash.h"
 #include "sota_signing.h"
 
 static int g_failures = 0;
@@ -133,7 +133,7 @@ static bool sha256_hex_equals(const uint8_t digest[32], const char *hex) {
 
 static void run_sha256_tests(void) {
     uint8_t digest[32];
-    sota_sha256_ctx ctx;
+    sota_hash_ctx ctx;
 
     sota_sha256_init(&ctx);
     sota_sha256_final(&ctx, digest);
@@ -175,6 +175,24 @@ static void run_sha256_tests(void) {
               digest,
               "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0"),
           "sha256: one million 'a' (NIST)");
+}
+
+/* The portable SHA-512 behind sota_hash.h, which the verifier runs on. */
+static void run_sha512_tests(void) {
+    static const uint8_t abc[64] = {
+        0xdd, 0xaf, 0x35, 0xa1, 0x93, 0x61, 0x7a, 0xba, 0xcc, 0x41, 0x73, 0x49, 0xae,
+        0x20, 0x41, 0x31, 0x12, 0xe6, 0xfa, 0x4e, 0x89, 0xa9, 0x7e, 0xa2, 0x0a, 0x9e,
+        0xee, 0xe6, 0x4b, 0x55, 0xd3, 0x9a, 0x21, 0x92, 0x99, 0x2a, 0x27, 0x4f, 0xc1,
+        0xa8, 0x36, 0xba, 0x3c, 0x23, 0xa3, 0xfe, 0xeb, 0xbd, 0x45, 0x4d, 0x44, 0x23,
+        0x64, 0x3c, 0xe8, 0x0e, 0x2a, 0x9a, 0xc9, 0x4f, 0xa5, 0x4c, 0xa4, 0x9f,
+    };
+    uint8_t digest[64];
+    sota_hash_ctx ctx;
+    sota_sha512_init(&ctx);
+    sota_sha512_update(&ctx, (const uint8_t *)"a", 1);
+    sota_sha512_update(&ctx, (const uint8_t *)"bc", 2);
+    sota_sha512_final(&ctx, digest);
+    CHECK(memcmp(digest, abc, sizeof(abc)) == 0, "sha512: 'abc' (NIST)");
 }
 
 /* Parse a realistic /check/ offer response with the scanner the component
@@ -270,6 +288,7 @@ int main(void) {
 
     run_json_tests();
     run_sha256_tests();
+    run_sha512_tests();
 
     /* --- PEM parsing ------------------------------------------------------ */
     uint8_t server_key[32], other_key[32], scratch[32];
@@ -372,6 +391,12 @@ int main(void) {
         sota_verifier_begin(&v, server_sig, keys, 2);
         sota_verifier_update(&v, msg, K_SERVER_MSG_LEN);
         CHECK(!sota_verifier_final(&v), "two wrong keys rejected");
+
+        /* Given up half way: nothing is left to finish. */
+        sota_verifier_begin(&v, server_sig, keys, 2);
+        sota_verifier_update(&v, msg, K_SERVER_MSG_LEN / 2);
+        sota_verifier_abort(&v);
+        CHECK(v.num_keys == 0 && !sota_verifier_final(&v), "an aborted check cannot pass");
 
         /* Zero keys: inert verifier fails closed. */
         CHECK(!sota_verifier_begin(&v, server_sig, keys, 0),

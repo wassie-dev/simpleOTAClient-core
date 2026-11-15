@@ -5,6 +5,17 @@
 API 1.1: additions only. A configuration that leaves the new field at zero
 behaves as in 1.0, and nothing stored changes.
 
+### Changed
+
+- The checksum's SHA-256 and Ed25519's SHA-512 are the port's, behind the
+  new `sota_hash.h`. On ESP32 that is the mbedTLS TLS already links
+  (`port/esp32/sota_hash_mbedtls.c`), with the chip's SHA hardware: the
+  hash modules on mbedTLS 2 and 3, PSA Crypto on mbedTLS 4. The client's
+  own SHA-256 and Monocypher's SHA-512 no longer go into the image, about
+  3.5 KB of flash. They moved to `port/portable/`, where the host tests
+  use them. `sota_sha256.h` is gone, and `sota_verifier_abort()` is new: a
+  hash is now always finished, because a port may hold hardware for it.
+
 ### Added
 
 - `simpleota_config_t::can_update`: in managed mode the application can put
