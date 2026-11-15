@@ -164,8 +164,14 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' &&
        github.event.pull_request.head.repo.full_name == github.repository)
+    permissions:
+      contents: read
+      actions: read
+    # One build at a time: two at once plus a backend stack ran Tower out of
+    # memory. A concurrency group would cancel the queued entries instead.
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         include:
           - idf: v5.1.4
@@ -181,6 +187,40 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      # The always() step below never runs if the runner loses GitHub
+      # mid-job. This removes build containers of earlier attempts of this
+      # run and of runs that have finished; it never fails the job.
+      - name: Remove build containers left by finished runs
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          names="$(docker ps -a --filter name=sota-idf- --format '{{.Names}}')" \
+            || echo "::warning::Could not list containers"
+          for name in $(grep -E '^sota-idf-[0-9]+-[0-9]+-[0-9]+$' <<<"$names" | sort -u); do
+            [ "$name" = "$IDF_CONTAINER" ] && continue
+            rest="${name#sota-idf-}"
+            run_id="${rest%%-*}"
+            rest="${rest#*-}"
+            attempt="${rest%%-*}"
+            if [ "$run_id" = "$GITHUB_RUN_ID" ]; then
+              [ "$attempt" -lt "$GITHUB_RUN_ATTEMPT" ] || continue
+            else
+              status="$(curl -fsS --max-time 10 \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$run_id" \
+                | jq -r '.status // empty')" || status=""
+              if [ "$status" != "completed" ]; then
+                echo "Keeping $name: run $run_id is ${status:-unknown}"
+                continue
+              fi
+            fi
+            echo "Removing $name"
+            docker rm -f "$name" >/dev/null || echo "::warning::Could not remove $name"
+          done
 
       - name: Build the port smoke app
         uses: espressif/esp-idf-ci-action@v1
