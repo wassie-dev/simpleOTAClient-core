@@ -176,6 +176,8 @@ jobs:
             target: esp32s3
           - idf: latest
             target: esp32c3
+    env:
+      IDF_CONTAINER: sota-idf-${{ github.run_id }}-${{ github.run_attempt }}-${{ strategy.job-index }}
 
     steps:
       - uses: actions/checkout@v4
@@ -186,6 +188,12 @@ jobs:
           esp_idf_version: ${{ matrix.idf }}
           target: ${{ matrix.target }}
           path: test/esp-idf
+          extra_docker_args: --rm --name ${{ env.IDF_CONTAINER }}
+
+      # --rm covers a build that exits; this covers a cancelled one.
+      - name: Remove the build container
+        if: always()
+        run: docker rm -f "$IDF_CONTAINER" >/dev/null || true
 
   arduino:
     name: Arduino-ESP32 ${{ matrix.core }}
