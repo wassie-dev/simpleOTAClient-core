@@ -290,22 +290,38 @@ static void test_parse(void)
     check(parse(long_version, &o, url, sizeof(url)) == SOTA_CHECK_OFFER && o.version[0] == '\0',
           "a version too long to store is left empty");
 
-    /* Key ids run to 64 characters; a longer one is never cut to fit. */
-    char key64[66], key_resp[600];
-    for (int len = 64; len <= 65; ++len) {
-        memset(key64, 'k', (size_t)len);
-        key64[len] = '\0';
+    /* Key ids run to 64 characters; a longer one is never cut to fit, and
+     * one that is not a string is never taken for none. */
+    char k64[67], k65[68], key_resp[600];
+    snprintf(k64, sizeof(k64), "\"%064d\"", 0);
+    snprintf(k65, sizeof(k65), "\"%065d\"", 0);
+    struct {
+        const char *value, *kept;
+        bool usable;
+        const char *name;
+    } keys[] = {
+        {k64, NULL, true, "a 64-character key id is kept whole"},
+        {k65, "", false, "a 65-character key id leaves both signatures unusable"},
+        {"null", "", false, "a null key id leaves both signatures unusable"},
+        {"5", "", false, "a key id that is not a string leaves both signatures unusable"},
+        {"\"\"", "", true, "an empty key id is kept as none"},
+    };
+    for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
         snprintf(key_resp, sizeof(key_resp),
                  "{\"update_available\":true,\"url\":\"https://x\",\"checksum\":\"" HASH "\","
                  "\"build_number\":7,\"security_mode\":\"signed\",\"signature\":\"" SIG "\","
-                 "\"manifest_signature\":\"" SIG "\",\"signing_key_id\":\"%s\"}",
-                 key64);
-        bool fits = len == 64;
+                 "\"manifest_signature\":\"" SIG "\",\"signing_key_id\":%s}",
+                 keys[i].value);
+        const char *kept = keys[i].kept;
+        char inner[66];
+        if (!kept) {
+            snprintf(inner, sizeof(inner), "%064d", 0);
+            kept = inner;
+        }
         check(parse(key_resp, &o, url, sizeof(url)) == SOTA_CHECK_OFFER &&
-                  (fits ? strcmp(o.key_id, key64) == 0 : o.key_id[0] == '\0') &&
-                  o.has_signature == fits && o.has_manifest == fits,
-              fits ? "a 64-character key id is kept whole"
-                   : "a 65-character key id leaves both signatures unusable");
+                  strcmp(o.key_id, kept) == 0 && o.has_signature == keys[i].usable &&
+                  o.has_manifest == keys[i].usable,
+              keys[i].name);
     }
 }
 

@@ -41,12 +41,14 @@ heap for a moment (about 700 bytes), freed before the download starts.
 
 ### Fixed
 
-- Signing key ids of up to 64 characters, as the platform and the CLI
-  allow, can be pinned and are read from offers. Before, a 64-character id
-  failed init, and in an offer it was dropped, so its strict signature
-  never verified. An offer whose key id is longer than 64 characters, or
-  not a string, has no usable signature, and a strict signature with an
-  empty key id is refused.
+- Signing key ids of up to 64 ASCII characters, as the platform and the
+  CLI allow, can be pinned and are read from offers. Before, a
+  64-character id failed init, and in an offer it was dropped, so its
+  strict signature never verified. An offer whose key id is longer than 64
+  characters, or not a string (`null` included), has no usable signature.
+  An empty key id counts as none, as before: the image signature is
+  checked against every pinned key. A strict signature with an empty key
+  id is refused.
 
 ## 1.1.0 (unreleased)
 

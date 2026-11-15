@@ -1063,6 +1063,31 @@ static void test_signed_build(void)
     signed_offer(sk, pk, k65, false);
     check(refused_before_download() && fake_server_count("failed", "signature_invalid") == 1,
           "an offer with a 65-character key id is refused");
+
+    /* An empty key id names no key: the image signature is checked against
+     * every pinned key, as in 1.1, but a manifest needs one. */
+    g_key_ids[0] = "k1";
+    g_pems[1] = NULL;
+    device_on_build_1(true);
+    g_cfg.device.security_mode = "signed";
+    g_pems[0] = pem;
+    fake_server_offer(5, "dep-5");
+    boot(SOTA_RST_POWERON);
+    signed_offer(sk, pk, "", false);
+    check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
+          "an empty key id tries every pinned key for the image signature");
+
+    device_on_build_1(true);
+    g_cfg.device.security_mode = "signed";
+    g_cfg.device.require_manifest = true;
+    g_cfg.project_id = "proj-a";
+    g_pems[0] = pem;
+    fake_server_offer(5, "dep-5");
+    boot(SOTA_RST_POWERON);
+    signed_offer(sk, pk, "", false);
+    attest(sk, pk, "proj-a", "", 5);
+    check(refused_before_download(),
+          "a manifest signed over an empty key id is refused");
 }
 
 /* ---- power cuts ----------------------------------------------------------- */

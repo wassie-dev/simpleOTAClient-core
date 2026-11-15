@@ -81,7 +81,8 @@ typedef struct {
 typedef struct sota_engine {
     sota_config_t cfg;          /**< As given to sota_engine_init(). */
     uint8_t keys[SOTA_VERIFIER_MAX_KEYS][32];  /**< Pinned Ed25519 keys. */
-    char key_ids[SOTA_VERIFIER_MAX_KEYS][SOTA_KEY_ID_MAX + 1]; /**< Their key ids, empty when none. */
+    /** Their key ids, empty when none. */
+    char key_ids[SOTA_VERIFIER_MAX_KEYS][SOTA_KEY_ID_MAX + 1];
     uint8_t num_keys;           /**< Keys pinned. */
 
     sota_state_t st;            /**< As stored, kept current. */
@@ -112,8 +113,8 @@ typedef struct sota_engine {
 bool sota_engine_init(sota_engine_t *e, const sota_config_t *cfg);
 
 /** Pin an Ed25519 public key (PEM). key_id may be NULL. False when the
- *  PEM does not parse, key_id is over SOTA_KEY_ID_MAX, two keys are pinned already, or the build leaves
- *  signed updates out (SOTA_SIGNED_UPDATES). */
+ *  PEM does not parse, key_id is over SOTA_KEY_ID_MAX, two keys are pinned
+ *  already, or the build leaves signed updates out (SOTA_SIGNED_UPDATES). */
 bool sota_engine_add_key(sota_engine_t *e, const char *key_id, const char *pem);
 
 /** Work out what this boot means for a saved trial: start supervising it,

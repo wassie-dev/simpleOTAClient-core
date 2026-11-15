@@ -56,7 +56,8 @@ static sota_apply_result_t give_up(sota_engine_t *e, job_t *job, const char *rea
 }
 
 /* A verifier for sig, on the heap: against the key the offer names, when
- * it is pinned; otherwise against every pinned key, for rotation windows.
+ * it is pinned; otherwise (none named, an empty one included) against
+ * every pinned key, for rotation windows.
  * NULL when there is no memory or no key. */
 static sota_sig_verifier_t *start_verifier(const sota_engine_t *e, const uint8_t sig[64])
 {

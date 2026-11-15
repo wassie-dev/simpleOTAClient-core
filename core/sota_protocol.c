@@ -150,7 +150,10 @@ static void read_signature(const char *resp, sota_offer_t *offer)
 }
 
 /* A key id that is not a string of at most SOTA_KEY_ID_MAX leaves both
- * signatures unusable: never check them against a key id cut short. */
+ * signatures unusable: never check them against a key id cut short. An
+ * empty one names no key, as when it is absent: the image signature is
+ * checked against every pinned key, and a manifest is refused
+ * (sota_manifest_feed()). */
 static void read_key_id(const char *resp, sota_offer_t *offer)
 {
     if (sota_json_has_key(resp, "signing_key_id") &&
