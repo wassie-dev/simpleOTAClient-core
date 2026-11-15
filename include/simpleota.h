@@ -154,8 +154,9 @@ typedef enum {
  *   for this chip; nothing was written. Since API 1.1.
  * - `update_write_failed`: a flash write failed.
  * - `stream_error`, `download_stalled`, `short_read`: the download broke,
- *   received nothing for CONFIG_SIMPLEOTA_HTTP_TIMEOUT_MS, or was not the
- *   announced size.
+ *   stopped sending (reported one to two CONFIG_SIMPLEOTA_HTTP_TIMEOUT_MS
+ *   after its last byte), or was not the offer's `size` (without one, its
+ *   Content-Length).
  * - `checksum_mismatch`: the download did not match its SHA-256.
  * - `update_end_failed`: the image failed ESP-IDF's check, or the boot slot
  *   could not be switched.

@@ -71,10 +71,17 @@ nothing stored changes. Ports add `sota_sys_random()` to `sota_sys.h`.
   breaks the pre-signed download URL. A surrogate pair, as a server that
   escapes all non-ASCII sends an emoji, decodes to one character. A
   malformed escape, U+0000 and a surrogate outside a pair fail the value.
-- A download longer than the announced size stops at once, before the
-  excess is written to flash, instead of running to the end of the stream.
-  The reason is `short_read`, as before. It is not retried early, since it
-  fails the same way every time; a download that ends short is.
+- The download size guard goes by the offer's `size`, which comes with
+  its checksum, instead of the download's Content-Length. Until now a host
+  that sent more or fewer bytes than `size`, with a Content-Length to
+  match, had all of them written to flash, and the update failed only on
+  its checksum. When the offer has a `size`, a Content-Length above it now
+  fails with `short_read` before the slot is opened, and is not retried
+  early, since it fails the same way every time. A Content-Length below
+  it, or a stream that ends short of `size`, fails with `short_read` and
+  is retried early. A stream that runs past `size` stops before the excess
+  is written, and is not retried early. An offer without a `size` falls
+  back to the Content-Length, as before.
 
 ## 1.0.0 (2026-10-25)
 
