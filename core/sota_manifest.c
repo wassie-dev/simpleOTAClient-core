@@ -37,7 +37,7 @@ static void feed_line(sota_sig_verifier_t *v, const char *line)
 bool sota_manifest_feed(sota_sig_verifier_t *v, const char *project_id, const char *key_id,
                         uint32_t build, const char *checksum)
 {
-    if (!project_id[0] || !sota_manifest_field_ok(project_id) ||
+    if (!project_id[0] || !sota_manifest_field_ok(project_id) || !key_id[0] ||
         !sota_manifest_field_ok(key_id) || !is_sha256_hex(checksum)) {
         return false;
     }

@@ -289,6 +289,24 @@ static void test_parse(void)
              "\"build_number\":7,\"version\":\"%0100d\"}", 0);
     check(parse(long_version, &o, url, sizeof(url)) == SOTA_CHECK_OFFER && o.version[0] == '\0',
           "a version too long to store is left empty");
+
+    /* Key ids run to 64 characters; a longer one is never cut to fit. */
+    char key64[66], key_resp[600];
+    for (int len = 64; len <= 65; ++len) {
+        memset(key64, 'k', (size_t)len);
+        key64[len] = '\0';
+        snprintf(key_resp, sizeof(key_resp),
+                 "{\"update_available\":true,\"url\":\"https://x\",\"checksum\":\"" HASH "\","
+                 "\"build_number\":7,\"security_mode\":\"signed\",\"signature\":\"" SIG "\","
+                 "\"manifest_signature\":\"" SIG "\",\"signing_key_id\":\"%s\"}",
+                 key64);
+        bool fits = len == 64;
+        check(parse(key_resp, &o, url, sizeof(url)) == SOTA_CHECK_OFFER &&
+                  (fits ? strcmp(o.key_id, key64) == 0 : o.key_id[0] == '\0') &&
+                  o.has_signature == fits && o.has_manifest == fits,
+              fits ? "a 64-character key id is kept whole"
+                   : "a 65-character key id leaves both signatures unusable");
+    }
 }
 
 static void test_signatures(void)

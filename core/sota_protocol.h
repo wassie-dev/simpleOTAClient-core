@@ -45,6 +45,9 @@ typedef struct {
     uint8_t nvs_schema_version;     /**< On-device data schema the firmware expects. */
 } sota_device_info_t;
 
+/** The longest signing key id, as the server and CLI allow (1 to 64). */
+#define SOTA_KEY_ID_MAX 64u
+
 /** An update the server offered. */
 typedef struct {
     char *url;                      /**< Caller's buffer: pre-signed URLs run to 1.5 KB. */
@@ -52,7 +55,7 @@ typedef struct {
     char checksum[SOTA_HASH_HEX_LEN + 1]; /**< sha256 hex, lowercased */
     char deployment[64];            /**< Empty when the server sent none. */
     char version[SOTA_VERSION_MAX + 1];   /**< Empty when absent or too long. */
-    char key_id[64];                /**< signing_key_id, empty when absent. */
+    char key_id[SOTA_KEY_ID_MAX + 1]; /**< signing_key_id, empty when absent. */
     uint32_t build;                 /**< The build number SimpleOTA assigned. */
     uint32_t size;                  /**< 0 when the server sent none. */
     bool signed_offer;              /**< security_mode is "signed". */

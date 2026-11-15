@@ -446,6 +446,7 @@ int main(void) {
             {"proj_7f3a9c\nprod-2026", "", 42, sum, false, false,
              "manifest: a project id cannot bring its own line break"},
             {"", "prod-2026", 42, sum, false, false, "manifest: an empty project id is refused"},
+            {"proj_7f3a9c", "", 42, sum, false, false, "manifest: an empty key id is refused"},
             {"proj_7f3a9c", "prod-2026", 42,
              "9F86D081884C7D659A2FEAA0C55AD015A3BF4F1B2B0B822CD15D6C15B0F00A08", false, false,
              "manifest: an uppercase checksum is refused, not signed over"},

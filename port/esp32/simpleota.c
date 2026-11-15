@@ -246,7 +246,7 @@ static esp_err_t init_engine(const simpleota_config_t *config)
     for (uint8_t i = 0; i < config->num_signing_keys; ++i) {
         const simpleota_signing_key_t *k = &config->signing_keys[i];
         if (!k->pem || !sota_engine_add_key(&s.engine, k->key_id, k->pem)) {
-            SOTA_LOGE("signing key %u: invalid Ed25519 public key PEM", i);
+            SOTA_LOGE("signing key %u: invalid PEM, or key id over 64 characters", i);
             return ESP_ERR_INVALID_ARG;
         }
     }

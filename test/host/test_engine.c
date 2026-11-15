@@ -1026,6 +1026,43 @@ static void test_signed_build(void)
     attest(sk, pk, "proj-b", "k1", 4);
     check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
           "without a project id a manifest is not looked at");
+
+    /* Key ids run to 64 characters, as the server and CLI allow. */
+    static char k64[66];
+    memset(k64, 'x', 65);
+    k64[0] = 'k';
+    k64[65] = '\0';
+    check(!sota_engine_add_key(&g_e, k64, pem), "a 65-character key id cannot be pinned");
+    k64[64] = '\0';
+
+    device_on_build_1(true);
+    g_cfg.device.security_mode = "signed";
+    g_cfg.device.require_manifest = true;
+    g_cfg.project_id = "proj-a";
+    g_pems[0] = pem;
+    g_key_ids[0] = k64;
+    fake_server_offer(5, "dep-5");
+    boot(SOTA_RST_POWERON);
+    check(g_e.num_keys == 1, "a 64-character key id is pinned");
+    signed_offer(sk, pk, k64, false);
+    attest(sk, pk, "proj-a", k64, 5);
+    check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
+          "a manifest under a 64-character key id applies");
+
+    /* A key id too long to hold makes the offer's signatures unusable,
+     * even where no manifest is checked and every pinned key would do. */
+    static char k65[67];
+    memset(k65, 'x', 65);
+    k65[65] = '\0';
+    device_on_build_1(true);
+    g_cfg.device.security_mode = "signed";
+    g_pems[0] = pem;
+    g_key_ids[0] = "k1";
+    fake_server_offer(5, "dep-5");
+    boot(SOTA_RST_POWERON);
+    signed_offer(sk, pk, k65, false);
+    check(refused_before_download() && fake_server_count("failed", "signature_invalid") == 1,
+          "an offer with a 65-character key id is refused");
 }
 
 /* ---- power cuts ----------------------------------------------------------- */

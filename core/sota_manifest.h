@@ -80,8 +80,9 @@ bool sota_manifest_field_ok(const char *s);
 /**
  * Feed a version 1 manifest's bytes to a verifier that sota_verifier_begin()
  * has started with the manifest signature. False, with nothing fed, when a
- * field cannot be on a manifest line or the checksum is not 64 lowercase
- * hex digits; the caller still ends the verifier.
+ * field cannot be on a manifest line, the project or key id is empty, or the
+ * checksum is not 64 lowercase hex digits; the caller still ends the
+ * verifier.
  */
 bool sota_manifest_feed(sota_sig_verifier_t *v, const char *project_id, const char *key_id,
                         uint32_t build, const char *checksum);

@@ -149,6 +149,18 @@ static void read_signature(const char *resp, sota_offer_t *offer)
     offer->has_signature = algo_ok && sota_decode_signature_b64(sig_b64, offer->signature);
 }
 
+/* A key id that is not a string of at most SOTA_KEY_ID_MAX leaves both
+ * signatures unusable: never check them against a key id cut short. */
+static void read_key_id(const char *resp, sota_offer_t *offer)
+{
+    if (sota_json_has_key(resp, "signing_key_id") &&
+        !sota_json_get_string(resp, "signing_key_id", offer->key_id, sizeof(offer->key_id))) {
+        offer->key_id[0] = '\0';
+        offer->has_signature = false;
+        offer->has_manifest = false;
+    }
+}
+
 /* A version this client does not know is a manifest it cannot check. */
 static void read_manifest(const char *resp, sota_offer_t *offer)
 {
@@ -182,10 +194,10 @@ sota_check_result_t sota_protocol_parse_check(const char *resp, sota_offer_t *of
     lowercase(offer->checksum);
     get_opt(resp, "deployment_id", offer->deployment, sizeof(offer->deployment));
     get_opt(resp, "version", offer->version, sizeof(offer->version));
-    get_opt(resp, "signing_key_id", offer->key_id, sizeof(offer->key_id));
     sota_json_get_u32(resp, "size", &offer->size);
     read_signature(resp, offer);
     read_manifest(resp, offer);
+    read_key_id(resp, offer);
     return SOTA_CHECK_OFFER;
 }
 
