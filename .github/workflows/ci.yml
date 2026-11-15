@@ -158,7 +158,9 @@ jobs:
 
   esp-idf:
     name: ESP-IDF ${{ matrix.idf }} (${{ matrix.target }})
-    runs-on: [self-hosted, linux, x64, tower, simpleotaclient-core]
+    # Only one Tower runner has the idf label, so IDF builds, which use a
+    # lot of memory, run one at a time across all runs.
+    runs-on: [self-hosted, linux, x64, tower, simpleotaclient-core, idf]
     if: >-
       (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
       github.event_name == 'workflow_dispatch' ||
@@ -167,8 +169,7 @@ jobs:
     permissions:
       contents: read
       actions: read
-    # One build at a time: two at once plus a backend stack ran Tower out of
-    # memory. A concurrency group would cancel the queued entries instead.
+    # Queues this run's entries even if a second runner gets the label.
     strategy:
       fail-fast: false
       max-parallel: 1
