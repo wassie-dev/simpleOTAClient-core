@@ -98,7 +98,7 @@ $(document).ready(function(){initNavTree('sota__framework_8h.html',''); initResi
 </div><!--header-->
 <div class="contents">
 
-<p>What differs between the two builds of the client: the ESP-IDF component, configured by its Kconfig, and the Arduino library, which links against Arduino-ESP32's prebuilt ESP-IDF and has neither a Kconfig nor the certificate bundle.  
+<p>What differs between the two builds of the client: the ESP-IDF component, configured by its Kconfig, and the Arduino library, which links against Arduino-ESP32's prebuilt ESP-IDF and has no Kconfig.  
 <a href="#details">More...</a></p>
 
 <p><a href="sota__framework_8h_source.html">Go to the source code of this file.</a></p>
@@ -133,7 +133,7 @@ Macros</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ae8e4f59c62fbca1c4e2e5205bef45ddf" id="r_ae8e4f59c62fbca1c4e2e5205bef45ddf"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__framework_8h.html#ae8e4f59c62fbca1c4e2e5205bef45ddf">sota_framework_default_trust</a> (const char **cert_pem, esp_err_t(**crt_bundle_attach)(void *conf))</td></tr>
-<tr class="memdesc:ae8e4f59c62fbca1c4e2e5205bef45ddf"><td class="mdescLeft">&#160;</td><td class="mdescRight">TLS trust when the application gives none: a CA certificate to pin, or the certificate bundle's attach function.  <br /></td></tr>
+<tr class="memdesc:ae8e4f59c62fbca1c4e2e5205bef45ddf"><td class="mdescLeft">&#160;</td><td class="mdescRight">TLS trust when the application gives none: the certificate bundle's attach function, or on an Arduino-ESP32 core without the bundle (before 2.0.4) a static PEM of root certificates.  <br /></td></tr>
 <tr class="separator:ae8e4f59c62fbca1c4e2e5205bef45ddf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3c482e73194722982c485a00a608aca4" id="r_a3c482e73194722982c485a00a608aca4"><td class="memItemLeft" align="right" valign="top"><a id="a3c482e73194722982c485a00a608aca4" name="a3c482e73194722982c485a00a608aca4"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>sota_framework_init_logging</b> (const char *tag)</td></tr>
@@ -141,7 +141,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>sota_framework_init_l
 <tr class="separator:a3c482e73194722982c485a00a608aca4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>What differs between the two builds of the client: the ESP-IDF component, configured by its Kconfig, and the Arduino library, which links against Arduino-ESP32's prebuilt ESP-IDF and has neither a Kconfig nor the certificate bundle. </p>
+<div class="textblock"><p>What differs between the two builds of the client: the ESP-IDF component, configured by its Kconfig, and the Arduino library, which links against Arduino-ESP32's prebuilt ESP-IDF and has no Kconfig. </p>
 </div><h2 class="groupheader">Function Documentation</h2>
 <a id="ae8e4f59c62fbca1c4e2e5205bef45ddf" name="ae8e4f59c62fbca1c4e2e5205bef45ddf"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae8e4f59c62fbca1c4e2e5205bef45ddf">&#9670;&#160;</a></span>sota_framework_default_trust()</h2>
@@ -169,8 +169,8 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>sota_framework_init_l
       </table>
 </div><div class="memdoc">
 
-<p>TLS trust when the application gives none: a CA certificate to pin, or the certificate bundle's attach function. </p>
-<p>False when there is neither. </p>
+<p>TLS trust when the application gives none: the certificate bundle's attach function, or on an Arduino-ESP32 core without the bundle (before 2.0.4) a static PEM of root certificates. </p>
+<p>False, with both NULL, when there is neither. </p>
 
 </div>
 </div>
