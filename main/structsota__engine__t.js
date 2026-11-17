@@ -7,6 +7,8 @@ var structsota__engine__t =
     [ "st", "structsota__engine__t.html#a116768faf705e858b212f26daf58c809", null ],
     [ "outbox", "structsota__engine__t.html#a9884b0c74e386b40c0a55356a134ddd1", null ],
     [ "report_failures", "structsota__engine__t.html#a2e148bb9bcbc689a9aca06fc8ae4a6df", null ],
+    [ "net_failures", "structsota__engine__t.html#a12a2f237eee3c84cfe07dd854eb12e4a", null ],
+    [ "net_failed", "structsota__engine__t.html#a2a83616f97a42cb9426acac223642ff1", null ],
     [ "offer", "structsota__engine__t.html#a8286d6e36831ceeceb8eeb033cdcdea6", null ],
     [ "has_offer", "structsota__engine__t.html#a55081c9517733fff0c493b368a13d18c", null ],
     [ "last_check_ok", "structsota__engine__t.html#a8574c93e8c1cb17900d7769856e23ffc", null ],

@@ -373,7 +373,7 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></
 </div><div class="memdoc">
 
 <p>Seconds between checks. </p>
-<p>Default: 3600. </p>
+<p>Default: 3600. The managed task spreads each wait of a minute or more by up to a tenth either way, so a fleet does not check in at once, and retries a check or download that failed on the network after 30 s, 2 min and 10 min. </p>
 
 </div>
 </div>
@@ -441,7 +441,7 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></
 </div><div class="memdoc">
 
 <p>Pinned public keys for signed firmware, at most 2. </p>
-<p>Parsed at init, which fails on a PEM that does not parse rather than run unpinned. </p>
+<p>Parsed at init, which fails on a PEM that does not parse rather than run unpinned. They bind only with security_mode SIMPLEOTA_SECURITY_SIGNED: in any other mode an update the server marks unsigned is still accepted on its checksum, and init logs a warning. </p>
 
 </div>
 </div>

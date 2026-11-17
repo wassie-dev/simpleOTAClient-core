@@ -138,6 +138,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>sota_sys_wdt_disarm</
 void&#160;</td><td class="memItemRight" valign="bottom"><b>sota_sys_wdt_quiesce</b> (void)</td></tr>
 <tr class="memdesc:a1e19df6ff3800d034e372585ed4fa03a"><td class="mdescLeft">&#160;</td><td class="mdescRight">At boot, before a trial may arm it again: stop a watchdog a reset left running. <br /></td></tr>
 <tr class="separator:a1e19df6ff3800d034e372585ed4fa03a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4cfc6bd1af616f04e7bec53304cc941d" id="r_a4cfc6bd1af616f04e7bec53304cc941d"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__sys_8h.html#a4cfc6bd1af616f04e7bec53304cc941d">sota_sys_random</a> (void)</td></tr>
+<tr class="memdesc:a4cfc6bd1af616f04e7bec53304cc941d"><td class="mdescLeft">&#160;</td><td class="mdescRight">32 random bits, to spread the fleet's check-ins.  <br /></td></tr>
+<tr class="separator:a4cfc6bd1af616f04e7bec53304cc941d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a757aed15182322264a2309e745972f1a" id="r_a757aed15182322264a2309e745972f1a"><td class="memItemLeft" align="right" valign="top"><a id="a757aed15182322264a2309e745972f1a" name="a757aed15182322264a2309e745972f1a"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>sota_sys_restart</b> (void)</td></tr>
 <tr class="memdesc:a757aed15182322264a2309e745972f1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Restart the chip. <br /></td></tr>
@@ -265,6 +268,27 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>sota_sys_default_devi
 
 <p>Arm the chip watchdog for confirm_s plus a margin of at least floor_s (<a class="el" href="sota__wdt__calc_8h.html" title="Deadline maths for the chip watchdog that resets a hung trial.">sota_wdt_calc.h</a>). </p>
 <p>Returns true when the deadline was longer than the watchdog can wait and it was clamped. </p>
+
+</div>
+</div>
+<a id="a4cfc6bd1af616f04e7bec53304cc941d" name="a4cfc6bd1af616f04e7bec53304cc941d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4cfc6bd1af616f04e7bec53304cc941d">&#9670;&#160;</a></span>sota_sys_random()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t sota_sys_random </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>32 random bits, to spread the fleet's check-ins. </p>
+<p>Not for secrets. </p>
 
 </div>
 </div>
