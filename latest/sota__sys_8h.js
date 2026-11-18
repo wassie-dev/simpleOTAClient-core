@@ -10,6 +10,7 @@ var sota__sys_8h =
     [ "sota_sys_wdt_arm", "sota__sys_8h.html#a8fd4663d9759fcd4e24fa5ad3c2b9e35", null ],
     [ "sota_sys_wdt_disarm", "sota__sys_8h.html#a0961c14739bde3f79251e6af49b07959", null ],
     [ "sota_sys_wdt_quiesce", "sota__sys_8h.html#a1e19df6ff3800d034e372585ed4fa03a", null ],
+    [ "sota_sys_random", "sota__sys_8h.html#a4cfc6bd1af616f04e7bec53304cc941d", null ],
     [ "sota_sys_restart", "sota__sys_8h.html#a757aed15182322264a2309e745972f1a", null ],
     [ "sota_sys_default_device_id", "sota__sys_8h.html#a39836ae2eda7dd98747bf4d4e836e4d5", null ]
 ];

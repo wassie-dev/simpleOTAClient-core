@@ -26,7 +26,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.0.0</span>
+   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.0.1</span>
    </div>
    <div id="projectbrief">Shared core of the SimpleOTA Arduino and ESP-IDF clients</div>
   </td>
@@ -373,7 +373,7 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></
 </div><div class="memdoc">
 
 <p>Seconds between checks. </p>
-<p>Default: 3600. </p>
+<p>Default: 3600. The managed task spreads each wait of a minute or more by up to a tenth either way, so a fleet does not check in at once, and retries a check or download that failed on the network after 30 s, 2 min and 10 min. </p>
 
 </div>
 </div>
@@ -441,7 +441,7 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></
 </div><div class="memdoc">
 
 <p>Pinned public keys for signed firmware, at most 2. </p>
-<p>Parsed at init, which fails on a PEM that does not parse rather than run unpinned. </p>
+<p>Parsed at init, which fails on a PEM that does not parse rather than run unpinned. They bind only with security_mode SIMPLEOTA_SECURITY_SIGNED: in any other mode an update the server marks unsigned is still accepted on its checksum, and init logs a warning. </p>
 
 </div>
 </div>
@@ -492,7 +492,7 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></
 </div><div class="memdoc">
 
 <p>TLS trust, always verified. </p>
-<p>Default: the ESP-IDF certificate bundle, or on Arduino, which does not ship it, the ISRG Root X1 and X2 certificates that SimpleOTA's hosts chain to. Set cert_pem to pin a specific CA, or several concatenated, instead (then the bundle is not used). </p>
+<p>Default: the ESP-IDF certificate bundle, except on Arduino-ESP32 2.0.0 to 2.0.3, which do not link it: there, ISRG Root X1 and X2 and GTS Root R4. esp_crt_bundle_set(), which Arduino-ESP32's setCACertBundle(bundle, size) calls from 3.0.4, replaces that bundle for the whole application, this client included; 2.x's WiFiClientSecure keeps its own copy and does not. Set cert_pem to pin a specific CA, or several concatenated, instead (then the default is not used). </p>
 
 </div>
 </div>
@@ -509,7 +509,7 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></
 </div><div class="memdoc">
 
 <p>Another bundle's attach function. </p>
-<p>Default: ESP-IDF's bundle. </p>
+<p>Default: the trust above. </p>
 
 </div>
 </div>

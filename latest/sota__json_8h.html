@@ -26,7 +26,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.0.0</span>
+   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.0.1</span>
    </div>
    <div id="projectbrief">Shared core of the SimpleOTA Arduino and ESP-IDF clients</div>
   </td>
@@ -170,7 +170,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>sota_json_get_u32</b>
 </div><div class="memdoc">
 
 <p>Extract a string value. </p>
-<p>Decodes <code>\n</code>, <code>\t</code> and <code>\r</code>; any other backslash escape yields the character after it (<code>\uXXXX</code> is not decoded). </p><dl class="section return"><dt>Returns</dt><dd>true only when the key exists, is a string, AND the decoded value fits in out_cap-1 bytes (an oversized value fails loudly rather than truncating, so a clipped URL can never half-work). </dd></dl>
+<p>Decodes <code>\n</code>, <code>\t</code>, <code>\r</code>, <code>\b</code>, <code>\f</code> and <code>\uXXXX</code> (as UTF-8, a surrogate pair as one character); any other backslash escape yields the character after it. </p><dl class="section return"><dt>Returns</dt><dd>true only when the key exists, is a string with its closing quote, AND the decoded value fits in out_cap-1 bytes. An oversized value, one cut off by the end of the text, and a <code>\uXXXX</code> that is malformed, U+0000 or a surrogate outside a pair all fail loudly rather than yield part of a value, so a clipped URL can never half-work. </dd></dl>
 
 </div>
 </div>

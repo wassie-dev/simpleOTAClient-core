@@ -26,7 +26,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.0.0</span>
+   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.0.1</span>
    </div>
    <div id="projectbrief">Shared core of the SimpleOTA Arduino and ESP-IDF clients</div>
   </td>
@@ -140,14 +140,14 @@ $(document).ready(function(){initNavTree('sota__framework_8h_source.html',''); i
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno"><a class="line" href="sota__framework_8h.html#aca1673ae9f87173b797f49f7e5cece19">   49</a></span><span class="preprocessor">#define SOTA_ROLLBACK 0</span></div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno"><a class="line" href="sota__framework_8h.html#ae8e4f59c62fbca1c4e2e5205bef45ddf">   56</a></span><span class="keywordtype">bool</span> <a class="code hl_function" href="sota__framework_8h.html#ae8e4f59c62fbca1c4e2e5205bef45ddf">sota_framework_default_trust</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> **cert_pem,</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>                                  esp_err_t (**crt_bundle_attach)(<span class="keywordtype">void</span> *conf));</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno"><a class="line" href="sota__framework_8h.html#a3c482e73194722982c485a00a608aca4">   60</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="sota__framework_8h.html#a3c482e73194722982c485a00a608aca4">sota_framework_init_logging</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *tag);</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="preprocessor">#endif </span><span class="comment">/* SOTA_FRAMEWORK_H */</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno"><a class="line" href="sota__framework_8h.html#ae8e4f59c62fbca1c4e2e5205bef45ddf">   58</a></span><span class="keywordtype">bool</span> <a class="code hl_function" href="sota__framework_8h.html#ae8e4f59c62fbca1c4e2e5205bef45ddf">sota_framework_default_trust</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> **cert_pem,</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>                                  esp_err_t (**crt_bundle_attach)(<span class="keywordtype">void</span> *conf));</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno"><a class="line" href="sota__framework_8h.html#a3c482e73194722982c485a00a608aca4">   62</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="sota__framework_8h.html#a3c482e73194722982c485a00a608aca4">sota_framework_init_logging</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *tag);</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="preprocessor">#endif </span><span class="comment">/* SOTA_FRAMEWORK_H */</span><span class="preprocessor"></span></div>
 <div class="ttc" id="asota__framework_8h_html_a3c482e73194722982c485a00a608aca4"><div class="ttname"><a href="sota__framework_8h.html#a3c482e73194722982c485a00a608aca4">sota_framework_init_logging</a></div><div class="ttdeci">void sota_framework_init_logging(const char *tag)</div><div class="ttdoc">Called by simpleota_init(): make the client's warnings visible.</div></div>
-<div class="ttc" id="asota__framework_8h_html_ae8e4f59c62fbca1c4e2e5205bef45ddf"><div class="ttname"><a href="sota__framework_8h.html#ae8e4f59c62fbca1c4e2e5205bef45ddf">sota_framework_default_trust</a></div><div class="ttdeci">bool sota_framework_default_trust(const char **cert_pem, esp_err_t(**crt_bundle_attach)(void *conf))</div><div class="ttdoc">TLS trust when the application gives none: a CA certificate to pin, or the certificate bundle's attac...</div></div>
+<div class="ttc" id="asota__framework_8h_html_ae8e4f59c62fbca1c4e2e5205bef45ddf"><div class="ttname"><a href="sota__framework_8h.html#ae8e4f59c62fbca1c4e2e5205bef45ddf">sota_framework_default_trust</a></div><div class="ttdeci">bool sota_framework_default_trust(const char **cert_pem, esp_err_t(**crt_bundle_attach)(void *conf))</div><div class="ttdoc">TLS trust when the application gives none: the certificate bundle's attach function,...</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

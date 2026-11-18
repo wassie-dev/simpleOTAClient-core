@@ -1,0 +1,28 @@
+var structsimpleota__config__t =
+[
+    [ "token", "structsimpleota__config__t.html#ab709351fed92e56e6b7cbb275dab0594", null ],
+    [ "base_url", "structsimpleota__config__t.html#a049d49cca8d350716736ebc147cf4216", null ],
+    [ "device_id", "structsimpleota__config__t.html#a9f47ca08fbe32023c5ced3f0e2e50f0c", null ],
+    [ "chip_family", "structsimpleota__config__t.html#a9d0fab48ab9ff19217894c3cf9de3b24", null ],
+    [ "board_id", "structsimpleota__config__t.html#a3fdaffc198400abdf4fd08213cfa9330", null ],
+    [ "hardware_revision", "structsimpleota__config__t.html#a0156de9b423088e934f4ba5d38e40c32", null ],
+    [ "partition_profile", "structsimpleota__config__t.html#ad24677bf3d1c419861a9cd0a1293e303", null ],
+    [ "channel", "structsimpleota__config__t.html#a44e420d7221d152b7bd532414ee6b05c", null ],
+    [ "labels_json", "structsimpleota__config__t.html#a963dfd2d9f7c694dd15f5218fea476bb", null ],
+    [ "security_mode", "structsimpleota__config__t.html#a844e7c37050b44e55d7193b164f90f87", null ],
+    [ "version_label", "structsimpleota__config__t.html#a226ffb230a1dfcd80d5eab5805a1fcc3", null ],
+    [ "image_build", "structsimpleota__config__t.html#afea57a73f5863d3c193c72788b3f553d", null ],
+    [ "nvs_schema_version", "structsimpleota__config__t.html#a59f2bb19d85b8196c08c6531b24d4730", null ],
+    [ "check_interval_s", "structsimpleota__config__t.html#a0d2bee65bcace55d6906a2a963040bf7", null ],
+    [ "initial_delay_ms", "structsimpleota__config__t.html#a0d8f957158769700f0c7533267a75439", null ],
+    [ "confirm_timeout_s", "structsimpleota__config__t.html#a8f45a23a115bb9a87564ed6301a262ed", null ],
+    [ "manual_confirm", "structsimpleota__config__t.html#aaefd766b74f520d0e734ad524ea0d71f", null ],
+    [ "disable_auto_reboot", "structsimpleota__config__t.html#accf33e4ff712eb8e3cf487c92a291c68", null ],
+    [ "signing_keys", "structsimpleota__config__t.html#a2832d7c38f016f08c54af57a76819e8d", null ],
+    [ "num_signing_keys", "structsimpleota__config__t.html#aaf310121d9fa753236e0c7f3fc843396", null ],
+    [ "is_connected", "structsimpleota__config__t.html#a5a5ec9be14dcf796431041e837e1ae78", null ],
+    [ "event_cb", "structsimpleota__config__t.html#a1650a8ca0c2b755b68cd80bd3a14c031", null ],
+    [ "user_ctx", "structsimpleota__config__t.html#ac51f5afb195470375a651a070fd4037d", null ],
+    [ "cert_pem", "structsimpleota__config__t.html#a44320d8dde9b82769db5a28b78670451", null ],
+    [ "crt_bundle_attach", "structsimpleota__config__t.html#a2e392c227bcc37ed1230d1abb5f38e7d", null ]
+];
