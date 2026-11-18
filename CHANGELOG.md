@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.1 (unreleased)
+## 1.0.1 (2026-11-18)
 
 Fixes from a security and robustness review. No public API change, and
 nothing stored changes. Ports add `sota_sys_random()` to `sota_sys.h`.
