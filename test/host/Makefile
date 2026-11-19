@@ -17,7 +17,7 @@ FRAMEWORK_TESTS := test_framework_idf test_framework_idf_nobundle \
                    test_framework_arduino_2_0_4 test_framework_arduino_2_0_3 \
                    test_framework_arduino_unversioned
 TESTS := test_signing test_report test_trial test_wdt test_url test_state test_contract test_protocol test_engine test_unsigned test_cxx \
-         $(FRAMEWORK_TESTS) test_init_trust
+         $(FRAMEWORK_TESTS) test_init_trust test_init_trust_unsigned test_image_ota
 
 test: $(TESTS)
 	@set -e; for t in $(TESTS); do echo "== $$t"; ./$$t; done
@@ -25,7 +25,7 @@ test: $(TESTS)
 test_signing: test_signing.c $(OBJS)
 	$(CC) $(CFLAGS) $(INC) -o $@ test_signing.c $(OBJS)
 
-test_report: test_report.c $(CORE)/sota_report.h $(CORE)/sota_time.h
+test_report: test_report.c $(CORE)/sota_report.h $(CORE)/sota_time.h $(CORE)/sota_net.h
 	$(CC) $(CFLAGS) $(INC) -o $@ test_report.c
 
 test_trial: test_trial.c $(CORE)/sota_trial.h $(CORE)/sota_report.h
@@ -92,6 +92,15 @@ INIT_SRC := test_init_trust.c $(PORT)/simpleota.c
 
 test_init_trust: $(INIT_SRC) ../../include/simpleota.h $(FRAMEWORK_DEPS)
 	$(CC) $(CFLAGS) -D_POSIX_C_SOURCE=200809L $(FRAMEWORK_INC) -I../../include -o $@ $(INIT_SRC)
+
+test_init_trust_unsigned: $(INIT_SRC) ../../include/simpleota.h $(FRAMEWORK_DEPS)
+	$(CC) $(CFLAGS) -D_POSIX_C_SOURCE=200809L -DSIMPLEOTA_DISABLE_SIGNED_UPDATES $(FRAMEWORK_INC) \
+	    -I../../include -o $@ $(INIT_SRC)
+
+# The ESP32 port's image check, built for an ESP32-C6.
+test_image_ota: test_image_ota.c $(PORT)/sota_image_ota.c $(CORE)/sota_image.h esp_stub/esp_ota_ops.h
+	$(CC) $(CFLAGS) $(INC) -Iesp_stub -DCONFIG_IDF_FIRMWARE_CHIP_ID=0x000D -o $@ \
+	    test_image_ota.c $(PORT)/sota_image_ota.c
 
 %.o: $(CORE)/%.c $(wildcard $(CORE)/*.h)
 	$(CC) $(CFLAGS) $(INC) -c -o $@ $<

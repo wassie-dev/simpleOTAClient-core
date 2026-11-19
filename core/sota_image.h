@@ -28,8 +28,9 @@ bool sota_image_begin(size_t expected, uint32_t *slot, uint32_t *running);
 /**
  * Whether a download that starts with these len bytes can be an image for
  * this device, so one built for another chip is dropped after its first
- * bytes, not after all of it. True also when len is too short to tell:
- * sota_image_finish() has the last word.
+ * bytes, not after all of it. The engine asks once, with the first read.
+ * True also when len is too short to tell: sota_image_finish() has the
+ * last word.
  */
 bool sota_image_accepts(const uint8_t *head, size_t len);
 
