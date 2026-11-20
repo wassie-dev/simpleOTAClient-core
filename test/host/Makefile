@@ -12,7 +12,12 @@ CORE     := ../../core
 INC      := -I$(CORE)
 
 OBJS := monocypher.o monocypher-ed25519.o sota_json.o sota_sha256.o sota_signing.o sota_manifest.o sota_protocol.o
-TESTS := test_signing test_report test_trial test_wdt test_url test_state test_contract test_protocol test_engine test_unsigned test_cxx
+FRAMEWORK_TESTS := test_framework_idf test_framework_idf_nobundle \
+                   test_framework_arduino test_framework_arduino_nobundle \
+                   test_framework_arduino_2_0_4 test_framework_arduino_2_0_3 \
+                   test_framework_arduino_unversioned
+TESTS := test_signing test_report test_trial test_wdt test_url test_state test_contract test_protocol test_engine test_unsigned test_cxx \
+         $(FRAMEWORK_TESTS) test_init_trust test_init_trust_unsigned test_image_ota
 
 test: $(TESTS)
 	@set -e; for t in $(TESTS); do echo "== $$t"; ./$$t; done
@@ -20,7 +25,7 @@ test: $(TESTS)
 test_signing: test_signing.c $(OBJS)
 	$(CC) $(CFLAGS) $(INC) -o $@ test_signing.c $(OBJS)
 
-test_report: test_report.c $(CORE)/sota_report.h $(CORE)/sota_time.h
+test_report: test_report.c $(CORE)/sota_report.h $(CORE)/sota_time.h $(CORE)/sota_net.h
 	$(CC) $(CFLAGS) $(INC) -o $@ test_report.c
 
 test_trial: test_trial.c $(CORE)/sota_trial.h $(CORE)/sota_report.h
@@ -53,6 +58,49 @@ test_unsigned: test_unsigned.c fake_hal.c fake_hal.h fake_kv.c fake_kv.h $(UNSIG
 
 test_cxx: test_cxx.cpp $(OBJS) $(wildcard $(CORE)/*.h)
 	$(CXX) $(CXXFLAGS) $(INC) -o $@ test_cxx.cpp $(OBJS)
+
+PORT := ../../port/esp32
+FRAMEWORK_SRC := test_framework.c $(PORT)/sota_framework.c $(CORE)/sota_sha256.c
+FRAMEWORK_DEPS := $(FRAMEWORK_SRC) $(PORT)/sota_framework.h $(wildcard esp_stub/*.h) $(wildcard $(CORE)/*.h)
+FRAMEWORK_INC := $(INC) -I$(PORT) -Iesp_stub
+# The trust each build must default to: 0 none, 1 the bundle, 2 the PEM.
+FRAMEWORK_CC = $(CC) $(CFLAGS) $(FRAMEWORK_INC) -DTEST_NAME='"$@"' -o $@ $(FRAMEWORK_SRC)
+BUNDLE := -DCONFIG_MBEDTLS_CERTIFICATE_BUNDLE=1
+
+test_framework_idf: $(FRAMEWORK_DEPS)
+	$(FRAMEWORK_CC) $(BUNDLE) -DEXPECT_TRUST=1
+
+test_framework_idf_nobundle: $(FRAMEWORK_DEPS)
+	$(FRAMEWORK_CC) -DEXPECT_TRUST=0
+
+test_framework_arduino: $(FRAMEWORK_DEPS)
+	$(FRAMEWORK_CC) -DARDUINO $(BUNDLE) -DEXPECT_TRUST=1
+
+test_framework_arduino_nobundle: $(FRAMEWORK_DEPS)
+	$(FRAMEWORK_CC) -DARDUINO -DEXPECT_TRUST=0
+
+test_framework_arduino_2_0_4: $(FRAMEWORK_DEPS)
+	$(FRAMEWORK_CC) -DARDUINO -DSTUB_ARDUINO_VERSION_PATCH=4 $(BUNDLE) -DEXPECT_TRUST=1
+
+test_framework_arduino_2_0_3: $(FRAMEWORK_DEPS)
+	$(FRAMEWORK_CC) -DARDUINO -DSTUB_ARDUINO_VERSION_PATCH=3 $(BUNDLE) -DEXPECT_TRUST=2
+
+test_framework_arduino_unversioned: $(FRAMEWORK_DEPS)
+	$(FRAMEWORK_CC) -DARDUINO -DSTUB_NO_ARDUINO_VERSION $(BUNDLE) -DEXPECT_TRUST=2
+
+INIT_SRC := test_init_trust.c $(PORT)/simpleota.c
+
+test_init_trust: $(INIT_SRC) ../../include/simpleota.h $(FRAMEWORK_DEPS)
+	$(CC) $(CFLAGS) -D_POSIX_C_SOURCE=200809L $(FRAMEWORK_INC) -I../../include -o $@ $(INIT_SRC)
+
+test_init_trust_unsigned: $(INIT_SRC) ../../include/simpleota.h $(FRAMEWORK_DEPS)
+	$(CC) $(CFLAGS) -D_POSIX_C_SOURCE=200809L -DSIMPLEOTA_DISABLE_SIGNED_UPDATES $(FRAMEWORK_INC) \
+	    -I../../include -o $@ $(INIT_SRC)
+
+# The ESP32 port's image check, built for an ESP32-C6.
+test_image_ota: test_image_ota.c $(PORT)/sota_image_ota.c $(CORE)/sota_image.h esp_stub/esp_ota_ops.h
+	$(CC) $(CFLAGS) $(INC) -Iesp_stub -DCONFIG_IDF_FIRMWARE_CHIP_ID=0x000D -o $@ \
+	    test_image_ota.c $(PORT)/sota_image_ota.c
 
 %.o: $(CORE)/%.c $(wildcard $(CORE)/*.h)
 	$(CC) $(CFLAGS) $(INC) -c -o $@ $<

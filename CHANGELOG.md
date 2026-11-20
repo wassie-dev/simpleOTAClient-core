@@ -5,10 +5,6 @@
 API 1.2: additions only. A configuration that leaves the new field at zero
 and keeps its security mode behaves as in 1.1, and nothing stored changes.
 
-Not for release before the platform and the CLI send what it reads: until
-then no offer carries a strict signature, and a `STRICT` device takes no
-update.
-
 ### Added
 
 - **Strict signatures.** The image signature covers the firmware bytes only,
@@ -52,8 +48,14 @@ heap for a moment (about 700 bytes), freed before the download starts.
 
 ## 1.1.0 (unreleased)
 
-API 1.1: additions only. A configuration that leaves the new field at zero
-behaves as in 1.0, and nothing stored changes.
+API 1.1. The new `simpleota_config_t` field comes after the 1.0 ones, so
+1.0 application code builds unchanged, and a configuration that leaves it
+at zero behaves as in 1.0. Nothing stored changes.
+
+Ports: `sota_net_post()` takes a new last argument, `retry_after_s`, which
+gets the Retry-After header or 0. Ports add `sota_image_accepts()` to
+`sota_image.h`, and the API layer adds `sota_app_can_update()` to
+`sota_app.h`.
 
 ### Added
 
@@ -61,22 +63,23 @@ behaves as in 1.0, and nothing stored changes.
   an offered update off (low battery, a job that must not be interrupted).
   Nothing is downloaded, and the next check, or `simpleota_check_now()`,
   asks again. `sota_app_can_update()` is its hook in `sota_app.h`.
-- A check-in answered with 429 or 503 and a `Retry-After` in seconds waits
-  that long, a day at most, and up to a tenth longer so a fleet told the
-  same number does not come back at once. A trial keeps its quick checks:
+- In managed mode a check-in answered with 429 or 503 and a `Retry-After`
+  in seconds waits that long, a day at most, and up to a tenth longer so a
+  fleet told the same number does not come back at once. A trial keeps its quick checks:
   its confirm timeout does not wait for a busy server. `sota_net_post()`
   hands the header back through a new argument.
-- A download that is not a firmware image for this chip is dropped after
-  its first bytes with the new reason `image_mismatch`, before anything is
-  written, where it used to download in full and fail `esp_ota_end()`.
+- A download whose first read shows it is not a firmware image for this
+  chip is dropped with the new reason `image_mismatch`, before anything is
+  written, where it used to download in full and fail `esp_ota_end()`. A
+  first read too short to tell falls back to that check at the end.
   `sota_image_accepts()` is new in `sota_image.h`.
 - `-DSIMPLEOTA_DISABLE_SIGNED_UPDATES` builds the client without the
-  Ed25519 verifier, for devices that never take a signed update: about
-  13 KB less flash. `simpleota_init()` then refuses signing keys and
-  `SIMPLEOTA_SECURITY_SIGNED`, and a signed offer is handled as on a device
+  Ed25519 verifier, for devices that never take a signed update. Every
+  source file of the client needs the flag. `simpleota_init()` then
+  refuses signing keys and `SIMPLEOTA_SECURITY_SIGNED`, and a signed offer is handled as on a device
   with no key pinned. The host tests link this variant without Monocypher.
 
-## 1.0.1 (unreleased)
+## 1.0.1 (2026-11-18)
 
 Fixes from a security and robustness review. No public API change, and
 nothing stored changes. Ports add `sota_sys_random()` to `sota_sys.h`.
@@ -99,6 +102,32 @@ nothing stored changes. Ports add `sota_sys_random()` to `sota_sys.h`.
   `SIMPLEOTA_SECURITY_SIGNED`: in any other mode an update the server marks
   unsigned is accepted on its checksum, which the header now says too.
 - A check that offers nothing no longer allocates the 2 KB URL buffer.
+- On Arduino-ESP32 2.0.4 and later, the first core that links the ESP-IDF
+  certificate bundle, the Arduino build verifies TLS against that bundle,
+  as the ESP-IDF build does, instead of only the ISRG Root X1 and X2
+  certificates. It keeps working if a host's certificate moves to another
+  public CA, such as Cloudflare's backup certificates from Google Trust
+  Services or Sectigo, and from Arduino-ESP32 3.1 SSL.com's 2022 roots.
+  The default trust widens from those 2 roots to the bundle's public roots,
+  for example 136 on 2.0.17, whose bundle no longer gets updates, and 150
+  on 3.3.0. As on ESP-IDF, the bundle keeps each root's name and key only,
+  so a root's expiry and constraints are not checked. The bundle adds about
+  63 KB of flash on 2.x and 63 to 68 KB on 3.x to a sketch that did not
+  already link it; on 2.x, `WiFiClientSecure` links its own copy, which
+  does not count. `cert_pem` still replaces it.
+- On Arduino-ESP32 2.0.0 to 2.0.3, which do not link the bundle, the
+  default adds GTS Root R4 to ISRG Root X1 and X2, so a certificate from
+  Google Trust Services' WE1 also verifies. Other CAs, such as SSL.com and
+  Sectigo, do not; set `cert_pem` to trust them.
+- Upgrading on Arduino-ESP32 3.0.4 and later: `setCACertBundle(bundle,
+  size)` installs its bundle for the whole application, so it now becomes
+  this client's trust too. An application that passes it a bundle without
+  SimpleOTA's roots should set `cert_pem`. On 2.x, `WiFiClientSecure` keeps
+  its own bundle and does not affect this client.
+- Upgrading an Arduino build on 2.0.4 or later with
+  `CONFIG_MBEDTLS_CERTIFICATE_BUNDLE` turned off, such as a custom
+  sdkconfig: `simpleota_init()` now returns `ESP_ERR_INVALID_STATE` unless
+  `cert_pem` or `crt_bundle_attach` is set.
 
 ### Fixed
 

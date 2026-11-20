@@ -191,7 +191,7 @@ static esp_err_t init_engine(const simpleota_config_t *config)
     bool enforcing = enforces_signatures(config->security_mode);
     if (!SOTA_SIGNED_UPDATES && (config->num_signing_keys || enforcing)) {
         SOTA_LOGE("this build leaves signed updates out "
-                  "(SIMPLEOTA_DISABLE_SIGNED_UPDATES): no signing keys, no SIGNED mode");
+                  "(SIMPLEOTA_DISABLE_SIGNED_UPDATES): no signing keys, no SIGNED or STRICT mode");
         return ESP_ERR_INVALID_ARG;
     }
     /* Reporting signed without a key would take signed builds unverified. */
@@ -267,7 +267,7 @@ esp_err_t simpleota_init(const simpleota_config_t *config)
     esp_err_t (*attach)(void *conf) = config->crt_bundle_attach;
     if (!ca && !attach && !sota_framework_default_trust(&ca, &attach)) {
         SOTA_LOGE("no TLS trust anchor: enable CONFIG_MBEDTLS_CERTIFICATE_BUNDLE "
-                      "or set cert_pem");
+                      "(ESP-IDF) or set cert_pem");
         return ESP_ERR_INVALID_STATE;
     }
     sota_framework_init_logging(TAG);

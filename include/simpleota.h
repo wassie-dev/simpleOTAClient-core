@@ -229,9 +229,10 @@ typedef struct {
                                         fleet does not check in at once, and
                                         retries a check or download that failed on
                                         the network after 30 s, 2 min and 10 min.
-                                        A 429 or 503 with a Retry-After in seconds
-                                        is waited out instead (a day at most),
-                                        except during a trial. */
+                                        In managed mode a 429 or 503 with a
+                                        Retry-After in seconds is waited out
+                                        instead (a day at most). A trial ignores
+                                        it and keeps its quick checks. */
     uint32_t initial_delay_ms;     /**< Delay before the first check after start().
                                         Default: none. Not a wait for the IP; see
                                         is_connected. */
@@ -251,10 +252,9 @@ typedef struct {
      *  logs a warning.
      *
      *  A device that will never take a signed update can leave the
-     *  verifier out of its image, which saves about 13 KB of flash:
-     *  CONFIG_SIMPLEOTA_DISABLE_SIGNED_UPDATES on ESP-IDF, or the build
-     *  flag -DSIMPLEOTA_DISABLE_SIGNED_UPDATES on Arduino. Init then
-     *  refuses signing keys and both signed modes. */
+     *  verifier out of its image by building every source file of the
+     *  client with -DSIMPLEOTA_DISABLE_SIGNED_UPDATES. Init then refuses
+     *  signing keys, SIGNED and STRICT. */
     const simpleota_signing_key_t *signing_keys;
     uint8_t num_signing_keys;      /**< Entries in signing_keys. */
 
@@ -268,6 +268,21 @@ typedef struct {
      *  Keep it quick, and don't call the client from it except
      *  simpleota_reboot_for_update(). */
     void (*event_cb)(const simpleota_event_t *event, void *user_ctx);
+    void *user_ctx;                /**< Passed to is_connected, event_cb and
+                                        can_update. */
+
+    /** TLS trust, always verified. Default: the ESP-IDF certificate bundle,
+     *  except on Arduino-ESP32 2.0.0 to 2.0.3, which do not link it: there,
+     *  ISRG Root X1 and X2 and GTS Root R4. esp_crt_bundle_set(), which
+     *  Arduino-ESP32's setCACertBundle(bundle, size) calls from 3.0.4,
+     *  replaces that bundle for the whole application, this client
+     *  included; 2.x's WiFiClientSecure keeps its own copy and does not. Set
+     *  cert_pem to pin a specific CA, or several concatenated, instead (then
+     *  the default is not used). */
+    const char *cert_pem;
+    esp_err_t (*crt_bundle_attach)(void *conf); /**< Another bundle's attach function.
+                                                     Default: the trust above. */
+
     /** Managed mode: called on the managed task when an update is offered,
      *  after SIMPLEOTA_EVENT_UPDATE_AVAILABLE and before the download.
      *  Return false to put the update off, on low battery or in the middle
@@ -278,17 +293,6 @@ typedef struct {
      *  there the application decides by calling simpleota_apply().
      *  Since API 1.1. */
     bool (*can_update)(void *user_ctx);
-    void *user_ctx;                /**< Passed to is_connected, event_cb and
-                                        can_update. */
-
-    /** TLS trust, always verified. Default: the ESP-IDF certificate bundle,
-     *  or on Arduino, which does not ship it, the ISRG Root X1 and X2
-     *  certificates that SimpleOTA's hosts chain to. Set cert_pem to pin a
-     *  specific CA, or several concatenated, instead (then the bundle is not
-     *  used). */
-    const char *cert_pem;
-    esp_err_t (*crt_bundle_attach)(void *conf); /**< Another bundle's attach function.
-                                                     Default: ESP-IDF's bundle. */
 
     /** The id of the SimpleOTA project this device belongs to: the
      *  project's UUID, lowercase with hyphens, as the CLI's key snippet
@@ -300,7 +304,7 @@ typedef struct {
      *  needs it, and refuses an update without a strict signature too.
      *  Only that mode protects against a server replaying an old build:
      *  in any other, a server can leave the strict signature out and the
-     *  update is taken on its image signature, as before. Default: strict
+     *  update is taken on its image signature alone. Default: strict
      *  signatures are not checked. Init fails when it has control
      *  characters. Since API 1.2. */
     const char *project_id;
