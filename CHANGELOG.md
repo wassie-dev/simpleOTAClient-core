@@ -27,12 +27,14 @@ and keeps its security mode behaves as in 1.1, and nothing stored changes.
   signatures before it moves to `STRICT`. It is a rehearsal, not the
   protection: outside `STRICT` a server can leave the strict signature out,
   and the update is taken on its image signature as before. Without
-  `project_id` strict signatures are not looked at, as in 1.1.
+  `project_id` strict signatures are not looked at, as in 1.1. It must be
+  the project's UUID, lowercase with hyphens, as the CLI signs it: init
+  fails for any other non-empty value, which could never verify.
 - The check response's optional `manifest_signature` (base64, 64 bytes) and
   `manifest_version` (1 when absent) are read. A version this client does
   not know counts as no strict signature.
 
-Costs about 1 KB of flash, and during the check a second verifier on the
+Costs about 1 KB of flash, and during apply a second verifier on the
 heap for a moment (about 700 bytes), freed before the download starts.
 
 ### Fixed

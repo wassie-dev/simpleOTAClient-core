@@ -182,6 +182,19 @@ static bool enforces_signatures(simpleota_security_t mode)
     return mode == SIMPLEOTA_SECURITY_SIGNED || mode == SIMPLEOTA_SECURITY_STRICT;
 }
 
+/* The form the platform and the CLI sign: a UUID, lowercase with hyphens.
+ * Any other project id never verifies, so every strict signature fails. */
+static bool is_project_uuid(const char *id)
+{
+    for (int i = 0; i < 36; ++i) {
+        char c = id[i];
+        bool hyphen = i == 8 || i == 13 || i == 18 || i == 23;
+        bool ok = hyphen ? c == '-' : (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
+        if (!ok) return false;
+    }
+    return id[36] == '\0';
+}
+
 static esp_err_t init_engine(const simpleota_config_t *config)
 {
     if ((unsigned)config->security_mode > SIMPLEOTA_SECURITY_STRICT) {
@@ -204,6 +217,10 @@ static esp_err_t init_engine(const simpleota_config_t *config)
     bool strict = config->security_mode == SIMPLEOTA_SECURITY_STRICT;
     if (strict && !(config->project_id && config->project_id[0])) {
         SOTA_LOGE("security_mode STRICT needs project_id");
+        return ESP_ERR_INVALID_ARG;
+    }
+    if (config->project_id && config->project_id[0] && !is_project_uuid(config->project_id)) {
+        SOTA_LOGE("project_id must be the project's UUID, lowercase with hyphens");
         return ESP_ERR_INVALID_ARG;
     }
     sota_url_status_t url = SOTA_URL_OK;

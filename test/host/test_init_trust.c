@@ -30,6 +30,14 @@ static const char *g_default_pem; /* Or its default PEM, or NULL. */
 static int g_default_calls;
 static const sota_net_esp32_t *g_net; /* The engine's user pointer. */
 static int g_add_key_calls;
+/* What the port passed to the engine for the manifest check. */
+static struct {
+    bool require_manifest;
+    char security_mode[16];
+    char project_id[64];
+    bool has_security_mode;
+    bool has_project_id;
+} g_engine_cfg;
 
 bool sota_framework_default_trust(const char **cert_pem, attach_fn *crt_bundle_attach)
 {
@@ -44,6 +52,17 @@ bool sota_engine_init(sota_engine_t *e, const sota_config_t *cfg)
 {
     (void)e;
     g_net = (const sota_net_esp32_t *)cfg->user;
+    memset(&g_engine_cfg, 0, sizeof(g_engine_cfg));
+    g_engine_cfg.require_manifest = cfg->device.require_manifest;
+    g_engine_cfg.has_security_mode = cfg->device.security_mode != NULL;
+    if (cfg->device.security_mode) {
+        snprintf(g_engine_cfg.security_mode, sizeof(g_engine_cfg.security_mode), "%s",
+                 cfg->device.security_mode);
+    }
+    g_engine_cfg.has_project_id = cfg->project_id != NULL;
+    if (cfg->project_id) {
+        snprintf(g_engine_cfg.project_id, sizeof(g_engine_cfg.project_id), "%s", cfg->project_id);
+    }
     return true;
 }
 bool sota_engine_add_key(sota_engine_t *e, const char *key_id, const char *pem)
@@ -121,6 +140,7 @@ static esp_err_t init_project(simpleota_security_t mode, uint8_t num_keys, const
     g_default_pem = NULL;
     g_net = NULL;
     g_add_key_calls = 0;
+    memset(&g_engine_cfg, 0, sizeof(g_engine_cfg));
     simpleota_config_t cfg;
     memset(&cfg, 0, sizeof(cfg));
     cfg.token = "token";
@@ -137,6 +157,16 @@ static esp_err_t init_security(simpleota_security_t mode, uint8_t num_keys)
 }
 
 #define PROJECT "0b6f3f9e-5d2a-4c1b-9e7a-3f2d1c0b9a87"
+
+/* The engine got this security mode, manifest requirement and project id. */
+static bool engine_got(const char *mode, bool require_manifest, const char *project_id)
+{
+    return g_engine_cfg.has_security_mode && strcmp(g_engine_cfg.security_mode, mode) == 0 &&
+           g_engine_cfg.require_manifest == require_manifest &&
+           (project_id ? g_engine_cfg.has_project_id &&
+                             strcmp(g_engine_cfg.project_id, project_id) == 0
+                       : !g_engine_cfg.has_project_id);
+}
 
 #define FOLLOWS(a, b) \
     (offsetof(simpleota_config_t, b) == offsetof(simpleota_config_t, a) + sizeof(void *))
@@ -182,6 +212,9 @@ int main(void)
     check(init_security(SIMPLEOTA_SECURITY_NONE, 0) == ESP_OK &&
               init_security(SIMPLEOTA_SECURITY_BASIC, 0) == ESP_OK,
           "NONE and BASIC without a key start");
+    check(init_project(SIMPLEOTA_SECURITY_BASIC, 0, PROJECT) == ESP_OK &&
+              engine_got("basic", false, PROJECT),
+          "BASIC reaches the engine as basic, without requiring a manifest");
 #ifdef SIMPLEOTA_DISABLE_SIGNED_UPDATES
     check(init_security(SIMPLEOTA_SECURITY_SIGNED, 1) == ESP_ERR_INVALID_ARG && !g_net &&
               g_add_key_calls == 0,
@@ -199,9 +232,29 @@ int main(void)
           "BASIC with a key starts and pins it");
     check(init_project(SIMPLEOTA_SECURITY_STRICT, 1, PROJECT) == ESP_OK && g_add_key_calls == 1,
           "STRICT with a key and project_id starts and pins it");
+    check(init_project(SIMPLEOTA_SECURITY_STRICT, 1, PROJECT) == ESP_OK &&
+              engine_got("signed", true, PROJECT),
+          "STRICT reaches the engine as signed, requiring a manifest, with its project id");
+    check(init_project(SIMPLEOTA_SECURITY_SIGNED, 1, PROJECT) == ESP_OK &&
+              engine_got("signed", false, PROJECT),
+          "SIGNED with a project id passes it on without requiring a manifest");
+    check(init_project(SIMPLEOTA_SECURITY_SIGNED, 1, NULL) == ESP_OK &&
+              engine_got("signed", false, NULL),
+          "SIGNED as in 1.1, without a project id, passes none on");
     check(init_project(SIMPLEOTA_SECURITY_STRICT, 1, NULL) == ESP_ERR_INVALID_ARG &&
               init_project(SIMPLEOTA_SECURITY_STRICT, 1, "") == ESP_ERR_INVALID_ARG,
           "STRICT without project_id is refused");
+    check(init_project(SIMPLEOTA_SECURITY_STRICT, 1, "0B6F3F9E-5D2A-4C1B-9E7A-3F2D1C0B9A87") ==
+                  ESP_ERR_INVALID_ARG &&
+              init_project(SIMPLEOTA_SECURITY_STRICT, 1, " " PROJECT) == ESP_ERR_INVALID_ARG &&
+              init_project(SIMPLEOTA_SECURITY_STRICT, 1, PROJECT " ") == ESP_ERR_INVALID_ARG &&
+              init_project(SIMPLEOTA_SECURITY_STRICT, 1, "my-project") == ESP_ERR_INVALID_ARG &&
+              init_project(SIMPLEOTA_SECURITY_STRICT, 1, "0b6f3f9e5d2a4c1b9e7a3f2d1c0b9a87") ==
+                  ESP_ERR_INVALID_ARG &&
+              !g_net,
+          "STRICT refuses a project_id that is not a lowercase hyphenated UUID");
+    check(init_project(SIMPLEOTA_SECURITY_SIGNED, 1, "my-project") == ESP_ERR_INVALID_ARG,
+          "SIGNED refuses one too: it checks every strict signature it is offered");
 #endif
     check(init_project(SIMPLEOTA_SECURITY_STRICT, 0, PROJECT) == ESP_ERR_INVALID_ARG,
           "STRICT without a key is refused");

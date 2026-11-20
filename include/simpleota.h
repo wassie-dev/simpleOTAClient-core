@@ -305,8 +305,8 @@ typedef struct {
      *  Only that mode protects against a server replaying an old build:
      *  in any other, a server can leave the strict signature out and the
      *  update is taken on its image signature alone. Default: strict
-     *  signatures are not checked. Init fails when it has control
-     *  characters. Since API 1.2. */
+     *  signatures are not checked. Init fails when it is non-empty and not a
+     *  UUID in that form. Since API 1.2. */
     const char *project_id;
 } simpleota_config_t;
 
@@ -324,8 +324,8 @@ typedef struct {
  *                                characters, an unparseable signing key,
  *                                a security_mode out of range, a signed
  *                                mode without a key, STRICT without
- *                                a project_id, a project_id with control
- *                                characters, a base_url that is not
+ *                                a project_id, a project_id that is not a
+ *                                lowercase hyphenated UUID, a base_url that is not
  *                                https://, or a signing key or signed mode
  *                                in a build without signed updates.
  * @retval ESP_ERR_INVALID_STATE  Already initialized, or neither the
