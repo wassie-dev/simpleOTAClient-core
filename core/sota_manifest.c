@@ -4,6 +4,7 @@
 
 #include "sota_manifest.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -42,7 +43,7 @@ bool sota_manifest_feed(sota_sig_verifier_t *v, const char *project_id, const ch
         return false;
     }
     char number[11];
-    snprintf(number, sizeof(number), "%u", (unsigned)build);
+    snprintf(number, sizeof(number), "%" PRIu32, build);
     feed_line(v, SOTA_MANIFEST_V1_MAGIC);
     feed_line(v, project_id);
     feed_line(v, key_id);

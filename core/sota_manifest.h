@@ -9,7 +9,7 @@
  * or another project's image when two projects share a key, and the
  * signature would still verify. The manifest closes that: once the server
  * has said which build an upload became, the SimpleOTA CLI signs these
- * bytes with the same key, on the customer's machine,
+ * bytes with the same key, on the developer's machine,
  *
  *     SimpleOTA-Manifest-v1\n
  *     <project id: the project's UUID, lowercase with hyphens>\n

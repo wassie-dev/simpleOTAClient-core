@@ -104,10 +104,11 @@ typedef enum {
                                       one signing key. */
     /** SIGNED, and each update must also carry a strict signature: a second
      *  signature, made by the SimpleOTA CLI with the same key, over the
-     *  project id, the build number and the image's SHA-256. The server
-     *  then cannot pass an old signed image off as a newer build, or offer
-     *  another project's image when projects share a key. Needs a signing
-     *  key, project_id, and builds the CLI has made strict-ready.
+     *  project id, the signing key id, the build number and the image's
+     *  SHA-256. The server then cannot pass an old signed image off as a
+     *  newer build, or offer another project's image when projects share a
+     *  key. Needs a signing key, project_id, and builds the CLI has made
+     *  strict-ready.
      *  Since API 1.2. */
     SIMPLEOTA_SECURITY_STRICT,
 } simpleota_security_t;
@@ -321,13 +322,13 @@ typedef struct {
  * @param config  The configuration; copied, so it need not outlive the call.
  * @retval ESP_OK                 Ready.
  * @retval ESP_ERR_INVALID_ARG    A missing token or one with control
- *                                characters, an unparseable signing key,
- *                                a security_mode out of range, a signed
- *                                mode without a key, STRICT without
- *                                a project_id, a project_id that is not a
- *                                lowercase hyphenated UUID, a base_url that is not
- *                                https://, or a signing key or signed mode
- *                                in a build without signed updates.
+ *                                characters, an unparseable signing key, a
+ *                                security_mode out of range, a signed mode
+ *                                without a key, STRICT without a project_id,
+ *                                a project_id that is not a lowercase
+ *                                hyphenated UUID, a base_url that is not
+ *                                https://, or a signing key or signed mode in
+ *                                a build without signed updates.
  * @retval ESP_ERR_INVALID_STATE  Already initialized, or neither the
  *                                certificate bundle nor a cert_pem is
  *                                available.

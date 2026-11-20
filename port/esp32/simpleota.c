@@ -184,15 +184,17 @@ static bool enforces_signatures(simpleota_security_t mode)
 
 /* The form the platform and the CLI sign: a UUID, lowercase with hyphens.
  * Any other project id never verifies, so every strict signature fails. */
+#define PROJECT_UUID_LEN 36 /* 8-4-4-4-12 hex digits and four hyphens */
+#define UUID_HYPHEN_AT(i) ((i) == 8 || (i) == 13 || (i) == 18 || (i) == 23)
+
 static bool is_project_uuid(const char *id)
 {
-    for (int i = 0; i < 36; ++i) {
+    for (int i = 0; i < PROJECT_UUID_LEN; ++i) {
         char c = id[i];
-        bool hyphen = i == 8 || i == 13 || i == 18 || i == 23;
-        bool ok = hyphen ? c == '-' : (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
+        bool ok = UUID_HYPHEN_AT(i) ? c == '-' : (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
         if (!ok) return false;
     }
-    return id[36] == '\0';
+    return id[PROJECT_UUID_LEN] == '\0';
 }
 
 static esp_err_t init_engine(const simpleota_config_t *config)
@@ -207,7 +209,7 @@ static esp_err_t init_engine(const simpleota_config_t *config)
                   "(SIMPLEOTA_DISABLE_SIGNED_UPDATES): no signing keys, no SIGNED or STRICT mode");
         return ESP_ERR_INVALID_ARG;
     }
-    /* Reporting signed without a key would take signed builds unverified. */
+    /* Reporting signed without a key would take signed artifacts unverified. */
     if (enforcing && !config->num_signing_keys) {
         SOTA_LOGE("security_mode SIGNED and STRICT need a signing key");
         return ESP_ERR_INVALID_ARG;
@@ -263,14 +265,15 @@ static esp_err_t init_engine(const simpleota_config_t *config)
     for (uint8_t i = 0; i < config->num_signing_keys; ++i) {
         const simpleota_signing_key_t *k = &config->signing_keys[i];
         if (!k->pem || !sota_engine_add_key(&s.engine, k->key_id, k->pem)) {
-            SOTA_LOGE("signing key %u: invalid PEM, or key id over 64 characters", i);
+            SOTA_LOGE("signing key %u: invalid PEM, or key id over %u characters", i,
+                      (unsigned)SOTA_KEY_ID_MAX);
             return ESP_ERR_INVALID_ARG;
         }
     }
     /* The keys only bind in the signed modes: in any other, the server's
      * word that an artifact is unsigned is taken (sota_signed_gate()). */
     if (config->num_signing_keys && !enforcing) {
-        SOTA_LOGW("signing keys are pinned but security_mode is not SIGNED: "
+        SOTA_LOGW("signing keys are pinned but security_mode is not SIGNED or STRICT: "
                   "unsigned updates are still accepted");
     }
     return ESP_OK;
