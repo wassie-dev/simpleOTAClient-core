@@ -293,7 +293,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>sota_engine_update_wa
 </div><div class="memdoc">
 
 <p>Set up an engine. </p>
-<p>No storage or network access. False for a token with control characters, an unusable server URL, or while another engine is set up: a device has one trial record, so it runs one engine until <a class="el" href="sota__engine_8h.html#a81761b5b700ece8ce126688217b3d2db" title="Stop the timer and the watchdog, free the offer, and let another engine be set up.">sota_engine_deinit()</a>. </p>
+<p>No storage or network access. False for a token or project id with control characters, an unusable server URL, or while another engine is set up: a device has one trial record, so it runs one engine until <a class="el" href="sota__engine_8h.html#a81761b5b700ece8ce126688217b3d2db" title="Stop the timer and the watchdog, free the offer, and let another engine be set up.">sota_engine_deinit()</a>. </p>
 
 </div>
 </div>
@@ -330,7 +330,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>sota_engine_update_wa
 </div><div class="memdoc">
 
 <p>Pin an Ed25519 public key (PEM). </p>
-<p>key_id may be NULL. False when the PEM does not parse, two keys are pinned already, or the build leaves signed updates out (SOTA_SIGNED_UPDATES). </p>
+<p>key_id may be NULL. False when the PEM does not parse, key_id is over SOTA_KEY_ID_MAX, two keys are pinned already, or the build leaves signed updates out (SOTA_SIGNED_UPDATES). </p>
 
 </div>
 </div>

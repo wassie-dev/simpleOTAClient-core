@@ -4,6 +4,7 @@ var sota__protocol_8h =
     [ "sota_offer_t", "structsota__offer__t.html", "structsota__offer__t" ],
     [ "SOTA_PATH_CHECK", "sota__protocol_8h.html#ad15953e630a59196f2a4eaafc7f4fd1b", null ],
     [ "SOTA_PATH_STATUS", "sota__protocol_8h.html#a42ed1a6e08a354e6e6eb52675f5fce18", null ],
+    [ "SOTA_KEY_ID_MAX", "sota__protocol_8h.html#ad9f184045c490bf931814321e6f3a4d8", null ],
     [ "sota_check_result_t", "sota__protocol_8h.html#abf4ac0bcfc45838eaff3ad0a148c8840", [
       [ "SOTA_CHECK_NO_UPDATE", "sota__protocol_8h.html#abf4ac0bcfc45838eaff3ad0a148c8840a71757f57fac35045b40631414b188de5", null ],
       [ "SOTA_CHECK_OFFER", "sota__protocol_8h.html#abf4ac0bcfc45838eaff3ad0a148c8840afae19b1adff42c9bb2ec09dd4f6d34c5", null ],

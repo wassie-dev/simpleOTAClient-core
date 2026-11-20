@@ -2,7 +2,7 @@ var structsota__engine__t =
 [
     [ "cfg", "structsota__engine__t.html#ac36ab95f148a5d99a86c8748458e5fe6", null ],
     [ "keys", "structsota__engine__t.html#a20091d584ed7fa9483f8c06fefb85a73", null ],
-    [ "key_ids", "structsota__engine__t.html#aad9c13d79acce1f073a0df66ab9ca621", null ],
+    [ "key_ids", "structsota__engine__t.html#af9a21525b07433eef695623339140f7f", null ],
     [ "num_keys", "structsota__engine__t.html#a3027be194c68bf2d535508d7e8e950c2", null ],
     [ "st", "structsota__engine__t.html#a116768faf705e858b212f26daf58c809", null ],
     [ "outbox", "structsota__engine__t.html#a9884b0c74e386b40c0a55356a134ddd1", null ],

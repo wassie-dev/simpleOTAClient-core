@@ -7,9 +7,10 @@ var searchData=
   ['report_5fbuild_4',['report_build',['../structsota__state__t.html#a5b93a1b26d30d3dcc690be44488828c2',1,'sota_state_t']]],
   ['report_5ffailures_5',['report_failures',['../structsota__engine__t.html#a2e148bb9bcbc689a9aca06fc8ae4a6df',1,'sota_engine_t']]],
   ['reports_6',['reports',['../structsota__outbox__t.html#a5f38c99dc4713276890833d88dc017f8',1,'sota_outbox_t']]],
-  ['reset_5freason_7',['reset_reason',['../structsota__boot__info__t.html#ad85093b6c290edaf0b410709c6db3c8d',1,'sota_boot_info_t']]],
-  ['retry_5fafter_5fs_8',['retry_after_s',['../structsota__engine__t.html#a51d5c93deda5c049d9e7397c746150c5',1,'sota_engine_t']]],
-  ['rollback_9',['rollback',['../structsota__config__t.html#a5b4b930372512a68073b44255f896fe8',1,'sota_config_t']]],
-  ['rules_10',['Rules',['../md_docs_2NVS__CONTRACT.html#autotoc_md4',1,'']]],
-  ['running_5fpart_11',['running_part',['../structsota__boot__info__t.html#ab0c16e755ba2d087042bf642e188101e',1,'sota_boot_info_t::running_part'],['../structsota__boot__facts__t.html#aab2414ba43a023cefbf8010ee59a09de',1,'sota_boot_facts_t::running_part']]]
+  ['require_5fmanifest_7',['require_manifest',['../structsota__device__info__t.html#a9633d023dcdcdee6f32bd6da4f8fc8cc',1,'sota_device_info_t']]],
+  ['reset_5freason_8',['reset_reason',['../structsota__boot__info__t.html#ad85093b6c290edaf0b410709c6db3c8d',1,'sota_boot_info_t']]],
+  ['retry_5fafter_5fs_9',['retry_after_s',['../structsota__engine__t.html#a51d5c93deda5c049d9e7397c746150c5',1,'sota_engine_t']]],
+  ['rollback_10',['rollback',['../structsota__config__t.html#a5b4b930372512a68073b44255f896fe8',1,'sota_config_t']]],
+  ['rules_11',['Rules',['../md_docs_2NVS__CONTRACT.html#autotoc_md4',1,'']]],
+  ['running_5fpart_12',['running_part',['../structsota__boot__info__t.html#ab0c16e755ba2d087042bf642e188101e',1,'sota_boot_info_t::running_part'],['../structsota__boot__facts__t.html#aab2414ba43a023cefbf8010ee59a09de',1,'sota_boot_facts_t::running_part']]]
 ];

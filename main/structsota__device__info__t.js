@@ -9,5 +9,6 @@ var structsota__device__info__t =
     [ "channel", "structsota__device__info__t.html#aebc79ded1f45148d3cbbec416138ad18", null ],
     [ "security_mode", "structsota__device__info__t.html#a4aab75861ce4afc6a00fdbd67008060b", null ],
     [ "labels_json", "structsota__device__info__t.html#a3e67e0e8f19baf54f70a7507425c9f8a", null ],
+    [ "require_manifest", "structsota__device__info__t.html#a9633d023dcdcdee6f32bd6da4f8fc8cc", null ],
     [ "nvs_schema_version", "structsota__device__info__t.html#adf066db36dfa13858fbed087156e651b", null ]
 ];
