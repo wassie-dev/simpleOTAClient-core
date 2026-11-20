@@ -911,8 +911,8 @@ static void test_signed(void)
 
 /* The manifest the CLI would sign for the offered image, added to the
  * offer after its image signature. */
-static void attest(const uint8_t sk[32], const uint8_t pk[32], const char *project,
-                   const char *key_id, unsigned build)
+static void sign_manifest(const uint8_t sk[32], const uint8_t pk[32], const char *project,
+                          const char *key_id, unsigned build)
 {
     char text[256], b64[100];
     uint8_t sig[64];
@@ -933,7 +933,7 @@ static bool refused_before_download(void)
            fake_server_count("download_started", NULL) == started;
 }
 
-static void test_signed_build(void)
+static void test_strict(void)
 {
     uint8_t sk[32], pk[32];
     for (int i = 0; i < 32; ++i) sk[i] = (uint8_t)(0x40 + i);
@@ -959,21 +959,21 @@ static void test_signed_build(void)
           "a signed image without a manifest is refused: the server cannot strip it");
 
     signed_offer(sk, pk, "k1", false);
-    attest(sk, pk, "proj-a", "k1", 4);
+    sign_manifest(sk, pk, "proj-a", "k1", 4);
     check(refused_before_download(),
           "an old image's manifest names its own build: it cannot be offered as a higher one");
 
     signed_offer(sk, pk, "k1", false);
-    attest(sk, pk, "proj-b", "k1", 5);
+    sign_manifest(sk, pk, "proj-b", "k1", 5);
     check(refused_before_download(),
           "another project's build, signed with the same key, is refused");
 
     signed_offer(sk, pk, "k1", false);
-    attest(sk, pk, "proj-a", "k2", 5);
+    sign_manifest(sk, pk, "proj-a", "k2", 5);
     check(refused_before_download(), "the key id is part of what was signed");
 
     signed_offer(sk, pk, "k1", false);
-    attest(sk, pk, "proj-a", "k1", 5);
+    sign_manifest(sk, pk, "proj-a", "k1", 5);
     strcat(g_extra, ",\"manifest_version\":2");
     check(refused_before_download(), "a manifest version this client does not know is refused");
 
@@ -991,7 +991,7 @@ static void test_signed_build(void)
     check(refused_before_download(), "the image signature does not pass for a manifest");
 
     signed_offer(sk, pk, "k1", false);
-    attest(sk, pk, "proj-a", "k1", 5);
+    sign_manifest(sk, pk, "proj-a", "k1", 5);
     check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
           "the manifest for this project, key and build applies");
     boot(SOTA_RST_SW);
@@ -1003,7 +1003,7 @@ static void test_signed_build(void)
     fake_server_offer(6, "dep-6");
     boot(SOTA_RST_POWERON);
     signed_offer(sk, pk, "k1", false);
-    attest(sk, pk, "proj-a", "k1", 6);
+    sign_manifest(sk, pk, "proj-a", "k1", 6);
     check(refused_before_download(), "requiring a manifest without a project id refuses all");
     g_cfg.project_id = "proj\na";
     sota_engine_deinit(&g_e);
@@ -1021,7 +1021,7 @@ static void test_signed_build(void)
     check(strstr(fs.last_check, "require_manifest") == NULL,
           "a device that does not require manifests does not say so");
     signed_offer(sk, pk, "k1", false);
-    attest(sk, pk, "proj-a", "k1", 4);
+    sign_manifest(sk, pk, "proj-a", "k1", 4);
     check(refused_before_download(), "SIGNED with a project id refuses a wrong manifest");
     signed_offer(sk, pk, "k1", false);
     check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
@@ -1035,7 +1035,7 @@ static void test_signed_build(void)
     fake_server_offer(5, "dep-5");
     boot(SOTA_RST_POWERON);
     signed_offer(sk, pk, "k1", false);
-    attest(sk, pk, "proj-b", "k1", 4);
+    sign_manifest(sk, pk, "proj-b", "k1", 4);
     check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
           "without a project id a manifest is not looked at");
 
@@ -1057,7 +1057,7 @@ static void test_signed_build(void)
     boot(SOTA_RST_POWERON);
     check(g_e.num_keys == 1, "a 64-character key id is pinned");
     signed_offer(sk, pk, k64, false);
-    attest(sk, pk, "proj-a", k64, 5);
+    sign_manifest(sk, pk, "proj-a", k64, 5);
     check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
           "a manifest under a 64-character key id applies");
 
@@ -1097,7 +1097,7 @@ static void test_signed_build(void)
     fake_server_offer(5, "dep-5");
     boot(SOTA_RST_POWERON);
     signed_offer(sk, pk, "", false);
-    attest(sk, pk, "proj-a", "", 5);
+    sign_manifest(sk, pk, "proj-a", "", 5);
     check(refused_before_download(),
           "a manifest signed over an empty key id is refused");
 
@@ -1250,7 +1250,7 @@ int main(void)
     test_no_early_retry();
     test_retries_spread();
     test_signed();
-    test_signed_build();
+    test_strict();
     test_one_engine();
     test_power_cuts(true, false);
     test_power_cuts(true, true);
