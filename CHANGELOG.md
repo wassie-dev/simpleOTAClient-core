@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.0 (unreleased)
+## 1.2.0 (2026-11-20)
 
 API 1.2: additions only. A configuration that leaves the new field at zero
 and keeps its security mode behaves as in 1.1, and nothing stored changes.
@@ -48,7 +48,7 @@ heap for a moment (about 700 bytes), freed before the download starts.
   checked against every pinned key. A strict signature with an empty key
   id is refused.
 
-## 1.1.0 (unreleased)
+## 1.1.0 (2026-11-20)
 
 API 1.1. The new `simpleota_config_t` field comes after the 1.0 ones, so
 1.0 application code builds unchanged, and a configuration that leaves it
