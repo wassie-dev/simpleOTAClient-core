@@ -10,7 +10,8 @@ var simpleota_8h =
     [ "simpleota_security_t", "simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23b", [
       [ "SIMPLEOTA_SECURITY_NONE", "simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23badda7b5c4e39c4c83abb400652113198d", null ],
       [ "SIMPLEOTA_SECURITY_BASIC", "simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23ba54d33169411fd3310912bf5ccdab507f", null ],
-      [ "SIMPLEOTA_SECURITY_SIGNED", "simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23baf4595d1af85b9e4f6d4545fdf13d8b36", null ]
+      [ "SIMPLEOTA_SECURITY_SIGNED", "simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23baf4595d1af85b9e4f6d4545fdf13d8b36", null ],
+      [ "SIMPLEOTA_SECURITY_STRICT", "simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23baccd4d394779a07b73855fa76ce25019e", null ]
     ] ],
     [ "simpleota_result_t", "simpleota_8h.html#a54a445d7e191230328761624fa687859", [
       [ "SIMPLEOTA_OK", "simpleota_8h.html#a54a445d7e191230328761624fa687859aebbf3c4dfcb4e7c5606dacb4889502de", null ],

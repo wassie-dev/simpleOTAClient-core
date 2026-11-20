@@ -25,5 +25,6 @@ var structsimpleota__config__t =
     [ "user_ctx", "structsimpleota__config__t.html#ac51f5afb195470375a651a070fd4037d", null ],
     [ "cert_pem", "structsimpleota__config__t.html#a44320d8dde9b82769db5a28b78670451", null ],
     [ "crt_bundle_attach", "structsimpleota__config__t.html#a2e392c227bcc37ed1230d1abb5f38e7d", null ],
-    [ "can_update", "structsimpleota__config__t.html#a645f1935ab7e8caa9dded97cfa4ddaa1", null ]
+    [ "can_update", "structsimpleota__config__t.html#a645f1935ab7e8caa9dded97cfa4ddaa1", null ],
+    [ "project_id", "structsimpleota__config__t.html#aa72a990ded99b05eee3b89bfbd9d95d4", null ]
 ];

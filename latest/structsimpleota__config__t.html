@@ -26,7 +26,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.1.0</span>
+   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.2.0</span>
    </div>
    <div id="projectbrief">Shared core of the SimpleOTA Arduino and ESP-IDF clients</div>
   </td>
@@ -188,6 +188,9 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></
 <tr class="memitem:a645f1935ab7e8caa9dded97cfa4ddaa1" id="r_a645f1935ab7e8caa9dded97cfa4ddaa1"><td class="memItemLeft" align="right" valign="top">bool(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsimpleota__config__t.html#a645f1935ab7e8caa9dded97cfa4ddaa1">can_update</a> )(void *<a class="el" href="structsimpleota__config__t.html#ac51f5afb195470375a651a070fd4037d">user_ctx</a>)</td></tr>
 <tr class="memdesc:a645f1935ab7e8caa9dded97cfa4ddaa1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Managed mode: called on the managed task when an update is offered, after SIMPLEOTA_EVENT_UPDATE_AVAILABLE and before the download.  <br /></td></tr>
 <tr class="separator:a645f1935ab7e8caa9dded97cfa4ddaa1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa72a990ded99b05eee3b89bfbd9d95d4" id="r_aa72a990ded99b05eee3b89bfbd9d95d4"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsimpleota__config__t.html#aa72a990ded99b05eee3b89bfbd9d95d4">project_id</a></td></tr>
+<tr class="memdesc:aa72a990ded99b05eee3b89bfbd9d95d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The id of the SimpleOTA project this device belongs to: the project's UUID, lowercase with hyphens, as the CLI's key snippet prints it.  <br /></td></tr>
+<tr class="separator:aa72a990ded99b05eee3b89bfbd9d95d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Configuration. </p>
@@ -325,7 +328,7 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></
 </div><div class="memdoc">
 
 <p>Default: SIMPLEOTA_SECURITY_NONE. </p>
-<p>SIGNED needs a signing key. </p>
+<p>SIGNED and STRICT need a signing key. </p>
 
 </div>
 </div>
@@ -444,8 +447,8 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></
 </div><div class="memdoc">
 
 <p>Pinned public keys for signed firmware, at most 2. </p>
-<p>Parsed at init, which fails on a PEM that does not parse rather than run unpinned. They bind only with security_mode SIMPLEOTA_SECURITY_SIGNED: in any other mode an update the server marks unsigned is still accepted on its checksum, and init logs a warning.</p>
-<p>A device that will never take a signed update can leave the verifier out of its image by building every source file of the client with -DSIMPLEOTA_DISABLE_SIGNED_UPDATES. Init then refuses signing keys and SIGNED. </p>
+<p>Parsed at init, which fails on a PEM that does not parse rather than run unpinned. They bind only with security_mode SIMPLEOTA_SECURITY_SIGNED or SIMPLEOTA_SECURITY_STRICT: in any other mode an update the server marks unsigned is still accepted on its checksum, and init logs a warning.</p>
+<p>A device that will never take a signed update can leave the verifier out of its image by building every source file of the client with -DSIMPLEOTA_DISABLE_SIGNED_UPDATES. Init then refuses signing keys, SIGNED and STRICT. </p>
 
 </div>
 </div>
@@ -531,6 +534,23 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></
 
 <p>Managed mode: called on the managed task when an update is offered, after SIMPLEOTA_EVENT_UPDATE_AVAILABLE and before the download. </p>
 <p>Return false to put the update off, on low battery or in the middle of something that must not be interrupted: nothing is downloaded, and the next check asks again, which <a class="el" href="simpleota_8h.html#a478f572b9393376cb2e38f5c3a6dca47" title="Wake the managed task to check immediately.">simpleota_check_now()</a> brings forward once the device is ready. Keep it quick, and don't call the client from it. NULL: always update. Polling mode does not call it: there the application decides by calling <a class="el" href="simpleota_8h.html#ac9b45d3bdae71ba619bc4801d860767d" title="Polling mode: download, verify and flash the offer from the last simpleota_check(),...">simpleota_apply()</a>. Since API 1.1. </p>
+
+</div>
+</div>
+<a id="aa72a990ded99b05eee3b89bfbd9d95d4" name="aa72a990ded99b05eee3b89bfbd9d95d4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa72a990ded99b05eee3b89bfbd9d95d4">&#9670;&#160;</a></span>project_id</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* simpleota_config_t::project_id</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The id of the SimpleOTA project this device belongs to: the project's UUID, lowercase with hyphens, as the CLI's key snippet prints it. </p>
+<p>Not the project's slug, which can be renamed. It is not a secret. With it and a signing key, an update's strict signature is checked whenever the offer carries one, and one made for another project or another build number is refused (reason signature_invalid) before the download. SIMPLEOTA_SECURITY_STRICT needs it, and refuses an update without a strict signature too. Only that mode protects against a server replaying an old build: in any other, a server can leave the strict signature out and the update is taken on its image signature alone. Default: strict signatures are not checked. Init fails when it is non-empty and not a UUID in that form. Since API 1.2. </p>
 
 </div>
 </div>

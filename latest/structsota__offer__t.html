@@ -26,7 +26,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.1.0</span>
+   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.2.0</span>
    </div>
    <div id="projectbrief">Shared core of the SimpleOTA Arduino and ESP-IDF clients</div>
   </td>
@@ -124,10 +124,10 @@ char&#160;</td><td class="memItemRight" valign="bottom"><b>deployment</b> [64]</
 char&#160;</td><td class="memItemRight" valign="bottom"><b>version</b> [64u+1]</td></tr>
 <tr class="memdesc:ac848adc84de55970aa6f48cca703eb9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Empty when absent or too long. <br /></td></tr>
 <tr class="separator:ac848adc84de55970aa6f48cca703eb9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a23702ae4e72e4d951b1e59f6f79a6a8a" id="r_a23702ae4e72e4d951b1e59f6f79a6a8a"><td class="memItemLeft" align="right" valign="top"><a id="a23702ae4e72e4d951b1e59f6f79a6a8a" name="a23702ae4e72e4d951b1e59f6f79a6a8a"></a>
-char&#160;</td><td class="memItemRight" valign="bottom"><b>key_id</b> [64]</td></tr>
-<tr class="memdesc:a23702ae4e72e4d951b1e59f6f79a6a8a"><td class="mdescLeft">&#160;</td><td class="mdescRight">signing_key_id, empty when absent. <br /></td></tr>
-<tr class="separator:a23702ae4e72e4d951b1e59f6f79a6a8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adaed7fca7c9bcd2298460b2de168ec6d" id="r_adaed7fca7c9bcd2298460b2de168ec6d"><td class="memItemLeft" align="right" valign="top"><a id="adaed7fca7c9bcd2298460b2de168ec6d" name="adaed7fca7c9bcd2298460b2de168ec6d"></a>
+char&#160;</td><td class="memItemRight" valign="bottom"><b>key_id</b> [64u+1]</td></tr>
+<tr class="memdesc:adaed7fca7c9bcd2298460b2de168ec6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">signing_key_id, empty when absent or empty. <br /></td></tr>
+<tr class="separator:adaed7fca7c9bcd2298460b2de168ec6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5e69b2b933508c7a24e2b2c59b3aca4d" id="r_a5e69b2b933508c7a24e2b2c59b3aca4d"><td class="memItemLeft" align="right" valign="top"><a id="a5e69b2b933508c7a24e2b2c59b3aca4d" name="a5e69b2b933508c7a24e2b2c59b3aca4d"></a>
 uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>build</b></td></tr>
 <tr class="memdesc:a5e69b2b933508c7a24e2b2c59b3aca4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The build number SimpleOTA assigned. <br /></td></tr>
@@ -148,6 +148,14 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>has_signature</b></td
 uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>signature</b> [64]</td></tr>
 <tr class="memdesc:a652b76ef37f19b68408409ec9b37eaad"><td class="mdescLeft">&#160;</td><td class="mdescRight">The raw signature, when has_signature. <br /></td></tr>
 <tr class="separator:a652b76ef37f19b68408409ec9b37eaad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa96f97f5a82d8262bd92641cd5f7701f" id="r_aa96f97f5a82d8262bd92641cd5f7701f"><td class="memItemLeft" align="right" valign="top"><a id="aa96f97f5a82d8262bd92641cd5f7701f" name="aa96f97f5a82d8262bd92641cd5f7701f"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>has_manifest</b></td></tr>
+<tr class="memdesc:aa96f97f5a82d8262bd92641cd5f7701f"><td class="mdescLeft">&#160;</td><td class="mdescRight">manifest_signature decoded, and its version is one this client checks. <br /></td></tr>
+<tr class="separator:aa96f97f5a82d8262bd92641cd5f7701f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad67af00b76c7c2a2c01dcc125ad2ee1b" id="r_ad67af00b76c7c2a2c01dcc125ad2ee1b"><td class="memItemLeft" align="right" valign="top"><a id="ad67af00b76c7c2a2c01dcc125ad2ee1b" name="ad67af00b76c7c2a2c01dcc125ad2ee1b"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>manifest_sig</b> [64]</td></tr>
+<tr class="memdesc:ad67af00b76c7c2a2c01dcc125ad2ee1b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The raw signature, when has_manifest. <br /></td></tr>
+<tr class="separator:ad67af00b76c7c2a2c01dcc125ad2ee1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>An update the server offered. </p>

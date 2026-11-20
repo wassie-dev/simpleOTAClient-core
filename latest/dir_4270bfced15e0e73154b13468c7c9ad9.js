@@ -7,6 +7,7 @@ var dir_4270bfced15e0e73154b13468c7c9ad9 =
     [ "sota_image.h", "sota__image_8h.html", "sota__image_8h" ],
     [ "sota_json.h", "sota__json_8h.html", "sota__json_8h" ],
     [ "sota_kv.h", "sota__kv_8h.html", "sota__kv_8h" ],
+    [ "sota_manifest.h", "sota__manifest_8h.html", "sota__manifest_8h" ],
     [ "sota_net.h", "sota__net_8h.html", "sota__net_8h" ],
     [ "sota_protocol.h", "sota__protocol_8h.html", "sota__protocol_8h" ],
     [ "sota_report.h", "sota__report_8h.html", "sota__report_8h" ],

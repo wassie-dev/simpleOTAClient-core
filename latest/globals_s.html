@@ -26,7 +26,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.1.0</span>
+   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.2.0</span>
    </div>
    <div id="projectbrief">Shared core of the SimpleOTA Arduino and ESP-IDF clients</div>
   </td>
@@ -127,6 +127,7 @@ $(document).ready(function(){initNavTree('globals_s.html',''); initResizable(); 
 <li>SIMPLEOTA_SECURITY_BASIC&#160;:&#160;<a class="el" href="simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23ba54d33169411fd3310912bf5ccdab507f">simpleota.h</a></li>
 <li>SIMPLEOTA_SECURITY_NONE&#160;:&#160;<a class="el" href="simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23badda7b5c4e39c4c83abb400652113198d">simpleota.h</a></li>
 <li>SIMPLEOTA_SECURITY_SIGNED&#160;:&#160;<a class="el" href="simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23baf4595d1af85b9e4f6d4545fdf13d8b36">simpleota.h</a></li>
+<li>SIMPLEOTA_SECURITY_STRICT&#160;:&#160;<a class="el" href="simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23baccd4d394779a07b73855fa76ce25019e">simpleota.h</a></li>
 <li>simpleota_security_t&#160;:&#160;<a class="el" href="simpleota_8h.html#a2238b7cc1e6703ad5a0c3ff2a538b23b">simpleota.h</a></li>
 <li>simpleota_set_server_url()&#160;:&#160;<a class="el" href="simpleota_8h.html#a5f3dcafc84228ebe2b810f9cea0259c6">simpleota.h</a></li>
 <li>SIMPLEOTA_SIGNATURE_FAIL&#160;:&#160;<a class="el" href="simpleota_8h.html#a54a445d7e191230328761624fa687859ad8c4de481e4b673cde888e06efe92b8d">simpleota.h</a></li>
@@ -232,6 +233,7 @@ $(document).ready(function(){initNavTree('globals_s.html',''); initResizable(); 
 <li>sota_json_get_u32()&#160;:&#160;<a class="el" href="sota__json_8h.html#a6d503e24597c73a5b9b2735aa046fe0d">sota_json.h</a></li>
 <li>sota_json_has_key()&#160;:&#160;<a class="el" href="sota__json_8h.html#a921ec3ffee6c8770bbd39101dbeeb232">sota_json.h</a></li>
 <li>sota_json_is_object()&#160;:&#160;<a class="el" href="sota__json_8h.html#a4fcb40e60165027d45890cfd3f0a3b14">sota_json.h</a></li>
+<li>SOTA_KEY_ID_MAX&#160;:&#160;<a class="el" href="sota__protocol_8h.html#ad9f184045c490bf931814321e6f3a4d8">sota_protocol.h</a></li>
 <li>sota_kv_erase()&#160;:&#160;<a class="el" href="sota__kv_8h.html#a62e427ed250104c80e5a62f498194e42">sota_kv.h</a></li>
 <li>sota_kv_get_blob()&#160;:&#160;<a class="el" href="sota__kv_8h.html#aa4551b5eed682c07c317dbbe0d9398a6">sota_kv.h</a></li>
 <li>sota_kv_get_str()&#160;:&#160;<a class="el" href="sota__kv_8h.html#a53702d0f57bfb69b1ff14fccf228b1dd">sota_kv.h</a></li>
@@ -247,6 +249,14 @@ $(document).ready(function(){initNavTree('globals_s.html',''); initResizable(); 
 <li>SOTA_LOGE&#160;:&#160;<a class="el" href="sota__app_8h.html#a4acffd1971ccb71e32fd07393283d534">sota_app.h</a></li>
 <li>SOTA_LOGI&#160;:&#160;<a class="el" href="sota__app_8h.html#ab15e890eb13ccfd25a3d5589f568ce37">sota_app.h</a></li>
 <li>SOTA_LOGW&#160;:&#160;<a class="el" href="sota__app_8h.html#ad428b3771cd415a0936b49a25a0afab2">sota_app.h</a></li>
+<li>SOTA_MANIFEST_FAIL_CLOSED&#160;:&#160;<a class="el" href="sota__manifest_8h.html#a159d0691772751443ef6fd4b944c1a57a1f649a80cc6a79a20b374e7e1f1aec24">sota_manifest.h</a></li>
+<li>sota_manifest_feed()&#160;:&#160;<a class="el" href="sota__manifest_8h.html#a68c974dd5f754b1356486cc1fca468e9">sota_manifest.h</a></li>
+<li>sota_manifest_field_ok()&#160;:&#160;<a class="el" href="sota__manifest_8h.html#a75c8f8c7b53e49003becc1b64c018eb9">sota_manifest.h</a></li>
+<li>sota_manifest_gate()&#160;:&#160;<a class="el" href="sota__manifest_8h.html#a922a0ecde605fc9735926f470114dd64">sota_manifest.h</a></li>
+<li>sota_manifest_gate_t&#160;:&#160;<a class="el" href="sota__manifest_8h.html#a159d0691772751443ef6fd4b944c1a57">sota_manifest.h</a></li>
+<li>SOTA_MANIFEST_SKIP&#160;:&#160;<a class="el" href="sota__manifest_8h.html#a159d0691772751443ef6fd4b944c1a57a3f79c24758d7622727daf730dd013b6d">sota_manifest.h</a></li>
+<li>SOTA_MANIFEST_V1_MAGIC&#160;:&#160;<a class="el" href="sota__manifest_8h.html#a822958101e55b955b5f97b1be26a4553">sota_manifest.h</a></li>
+<li>SOTA_MANIFEST_VERIFY&#160;:&#160;<a class="el" href="sota__manifest_8h.html#a159d0691772751443ef6fd4b944c1a57a3bba28523367d5788efc3fdf4908db06">sota_manifest.h</a></li>
 <li>SOTA_MAX_WAIT_TICKS&#160;:&#160;<a class="el" href="sota__time_8h.html#a55a0ca1b7216532467503d89c461539a">sota_time.h</a></li>
 <li>sota_ms_to_ticks()&#160;:&#160;<a class="el" href="sota__time_8h.html#a9ca33cb0e651870436d6050e3d51dbe2">sota_time.h</a></li>
 <li>SOTA_NET_AGAIN&#160;:&#160;<a class="el" href="sota__net_8h.html#adf764cbdea00d65edcd07bb9953ad2b7ae7e6a568f25224a52876c8eeda47b66f">sota_net.h</a></li>

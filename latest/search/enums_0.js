@@ -8,6 +8,7 @@ var searchData=
   ['sota_5fcheck_5fresult_5ft_5',['sota_check_result_t',['../sota__protocol_8h.html#abf4ac0bcfc45838eaff3ad0a148c8840',1,'sota_protocol.h']]],
   ['sota_5fconfirm_5fresult_5ft_6',['sota_confirm_result_t',['../sota__engine_8h.html#aec2dbcf918debb2367ec23f1a45695c8',1,'sota_engine.h']]],
   ['sota_5fevent_5fid_5ft_7',['sota_event_id_t',['../sota__app_8h.html#ae119204e0e8b94533cd7b90ec7cf6774',1,'sota_app.h']]],
-  ['sota_5fsigned_5fgate_5ft_8',['sota_signed_gate_t',['../sota__signing_8h.html#af27ec7def82c4452c3cd7973c669227a',1,'sota_signing.h']]],
-  ['sota_5furl_5fstatus_5ft_9',['sota_url_status_t',['../sota__url_8h.html#a7edf5f2bb51046d94cae407593cbfd26',1,'sota_url.h']]]
+  ['sota_5fmanifest_5fgate_5ft_8',['sota_manifest_gate_t',['../sota__manifest_8h.html#a159d0691772751443ef6fd4b944c1a57',1,'sota_manifest.h']]],
+  ['sota_5fsigned_5fgate_5ft_9',['sota_signed_gate_t',['../sota__signing_8h.html#af27ec7def82c4452c3cd7973c669227a',1,'sota_signing.h']]],
+  ['sota_5furl_5fstatus_5ft_10',['sota_url_status_t',['../sota__url_8h.html#a7edf5f2bb51046d94cae407593cbfd26',1,'sota_url.h']]]
 ];

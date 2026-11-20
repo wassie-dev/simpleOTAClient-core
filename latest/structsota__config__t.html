@@ -26,7 +26,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.1.0</span>
+   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.2.0</span>
    </div>
    <div id="projectbrief">Shared core of the SimpleOTA Arduino and ESP-IDF clients</div>
   </td>
@@ -120,6 +120,9 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>server_url</b
 const char *&#160;</td><td class="memItemRight" valign="bottom"><b>version_label</b></td></tr>
 <tr class="memdesc:a8919d1aa1fb4aa77687e5f418ad01bef"><td class="mdescLeft">&#160;</td><td class="mdescRight">NULL: the stored one. <br /></td></tr>
 <tr class="separator:a8919d1aa1fb4aa77687e5f418ad01bef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48bb34ae9e03915c7c7cabe4424ab859" id="r_a48bb34ae9e03915c7c7cabe4424ab859"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsota__config__t.html#a48bb34ae9e03915c7c7cabe4424ab859">project_id</a></td></tr>
+<tr class="memdesc:a48bb34ae9e03915c7c7cabe4424ab859"><td class="mdescLeft">&#160;</td><td class="mdescRight">The project the device belongs to, as its manifests name it.  <br /></td></tr>
+<tr class="separator:a48bb34ae9e03915c7c7cabe4424ab859"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a691caf26041d7aa31ab60230d228b01d" id="r_a691caf26041d7aa31ab60230d228b01d"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsota__config__t.html#a691caf26041d7aa31ab60230d228b01d">image_build</a></td></tr>
 <tr class="memdesc:a691caf26041d7aa31ab60230d228b01d"><td class="mdescLeft">&#160;</td><td class="mdescRight">This image's build, reported when SimpleOTA did not install it (a USB flash).  <br /></td></tr>
 <tr class="separator:a691caf26041d7aa31ab60230d228b01d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -154,6 +157,23 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>user</b></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Strings are borrowed: they must outlive the engine. </p>
 </div><h2 class="groupheader">Field Documentation</h2>
+<a id="a48bb34ae9e03915c7c7cabe4424ab859" name="a48bb34ae9e03915c7c7cabe4424ab859"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a48bb34ae9e03915c7c7cabe4424ab859">&#9670;&#160;</a></span>project_id</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* sota_config_t::project_id</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The project the device belongs to, as its manifests name it. </p>
+<p>NULL: manifests are not checked. </p>
+
+</div>
+</div>
 <a id="a691caf26041d7aa31ab60230d228b01d" name="a691caf26041d7aa31ab60230d228b01d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a691caf26041d7aa31ab60230d228b01d">&#9670;&#160;</a></span>image_build</h2>
 
