@@ -10,7 +10,7 @@ static bool connected(void *ctx)
     return true;
 }
 
-#if SIMPLEOTA_API_VERSION < SIMPLEOTA_API_VERSION_NUM(1, 0)
+#if SIMPLEOTA_API_VERSION < SIMPLEOTA_API_VERSION_NUM(1, 1)
 #error "simpleota.h is older than this app expects"
 #endif
 
@@ -20,6 +20,7 @@ void app_main(void)
     simpleota_config_t cfg = {
         .token = "token",
         .is_connected = connected,
+        .can_update = connected,
     };
     if (simpleota_init(&cfg) != ESP_OK) return;
     simpleota_start();

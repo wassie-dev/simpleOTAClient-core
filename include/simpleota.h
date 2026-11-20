@@ -84,7 +84,7 @@ extern "C" {
  * @{
  */
 #define SIMPLEOTA_API_VERSION_MAJOR 1 /**< Breaking changes. */
-#define SIMPLEOTA_API_VERSION_MINOR 0 /**< Additions. */
+#define SIMPLEOTA_API_VERSION_MINOR 1 /**< Additions. */
 /** A version as one comparable number. */
 #define SIMPLEOTA_API_VERSION_NUM(major, minor) ((major) * 1000 + (minor))
 /** This header's version, as SIMPLEOTA_API_VERSION_NUM() gives it. */
@@ -150,6 +150,8 @@ typedef enum {
  * - `redirect_not_https`, `redirect_malformed`: a download redirect led to
  *   plain HTTP, or had no usable Location.
  * - `update_begin_failed`: no second OTA slot, or the image is too big.
+ * - `image_mismatch`: the download's first bytes are not a firmware image
+ *   for this chip; nothing was written. Since API 1.1.
  * - `update_write_failed`: a flash write failed.
  * - `stream_error`, `download_stalled`, `short_read`: the download broke,
  *   stopped sending (reported one to two CONFIG_SIMPLEOTA_HTTP_TIMEOUT_MS
@@ -217,7 +219,11 @@ typedef struct {
                                         or more by up to a tenth either way, so a
                                         fleet does not check in at once, and
                                         retries a check or download that failed on
-                                        the network after 30 s, 2 min and 10 min. */
+                                        the network after 30 s, 2 min and 10 min.
+                                        In managed mode a 429 or 503 with a
+                                        Retry-After in seconds is waited out
+                                        instead (a day at most). A trial ignores
+                                        it and keeps its quick checks. */
     uint32_t initial_delay_ms;     /**< Delay before the first check after start().
                                         Default: none. Not a wait for the IP; see
                                         is_connected. */
@@ -233,7 +239,12 @@ typedef struct {
      *  which fails on a PEM that does not parse rather than run unpinned.
      *  They bind only with security_mode SIMPLEOTA_SECURITY_SIGNED: in any
      *  other mode an update the server marks unsigned is still accepted on
-     *  its checksum, and init logs a warning. */
+     *  its checksum, and init logs a warning.
+     *
+     *  A device that will never take a signed update can leave the
+     *  verifier out of its image by building every source file of the
+     *  client with -DSIMPLEOTA_DISABLE_SIGNED_UPDATES. Init then refuses
+     *  signing keys and SIGNED. */
     const simpleota_signing_key_t *signing_keys;
     uint8_t num_signing_keys;      /**< Entries in signing_keys. */
 
@@ -247,7 +258,8 @@ typedef struct {
      *  Keep it quick, and don't call the client from it except
      *  simpleota_reboot_for_update(). */
     void (*event_cb)(const simpleota_event_t *event, void *user_ctx);
-    void *user_ctx;                /**< Passed to is_connected and event_cb. */
+    void *user_ctx;                /**< Passed to is_connected, event_cb and
+                                        can_update. */
 
     /** TLS trust, always verified. Default: the ESP-IDF certificate bundle,
      *  except on Arduino-ESP32 2.0.0 to 2.0.3, which do not link it: there,
@@ -260,6 +272,17 @@ typedef struct {
     const char *cert_pem;
     esp_err_t (*crt_bundle_attach)(void *conf); /**< Another bundle's attach function.
                                                      Default: the trust above. */
+
+    /** Managed mode: called on the managed task when an update is offered,
+     *  after SIMPLEOTA_EVENT_UPDATE_AVAILABLE and before the download.
+     *  Return false to put the update off, on low battery or in the middle
+     *  of something that must not be interrupted: nothing is downloaded,
+     *  and the next check asks again, which simpleota_check_now() brings
+     *  forward once the device is ready. Keep it quick, and don't call the
+     *  client from it. NULL: always update. Polling mode does not call it:
+     *  there the application decides by calling simpleota_apply().
+     *  Since API 1.1. */
+    bool (*can_update)(void *user_ctx);
 } simpleota_config_t;
 
 /**
@@ -275,8 +298,9 @@ typedef struct {
  * @retval ESP_ERR_INVALID_ARG    A missing token or one with control
  *                                characters, an unparseable signing key,
  *                                a security_mode out of range or SIGNED
- *                                without a key, or a base_url that is not
- *                                https://.
+ *                                without a key, a base_url that is not
+ *                                https://, or a signing key or SIGNED in a
+ *                                build without signed updates.
  * @retval ESP_ERR_INVALID_STATE  Already initialized, or neither the
  *                                certificate bundle nor a cert_pem is
  *                                available.

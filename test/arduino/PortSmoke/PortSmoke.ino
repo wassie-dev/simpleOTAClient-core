@@ -10,6 +10,7 @@ void setup() {
   simpleota_config_t cfg = {};
   cfg.token = "token";
   cfg.is_connected = connected;
+  cfg.can_update = connected;
   if (simpleota_init(&cfg) != ESP_OK) return;
   simpleota_start();
   simpleota_check_now();

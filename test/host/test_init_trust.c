@@ -1,10 +1,13 @@
 /**
- * Host checks for how simpleota_init() chooses the TLS trust, over stubs
- * for the engine, the task runner, FreeRTOS and the framework.
+ * Host checks for how simpleota_init() chooses the TLS trust and which
+ * security settings it takes, over stubs for the engine, the task runner,
+ * FreeRTOS and the framework. test_init_trust_unsigned builds it with
+ * SIMPLEOTA_DISABLE_SIGNED_UPDATES.
  *
  *   make -C test/host test
  */
 
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -26,6 +29,7 @@ static attach_fn g_default;       /* The framework's default bundle, or NULL. */
 static const char *g_default_pem; /* Or its default PEM, or NULL. */
 static int g_default_calls;
 static const sota_net_esp32_t *g_net; /* The engine's user pointer. */
+static int g_add_key_calls;
 
 bool sota_framework_default_trust(const char **cert_pem, attach_fn *crt_bundle_attach)
 {
@@ -45,6 +49,7 @@ bool sota_engine_init(sota_engine_t *e, const sota_config_t *cfg)
 bool sota_engine_add_key(sota_engine_t *e, const char *key_id, const char *pem)
 {
     (void)e; (void)key_id; (void)pem;
+    ++g_add_key_calls;
     return true;
 }
 void sota_engine_validate_boot(sota_engine_t *e) { (void)e; }
@@ -107,6 +112,27 @@ static esp_err_t init_with(const char *cert_pem, attach_fn attach, attach_fn dfl
     return init_with_pem_default(cert_pem, attach, dflt, NULL);
 }
 
+/* Init with the default bundle and the given security settings. */
+static esp_err_t init_security(simpleota_security_t mode, uint8_t num_keys)
+{
+    static const simpleota_signing_key_t key = {"k", "-----BEGIN PUBLIC KEY-----\n"};
+    simpleota_deinit();
+    g_default = default_bundle;
+    g_default_pem = NULL;
+    g_net = NULL;
+    g_add_key_calls = 0;
+    simpleota_config_t cfg;
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.token = "token";
+    cfg.security_mode = mode;
+    cfg.signing_keys = &key;
+    cfg.num_signing_keys = num_keys;
+    return simpleota_init(&cfg);
+}
+
+#define FOLLOWS(a, b) \
+    (offsetof(simpleota_config_t, b) == offsetof(simpleota_config_t, a) + sizeof(void *))
+
 int main(void)
 {
     static const char pem[] = "-----BEGIN CERTIFICATE-----\n";
@@ -144,6 +170,33 @@ int main(void)
               g_net->cert_pem && g_net->cert_pem != default_pem &&
               strcmp(g_net->cert_pem, pem) == 0 && g_default_calls == 0,
           "cert_pem replaces the framework's default PEM");
+
+    check(init_security(SIMPLEOTA_SECURITY_NONE, 0) == ESP_OK &&
+              init_security(SIMPLEOTA_SECURITY_BASIC, 0) == ESP_OK,
+          "NONE and BASIC without a key start");
+#ifdef SIMPLEOTA_DISABLE_SIGNED_UPDATES
+    check(init_security(SIMPLEOTA_SECURITY_SIGNED, 1) == ESP_ERR_INVALID_ARG && !g_net &&
+              g_add_key_calls == 0,
+          "a build without signed updates refuses SIGNED");
+    check(init_security(SIMPLEOTA_SECURITY_BASIC, 1) == ESP_ERR_INVALID_ARG && !g_net &&
+              g_add_key_calls == 0,
+          "a build without signed updates refuses a signing key");
+#else
+    check(init_security(SIMPLEOTA_SECURITY_SIGNED, 1) == ESP_OK && g_add_key_calls == 1,
+          "SIGNED with a key starts and pins it");
+    check(init_security(SIMPLEOTA_SECURITY_BASIC, 1) == ESP_OK && g_add_key_calls == 1,
+          "BASIC with a key starts and pins it");
+#endif
+    check(init_security(SIMPLEOTA_SECURITY_SIGNED, 0) == ESP_ERR_INVALID_ARG,
+          "SIGNED without a key is refused");
+
+    /* 1.0.x callers, positional initializers included, keep their layout. */
+    check(FOLLOWS(is_connected, event_cb) && FOLLOWS(event_cb, user_ctx) &&
+              FOLLOWS(user_ctx, cert_pem) && FOLLOWS(cert_pem, crt_bundle_attach) &&
+              FOLLOWS(crt_bundle_attach, can_update) &&
+              sizeof(simpleota_config_t) == offsetof(simpleota_config_t, can_update) +
+                                               sizeof(void *),
+          "fields new in 1.1 come after the 1.0 ones");
 
     simpleota_deinit();
     return g_failures ? 1 : 0;

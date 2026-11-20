@@ -85,6 +85,7 @@ typedef struct {
     bool initialized;
     bool manual_confirm;
     void (*event_cb)(const simpleota_event_t *event, void *user_ctx);
+    bool (*can_update)(void *user_ctx);
     void *user_ctx;
 } simpleota_t;
 
@@ -111,6 +112,12 @@ void sota_app_event(void *user, const sota_event_t *ev)
         .bytes_total = ev->total,
     };
     c->event_cb(&out, c->user_ctx);
+}
+
+bool sota_app_can_update(void *user)
+{
+    simpleota_t *c = (simpleota_t *)user;
+    return !c->can_update || c->can_update(c->user_ctx);
 }
 
 void sota_app_wake(void *user)
@@ -170,6 +177,12 @@ static esp_err_t init_engine(const simpleota_config_t *config)
 {
     if ((unsigned)config->security_mode > SIMPLEOTA_SECURITY_SIGNED) {
         SOTA_LOGE("security_mode %d is not a simpleota_security_t", (int)config->security_mode);
+        return ESP_ERR_INVALID_ARG;
+    }
+    if (!SOTA_SIGNED_UPDATES &&
+        (config->num_signing_keys || config->security_mode == SIMPLEOTA_SECURITY_SIGNED)) {
+        SOTA_LOGE("this build leaves signed updates out "
+                  "(SIMPLEOTA_DISABLE_SIGNED_UPDATES): no signing keys, no SIGNED mode");
         return ESP_ERR_INVALID_ARG;
     }
     /* Reporting signed without a key would take signed builds unverified. */
@@ -263,6 +276,7 @@ esp_err_t simpleota_init(const simpleota_config_t *config)
     s.runner.priority = CONFIG_SIMPLEOTA_TASK_PRIORITY;
     s.manual_confirm = config->manual_confirm;
     s.event_cb = config->event_cb;
+    s.can_update = config->can_update;
     s.user_ctx = config->user_ctx;
     s.polled = xSemaphoreCreateBinaryStatic(&s.polled_buf);
     s.initialized = true;
