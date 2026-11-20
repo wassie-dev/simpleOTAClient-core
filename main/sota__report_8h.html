@@ -123,6 +123,10 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>SOTA_CONNECT_POLL_S</b>&#160;&#160;&#160;1u</td></tr>
 <tr class="memdesc:ad82c31af0f284f8ca935aacf9df05476"><td class="mdescLeft">&#160;</td><td class="mdescRight">Seconds between is_connected() polls while the network is down. <br /></td></tr>
 <tr class="separator:ad82c31af0f284f8ca935aacf9df05476"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8788cd8d32af15ec2bbe83a1df56e030" id="r_a8788cd8d32af15ec2bbe83a1df56e030"><td class="memItemLeft" align="right" valign="top"><a id="a8788cd8d32af15ec2bbe83a1df56e030" name="a8788cd8d32af15ec2bbe83a1df56e030"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>SOTA_RETRY_AFTER_MAX_S</b>&#160;&#160;&#160;86400u</td></tr>
+<tr class="memdesc:a8788cd8d32af15ec2bbe83a1df56e030"><td class="mdescLeft">&#160;</td><td class="mdescRight">The longest a server's Retry-After is honoured: a day. <br /></td></tr>
+<tr class="separator:a8788cd8d32af15ec2bbe83a1df56e030"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3377228ee430135665452bfb8a35a562" id="r_a3377228ee430135665452bfb8a35a562"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__report_8h.html#a3377228ee430135665452bfb8a35a562">SOTA_JITTER_MIN_S</a>&#160;&#160;&#160;60u</td></tr>
 <tr class="memdesc:a3377228ee430135665452bfb8a35a562"><td class="mdescLeft">&#160;</td><td class="mdescRight">Waits from this long on are spread, so devices that start together (a power cut ending, a batch off the line) do not check in together for ever after.  <br /></td></tr>
 <tr class="separator:a3377228ee430135665452bfb8a35a562"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -150,6 +154,9 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>sota_report_de
 <tr class="memitem:a668fe1d2fd95229f1c0b499c61343f33" id="r_a668fe1d2fd95229f1c0b499c61343f33"><td class="memItemLeft" align="right" valign="top">static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__report_8h.html#a668fe1d2fd95229f1c0b499c61343f33">sota_retry_interval_s</a> (uint32_t failures, uint32_t check_interval_s)</td></tr>
 <tr class="memdesc:a668fe1d2fd95229f1c0b499c61343f33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Seconds until the next check after one that failed on the network, at the check-in or in the download: 30 s, 2 min and 10 min after the first three failures in a row, then the check interval, and never longer than it.  <br /></td></tr>
 <tr class="separator:a668fe1d2fd95229f1c0b499c61343f33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38853f13212fff9aa5dc1c2c66bcdf0a" id="r_a38853f13212fff9aa5dc1c2c66bcdf0a"><td class="memItemLeft" align="right" valign="top">static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__report_8h.html#a38853f13212fff9aa5dc1c2c66bcdf0a">sota_retry_after_wait_s</a> (uint32_t wait_s, uint32_t retry_after_s, uint32_t random)</td></tr>
+<tr class="memdesc:a38853f13212fff9aa5dc1c2c66bcdf0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The wait once a 429 or 503 asked for retry_after_s seconds (0: it did not): never sooner than asked, and up to a tenth later, because every device was told the same number.  <br /></td></tr>
+<tr class="separator:a38853f13212fff9aa5dc1c2c66bcdf0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5417825d12c24740d22135fd0c789206" id="r_a5417825d12c24740d22135fd0c789206"><td class="memItemLeft" align="right" valign="top">static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__report_8h.html#a5417825d12c24740d22135fd0c789206">sota_jitter_s</a> (uint32_t wait_s, uint32_t random)</td></tr>
 <tr class="memdesc:a5417825d12c24740d22135fd0c789206"><td class="mdescLeft">&#160;</td><td class="mdescRight">wait_s moved within a span of wait_s / 5 (rounded down) seconds: down by up to span / 2 rounded down, up by up to span / 2 rounded up: at most a tenth either way, except that an odd span reaches half a second further up (65 s gives 59 to 72 s).  <br /></td></tr>
 <tr class="separator:a5417825d12c24740d22135fd0c789206"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -324,6 +331,51 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>sota_field_ter
 
 <p>Seconds until the next check after one that failed on the network, at the check-in or in the download: 30 s, 2 min and 10 min after the first three failures in a row, then the check interval, and never longer than it. </p>
 <p>failures is 0 after a check that did not fail that way. </p>
+
+</div>
+</div>
+<a id="a38853f13212fff9aa5dc1c2c66bcdf0a" name="a38853f13212fff9aa5dc1c2c66bcdf0a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a38853f13212fff9aa5dc1c2c66bcdf0a">&#9670;&#160;</a></span>sota_retry_after_wait_s()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static uint32_t sota_retry_after_wait_s </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>wait_s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>retry_after_s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>random</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The wait once a 429 or 503 asked for retry_after_s seconds (0: it did not): never sooner than asked, and up to a tenth later, because every device was told the same number. </p>
+<p>A request shorter than wait_s changes nothing. </p>
 
 </div>
 </div>

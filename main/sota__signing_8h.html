@@ -113,6 +113,9 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
+<tr class="memitem:a269e6bb46d451b428f2ac070999300fa" id="r_a269e6bb46d451b428f2ac070999300fa"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__signing_8h.html#a269e6bb46d451b428f2ac070999300fa">SOTA_SIGNED_UPDATES</a>&#160;&#160;&#160;1</td></tr>
+<tr class="memdesc:a269e6bb46d451b428f2ac070999300fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signed updates can be left out of a build that will never take one, with -DSIMPLEOTA_DISABLE_SIGNED_UPDATES, which drops Ed25519 and SHA-512 from the image.  <br /></td></tr>
+<tr class="separator:a269e6bb46d451b428f2ac070999300fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adbd046376004e1a451d2af35a2f2c23c" id="r_adbd046376004e1a451d2af35a2f2c23c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__signing_8h.html#adbd046376004e1a451d2af35a2f2c23c">SOTA_VERIFIER_MAX_KEYS</a>&#160;&#160;&#160;2</td></tr>
 <tr class="memdesc:adbd046376004e1a451d2af35a2f2c23c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Streaming Ed25519 verifier over one firmware image, for up to two candidate public keys (key rotation windows).  <br /></td></tr>
 <tr class="separator:adbd046376004e1a451d2af35a2f2c23c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -154,6 +157,23 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>sota_verifier_update<
 <p>The SimpleOTA server delivers, for artifacts uploaded with security_mode "signed", a base64 Ed25519 signature computed over the raw firmware bytes exactly as downloaded. The device pins the project's PUBLIC key (it is not a secret) and must verify the signature over the downloaded bytes BEFORE the new image is marked bootable.</p>
 <p>Verification is incremental (Monocypher's streaming Ed25519 check) so the image never has to fit in RAM: the apply path feeds the same chunks it writes to the OTA partition. </p>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a269e6bb46d451b428f2ac070999300fa" name="a269e6bb46d451b428f2ac070999300fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a269e6bb46d451b428f2ac070999300fa">&#9670;&#160;</a></span>SOTA_SIGNED_UPDATES</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define SOTA_SIGNED_UPDATES&#160;&#160;&#160;1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Signed updates can be left out of a build that will never take one, with -DSIMPLEOTA_DISABLE_SIGNED_UPDATES, which drops Ed25519 and SHA-512 from the image. </p>
+<p>Such a build pins no key (<a class="el" href="sota__engine_8h.html#adefae207028c67d5f056bab7557d61f8" title="Pin an Ed25519 public key (PEM).">sota_engine_add_key()</a> fails) and treats a signed offer as a device without a key does. 1 when the build can verify signed updates. </p>
+
+</div>
+</div>
 <a id="adbd046376004e1a451d2af35a2f2c23c" name="adbd046376004e1a451d2af35a2f2c23c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adbd046376004e1a451d2af35a2f2c23c">&#9670;&#160;</a></span>SOTA_VERIFIER_MAX_KEYS</h2>
 

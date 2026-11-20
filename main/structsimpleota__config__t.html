@@ -177,7 +177,7 @@ uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>num_signing_keys</
 <tr class="separator:a1650a8ca0c2b755b68cd80bd3a14c031"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac51f5afb195470375a651a070fd4037d" id="r_ac51f5afb195470375a651a070fd4037d"><td class="memItemLeft" align="right" valign="top"><a id="ac51f5afb195470375a651a070fd4037d" name="ac51f5afb195470375a651a070fd4037d"></a>
 void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></tr>
-<tr class="memdesc:ac51f5afb195470375a651a070fd4037d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Passed to is_connected and event_cb. <br /></td></tr>
+<tr class="memdesc:ac51f5afb195470375a651a070fd4037d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Passed to is_connected, event_cb and can_update. <br /></td></tr>
 <tr class="separator:ac51f5afb195470375a651a070fd4037d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a44320d8dde9b82769db5a28b78670451" id="r_a44320d8dde9b82769db5a28b78670451"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsimpleota__config__t.html#a44320d8dde9b82769db5a28b78670451">cert_pem</a></td></tr>
 <tr class="memdesc:a44320d8dde9b82769db5a28b78670451"><td class="mdescLeft">&#160;</td><td class="mdescRight">TLS trust, always verified.  <br /></td></tr>
@@ -185,6 +185,9 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></
 <tr class="memitem:a2e392c227bcc37ed1230d1abb5f38e7d" id="r_a2e392c227bcc37ed1230d1abb5f38e7d"><td class="memItemLeft" align="right" valign="top">esp_err_t(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsimpleota__config__t.html#a2e392c227bcc37ed1230d1abb5f38e7d">crt_bundle_attach</a> )(void *conf)</td></tr>
 <tr class="memdesc:a2e392c227bcc37ed1230d1abb5f38e7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Another bundle's attach function.  <br /></td></tr>
 <tr class="separator:a2e392c227bcc37ed1230d1abb5f38e7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a645f1935ab7e8caa9dded97cfa4ddaa1" id="r_a645f1935ab7e8caa9dded97cfa4ddaa1"><td class="memItemLeft" align="right" valign="top">bool(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsimpleota__config__t.html#a645f1935ab7e8caa9dded97cfa4ddaa1">can_update</a> )(void *<a class="el" href="structsimpleota__config__t.html#ac51f5afb195470375a651a070fd4037d">user_ctx</a>)</td></tr>
+<tr class="memdesc:a645f1935ab7e8caa9dded97cfa4ddaa1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Managed mode: called on the managed task when an update is offered, after SIMPLEOTA_EVENT_UPDATE_AVAILABLE and before the download.  <br /></td></tr>
+<tr class="separator:a645f1935ab7e8caa9dded97cfa4ddaa1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Configuration. </p>
@@ -373,7 +376,7 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></
 </div><div class="memdoc">
 
 <p>Seconds between checks. </p>
-<p>Default: 3600. The managed task spreads each wait of a minute or more by up to a tenth either way, so a fleet does not check in at once, and retries a check or download that failed on the network after 30 s, 2 min and 10 min. </p>
+<p>Default: 3600. The managed task spreads each wait of a minute or more by up to a tenth either way, so a fleet does not check in at once, and retries a check or download that failed on the network after 30 s, 2 min and 10 min. In managed mode a 429 or 503 with a Retry-After in seconds is waited out instead (a day at most). A trial ignores it and keeps its quick checks. </p>
 
 </div>
 </div>
@@ -441,7 +444,8 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></
 </div><div class="memdoc">
 
 <p>Pinned public keys for signed firmware, at most 2. </p>
-<p>Parsed at init, which fails on a PEM that does not parse rather than run unpinned. They bind only with security_mode SIMPLEOTA_SECURITY_SIGNED: in any other mode an update the server marks unsigned is still accepted on its checksum, and init logs a warning. </p>
+<p>Parsed at init, which fails on a PEM that does not parse rather than run unpinned. They bind only with security_mode SIMPLEOTA_SECURITY_SIGNED: in any other mode an update the server marks unsigned is still accepted on its checksum, and init logs a warning.</p>
+<p>A device that will never take a signed update can leave the verifier out of its image by building every source file of the client with -DSIMPLEOTA_DISABLE_SIGNED_UPDATES. Init then refuses signing keys and SIGNED. </p>
 
 </div>
 </div>
@@ -510,6 +514,23 @@ void *&#160;</td><td class="memItemRight" valign="bottom"><b>user_ctx</b></td></
 
 <p>Another bundle's attach function. </p>
 <p>Default: the trust above. </p>
+
+</div>
+</div>
+<a id="a645f1935ab7e8caa9dded97cfa4ddaa1" name="a645f1935ab7e8caa9dded97cfa4ddaa1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a645f1935ab7e8caa9dded97cfa4ddaa1">&#9670;&#160;</a></span>can_update</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool(* simpleota_config_t::can_update) (void *<a class="el" href="structsimpleota__config__t.html#ac51f5afb195470375a651a070fd4037d">user_ctx</a>)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Managed mode: called on the managed task when an update is offered, after SIMPLEOTA_EVENT_UPDATE_AVAILABLE and before the download. </p>
+<p>Return false to put the update off, on low battery or in the middle of something that must not be interrupted: nothing is downloaded, and the next check asks again, which <a class="el" href="simpleota_8h.html#a478f572b9393376cb2e38f5c3a6dca47" title="Wake the managed task to check immediately.">simpleota_check_now()</a> brings forward once the device is ready. Keep it quick, and don't call the client from it. NULL: always update. Polling mode does not call it: there the application decides by calling <a class="el" href="simpleota_8h.html#ac9b45d3bdae71ba619bc4801d860767d" title="Polling mode: download, verify and flash the offer from the last simpleota_check(),...">simpleota_apply()</a>. Since API 1.1. </p>
 
 </div>
 </div>

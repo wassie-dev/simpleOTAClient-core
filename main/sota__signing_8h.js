@@ -1,6 +1,7 @@
 var sota__signing_8h =
 [
     [ "sota_sig_verifier_t", "structsota__sig__verifier__t.html", "structsota__sig__verifier__t" ],
+    [ "SOTA_SIGNED_UPDATES", "sota__signing_8h.html#a269e6bb46d451b428f2ac070999300fa", null ],
     [ "SOTA_VERIFIER_MAX_KEYS", "sota__signing_8h.html#adbd046376004e1a451d2af35a2f2c23c", null ],
     [ "sota_signed_gate_t", "sota__signing_8h.html#af27ec7def82c4452c3cd7973c669227a", [
       [ "SOTA_GATE_SKIP", "sota__signing_8h.html#af27ec7def82c4452c3cd7973c669227aae1135b360a4c5392a5dfe733e85abf95", null ],

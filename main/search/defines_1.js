@@ -28,10 +28,12 @@ var searchData=
   ['sota_5fpath_5fcheck_25',['SOTA_PATH_CHECK',['../sota__protocol_8h.html#ad15953e630a59196f2a4eaafc7f4fd1b',1,'sota_protocol.h']]],
   ['sota_5fpath_5fstatus_26',['SOTA_PATH_STATUS',['../sota__protocol_8h.html#a42ed1a6e08a354e6e6eb52675f5fce18',1,'sota_protocol.h']]],
   ['sota_5freport_5fquick_5fretries_27',['SOTA_REPORT_QUICK_RETRIES',['../sota__report_8h.html#ab8a23c78879b55d49167fd434273603b',1,'sota_report.h']]],
-  ['sota_5frollback_28',['SOTA_ROLLBACK',['../sota__framework_8h.html#aca1673ae9f87173b797f49f7e5cece19',1,'sota_framework.h']]],
-  ['sota_5fserver_5furl_5fmax_5flen_29',['SOTA_SERVER_URL_MAX_LEN',['../sota__url_8h.html#ac583a3f27f7b1527b11c221f7915ca29',1,'sota_url.h']]],
-  ['sota_5ftrial_5fretry_5finterval_5fs_30',['SOTA_TRIAL_RETRY_INTERVAL_S',['../sota__engine_8h.html#abb5db830e11a155fe49450f2355b6a15',1,'sota_engine.h']]],
-  ['sota_5ftrial_5fwdt_5fmargin_5fs_31',['SOTA_TRIAL_WDT_MARGIN_S',['../sota__wdt__calc_8h.html#ab4a75aee309bc8405cb791a8237a0d9a',1,'sota_wdt_calc.h']]],
-  ['sota_5fverifier_5fmax_5fkeys_32',['SOTA_VERIFIER_MAX_KEYS',['../sota__signing_8h.html#adbd046376004e1a451d2af35a2f2c23c',1,'sota_signing.h']]],
-  ['sota_5fversion_5fmax_33',['SOTA_VERSION_MAX',['../sota__state_8h.html#aa548a53b644c3170c9a47fa7a0772ff4',1,'sota_state.h']]]
+  ['sota_5fretry_5fafter_5fmax_5fs_28',['SOTA_RETRY_AFTER_MAX_S',['../sota__report_8h.html#a8788cd8d32af15ec2bbe83a1df56e030',1,'sota_report.h']]],
+  ['sota_5frollback_29',['SOTA_ROLLBACK',['../sota__framework_8h.html#aca1673ae9f87173b797f49f7e5cece19',1,'sota_framework.h']]],
+  ['sota_5fserver_5furl_5fmax_5flen_30',['SOTA_SERVER_URL_MAX_LEN',['../sota__url_8h.html#ac583a3f27f7b1527b11c221f7915ca29',1,'sota_url.h']]],
+  ['sota_5fsigned_5fupdates_31',['SOTA_SIGNED_UPDATES',['../sota__signing_8h.html#a269e6bb46d451b428f2ac070999300fa',1,'sota_signing.h']]],
+  ['sota_5ftrial_5fretry_5finterval_5fs_32',['SOTA_TRIAL_RETRY_INTERVAL_S',['../sota__engine_8h.html#abb5db830e11a155fe49450f2355b6a15',1,'sota_engine.h']]],
+  ['sota_5ftrial_5fwdt_5fmargin_5fs_33',['SOTA_TRIAL_WDT_MARGIN_S',['../sota__wdt__calc_8h.html#ab4a75aee309bc8405cb791a8237a0d9a',1,'sota_wdt_calc.h']]],
+  ['sota_5fverifier_5fmax_5fkeys_34',['SOTA_VERIFIER_MAX_KEYS',['../sota__signing_8h.html#adbd046376004e1a451d2af35a2f2c23c',1,'sota_signing.h']]],
+  ['sota_5fversion_5fmax_35',['SOTA_VERSION_MAX',['../sota__state_8h.html#aa548a53b644c3170c9a47fa7a0772ff4',1,'sota_state.h']]]
 ];
