@@ -26,7 +26,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.0.1</span>
+   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.1.0</span>
    </div>
    <div id="projectbrief">Shared core of the SimpleOTA Arduino and ESP-IDF clients</div>
   </td>
@@ -170,6 +170,10 @@ Functions</h2></td></tr>
 <tr class="memitem:a70bf9ab7c4410b7d9171374fa53fb8fd" id="r_a70bf9ab7c4410b7d9171374fa53fb8fd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__app_8h.html#a70bf9ab7c4410b7d9171374fa53fb8fd">sota_app_event</a> (void *user, const <a class="el" href="structsota__event__t.html">sota_event_t</a> *event)</td></tr>
 <tr class="memdesc:a70bf9ab7c4410b7d9171374fa53fb8fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deliver an event to the application, on the task doing the work.  <br /></td></tr>
 <tr class="separator:a70bf9ab7c4410b7d9171374fa53fb8fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae403b2f16b6d5cebcf2e24ce148520d6" id="r_ae403b2f16b6d5cebcf2e24ce148520d6"><td class="memItemLeft" align="right" valign="top"><a id="ae403b2f16b6d5cebcf2e24ce148520d6" name="ae403b2f16b6d5cebcf2e24ce148520d6"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>sota_app_can_update</b> (void *user)</td></tr>
+<tr class="memdesc:ae403b2f16b6d5cebcf2e24ce148520d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">A managed step has an offer it is about to download: false puts it off until a later check offers it again. <br /></td></tr>
+<tr class="separator:ae403b2f16b6d5cebcf2e24ce148520d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3762fdeb5e2b31c892f5c09246b1c780" id="r_a3762fdeb5e2b31c892f5c09246b1c780"><td class="memItemLeft" align="right" valign="top"><a id="a3762fdeb5e2b31c892f5c09246b1c780" name="a3762fdeb5e2b31c892f5c09246b1c780"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>sota_app_wake</b> (void *user)</td></tr>
 <tr class="memdesc:a3762fdeb5e2b31c892f5c09246b1c780"><td class="mdescLeft">&#160;</td><td class="mdescRight">The confirm timeout fired, possibly in a timer task: arrange for <a class="el" href="sota__engine_8h.html#ac148dda245fb842d80a276f67e3d83d1" title="Roll back when the confirm timeout has fired.">sota_engine_service()</a> to run soon on a task that may block. <br /></td></tr>

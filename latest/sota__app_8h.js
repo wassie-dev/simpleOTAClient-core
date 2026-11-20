@@ -18,6 +18,7 @@ var sota__app_8h =
       [ "SOTA_EVENT_ROLLING_BACK", "sota__app_8h.html#ae119204e0e8b94533cd7b90ec7cf6774a4b8cf2ae3f4c14f499c4328fc39dfa5f", null ]
     ] ],
     [ "sota_app_event", "sota__app_8h.html#a70bf9ab7c4410b7d9171374fa53fb8fd", null ],
+    [ "sota_app_can_update", "sota__app_8h.html#ae403b2f16b6d5cebcf2e24ce148520d6", null ],
     [ "sota_app_wake", "sota__app_8h.html#a3762fdeb5e2b31c892f5c09246b1c780", null ],
     [ "sota_app_log", "sota__app_8h.html#a95af2c241e9ba1c3e9ed907ce024ac56", null ]
 ];

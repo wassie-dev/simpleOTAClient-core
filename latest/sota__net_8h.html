@@ -26,7 +26,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.0.1</span>
+   <div id="projectname">SimpleOTA client<span id="projectnumber">&#160;v1.1.0</span>
    </div>
    <div id="projectbrief">Shared core of the SimpleOTA Arduino and ESP-IDF clients</div>
   </td>
@@ -125,9 +125,13 @@ Functions</h2></td></tr>
 static int&#160;</td><td class="memItemRight" valign="bottom"><b>sota_net_is_redirect</b> (int status)</td></tr>
 <tr class="memdesc:a727f38af2235bbe29b14ca9b440902a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">A status <a class="el" href="sota__net_8h.html#a7d1ae350187e2b944cff87c1f4440425" title="Start a firmware download: a GET without the Authorization header (the pre-signed URL carries its own...">sota_net_dl_open()</a> returns for a redirect. <br /></td></tr>
 <tr class="separator:a727f38af2235bbe29b14ca9b440902a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa2def06870c580695dcdbd10ab896305" id="r_aa2def06870c580695dcdbd10ab896305"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__net_8h.html#aa2def06870c580695dcdbd10ab896305">sota_net_post</a> (void *user, const char *url, const char *token, const char *body, char *resp, size_t cap)</td></tr>
-<tr class="memdesc:aa2def06870c580695dcdbd10ab896305"><td class="mdescLeft">&#160;</td><td class="mdescRight">POST body as JSON to url, with "Authorization: Bearer &lt;token&gt;".  <br /></td></tr>
-<tr class="separator:aa2def06870c580695dcdbd10ab896305"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3eb19124b0cd64eb0a6227996840d4c" id="r_aa3eb19124b0cd64eb0a6227996840d4c"><td class="memItemLeft" align="right" valign="top"><a id="aa3eb19124b0cd64eb0a6227996840d4c" name="aa3eb19124b0cd64eb0a6227996840d4c"></a>
+static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>sota_net_parse_retry_after</b> (const char *value)</td></tr>
+<tr class="memdesc:aa3eb19124b0cd64eb0a6227996840d4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">A Retry-After header's value in seconds, saturated; 0 when it is not a plain number of seconds (the HTTP-date form needs a clock). <br /></td></tr>
+<tr class="separator:aa3eb19124b0cd64eb0a6227996840d4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17d2a6c2cd88ed580e8d6092f0afcfad" id="r_a17d2a6c2cd88ed580e8d6092f0afcfad"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__net_8h.html#a17d2a6c2cd88ed580e8d6092f0afcfad">sota_net_post</a> (void *user, const char *url, const char *token, const char *body, char *resp, size_t cap, uint32_t *retry_after_s)</td></tr>
+<tr class="memdesc:a17d2a6c2cd88ed580e8d6092f0afcfad"><td class="mdescLeft">&#160;</td><td class="mdescRight">POST body as JSON to url, with "Authorization: Bearer &lt;token&gt;".  <br /></td></tr>
+<tr class="separator:a17d2a6c2cd88ed580e8d6092f0afcfad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d1ae350187e2b944cff87c1f4440425" id="r_a7d1ae350187e2b944cff87c1f4440425"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sota__net_8h.html#a7d1ae350187e2b944cff87c1f4440425">sota_net_dl_open</a> (void *user, const char *url, int64_t *len, char *location, size_t location_cap)</td></tr>
 <tr class="memdesc:a7d1ae350187e2b944cff87c1f4440425"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start a firmware download: a GET without the Authorization header (the pre-signed URL carries its own credentials).  <br /></td></tr>
 <tr class="separator:a7d1ae350187e2b944cff87c1f4440425"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -166,8 +170,8 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>sota_net_dl_close</b>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="aa2def06870c580695dcdbd10ab896305" name="aa2def06870c580695dcdbd10ab896305"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa2def06870c580695dcdbd10ab896305">&#9670;&#160;</a></span>sota_net_post()</h2>
+<a id="a17d2a6c2cd88ed580e8d6092f0afcfad" name="a17d2a6c2cd88ed580e8d6092f0afcfad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17d2a6c2cd88ed580e8d6092f0afcfad">&#9670;&#160;</a></span>sota_net_post()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -206,7 +210,13 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>sota_net_dl_close</b>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>cap</em>&#160;</td>
+          <td class="paramname"><em>cap</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t *&#160;</td>
+          <td class="paramname"><em>retry_after_s</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -217,7 +227,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>sota_net_dl_close</b>
 </div><div class="memdoc">
 
 <p>POST body as JSON to url, with "Authorization: Bearer &lt;token&gt;". </p>
-<p>One attempt: the engine retries. Returns the HTTP status, or -1 when no response came back. When resp is not NULL it gets up to cap - 1 bytes of the response body, NUL-terminated. </p>
+<p>One attempt: the engine retries. Returns the HTTP status, or -1 when no response came back. When resp is not NULL it gets up to cap - 1 bytes of the response body, NUL-terminated. When retry_after_s is not NULL it gets the response's Retry-After header (<a class="el" href="sota__net_8h.html#aa3eb19124b0cd64eb0a6227996840d4c" title="A Retry-After header&#39;s value in seconds, saturated; 0 when it is not a plain number of seconds (the H...">sota_net_parse_retry_after()</a>), 0 when there is none. </p>
 
 </div>
 </div>
