@@ -1100,6 +1100,27 @@ static void test_signed_build(void)
     attest(sk, pk, "proj-a", "", 5);
     check(refused_before_download(),
           "a manifest signed over an empty key id is refused");
+
+    /* Nothing is fed for an empty key id, and a signature over no bytes at
+     * all is still one the key made. */
+    device_on_build_1(true);
+    g_cfg.device.security_mode = "signed";
+    g_cfg.device.require_manifest = true;
+    g_cfg.project_id = "proj-a";
+    g_pems[0] = pem;
+    fake_server_offer(5, "dep-5");
+    boot(SOTA_RST_POWERON);
+    signed_offer(sk, pk, "", false);
+    {
+        uint8_t sig[64];
+        char b64[100];
+        crypto_ed25519_sign(sig, sk, pk, (const uint8_t *)"", 0);
+        base64(sig, sizeof(sig), b64);
+        size_t used = strlen(g_extra);
+        snprintf(g_extra + used, sizeof(g_extra) - used, ",\"manifest_signature\":\"%s\"", b64);
+    }
+    check(refused_before_download(),
+          "a signature over nothing does not pass for a manifest that was not fed");
 }
 
 /* ---- power cuts ----------------------------------------------------------- */

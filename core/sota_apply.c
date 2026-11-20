@@ -261,13 +261,21 @@ sota_apply_result_t sota_engine_apply(sota_engine_t *e)
 
     /* The build number just compared is the server's word until the
      * manifest proves it, so that comes before anything is downloaded. */
-    sota_manifest_gate_t manifest =
-        sota_manifest_gate(e->cfg.device.require_manifest,
-                           e->cfg.project_id && e->cfg.project_id[0], e->num_keys,
-                           e->offer.has_manifest);
-    if (manifest == SOTA_MANIFEST_FAIL_CLOSED ||
-        (manifest == SOTA_MANIFEST_VERIFY && !manifest_verifies(e))) {
-        SOTA_LOGE("the offer's strict signature is missing or does not verify");
+    bool has_project = e->cfg.project_id && e->cfg.project_id[0];
+    sota_manifest_gate_t manifest = sota_manifest_gate(e->cfg.device.require_manifest, has_project,
+                                                       e->num_keys, e->offer.has_manifest);
+    if (manifest == SOTA_MANIFEST_FAIL_CLOSED) {
+        if (!has_project) {
+            SOTA_LOGE("a strict signature is required, but no project id is configured");
+        } else if (!e->num_keys) {
+            SOTA_LOGE("a strict signature is required, but no key is pinned");
+        } else {
+            SOTA_LOGE("the offer has no strict signature");
+        }
+        return give_up(e, &job, "signature_invalid", SOTA_APPLY_SIGNATURE_FAIL);
+    }
+    if (manifest == SOTA_MANIFEST_VERIFY && !manifest_verifies(e)) {
+        SOTA_LOGE("the offer's strict signature does not verify");
         return give_up(e, &job, "signature_invalid", SOTA_APPLY_SIGNATURE_FAIL);
     }
 
