@@ -416,9 +416,17 @@ int main(void) {
           "gate: basic device, key pinned, basic offer -> SKIP");
 
     /* ---- the manifest ---------------------------------------------------
-     * A known answer, made outside this code (seed 00..1f, RFC 8032
-     * Ed25519), so the CLI and the device are held to the same bytes:
-     *   "SimpleOTA-Manifest-v1\nproj_7f3a9c\nprod-2026\n42\n<sha256 hex>\n" */
+     * A known answer, made outside this code, so the CLI and the device are
+     * held to the same bytes:
+     *   "SimpleOTA-Manifest-v1\n7f3a9c2e-4b1d-4e8a-9c3f-2a6d8b1e0f45\n"
+     *   "prod-2026\n42\n<sha256 hex>\n"
+     * The key is a throwaway test key, the RFC 8032 Ed25519 seed 00 01 .. 1f.
+     * To regenerate, sign with the SimpleOTA CLI's internal/signing package:
+     *   signing.SignManifest(ed25519.NewKeyFromSeed(seed),
+     *       signing.Manifest{ProjectID: id, KeyID: "prod-2026", Build: 42,
+     *       SHA256: sum})
+     * or with Python's cryptography package:
+     *   Ed25519PrivateKey.from_private_bytes(bytes(range(32))).sign(text) */
     {
         static const uint8_t pk[1][32] = {{
             0x03, 0xa1, 0x07, 0xbf, 0xf3, 0xce, 0x10, 0xbe, 0x1d, 0x70, 0xdd,
@@ -427,9 +435,12 @@ int main(void) {
         }};
         static const char sum[] =
             "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
+        static const char other_sum[] =
+            "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a09";
+        static const char id[] = "7f3a9c2e-4b1d-4e8a-9c3f-2a6d8b1e0f45";
         uint8_t sig[64];
-        CHECK(sota_decode_signature_b64("bF9i2/VJN7LK85vlh5XNU+ouiQFhxFQ79dW5Y+NNek1K96GD8K+d"
-                                        "KjjD3AGJyu1hx7q+eR9LaJQOOKJXI+PRAw==",
+        CHECK(sota_decode_signature_b64("prdyKc3o4PAAGr88oeACA66QVMX8jiU2FrOABRp/6rCqM+DEPQuf"
+                                        "0BCU3RtRtFSf8A3R/XaAEww5gTQrAaxIAA==",
                                         sig),
               "manifest: the known signature decodes");
         struct {
@@ -439,18 +450,20 @@ int main(void) {
             bool fed, verifies;
             const char *name;
         } cases[] = {
-            {"proj_7f3a9c", "prod-2026", 42, sum, true, true, "manifest: the known answer verifies"},
-            {"proj_7f3a9c", "prod-2026", 43, sum, true, false, "manifest: another build fails"},
-            {"proj_7f3a9d", "prod-2026", 42, sum, true, false, "manifest: another project fails"},
-            {"proj_7f3a9c", "prod-2027", 42, sum, true, false, "manifest: another key id fails"},
-            {"proj_7f3a9c\nprod-2026", "", 42, sum, false, false,
+            {id, "prod-2026", 42, sum, true, true, "manifest: the known answer verifies"},
+            {id, "prod-2026", 43, sum, true, false, "manifest: another build fails"},
+            {"7f3a9c2e-4b1d-4e8a-9c3f-2a6d8b1e0f46", "prod-2026", 42, sum, true, false,
+             "manifest: another project fails"},
+            {id, "prod-2027", 42, sum, true, false, "manifest: another key id fails"},
+            {id, "prod-2026", 42, other_sum, true, false, "manifest: another checksum fails"},
+            {"7f3a9c2e-4b1d-4e8a-9c3f-2a6d8b1e0f45\nprod-2026", "", 42, sum, false, false,
              "manifest: a project id cannot bring its own line break"},
             {"", "prod-2026", 42, sum, false, false, "manifest: an empty project id is refused"},
-            {"proj_7f3a9c", "", 42, sum, false, false, "manifest: an empty key id is refused"},
-            {"proj_7f3a9c", "prod-2026", 42,
+            {id, "", 42, sum, false, false, "manifest: an empty key id is refused"},
+            {id, "prod-2026", 42,
              "9F86D081884C7D659A2FEAA0C55AD015A3BF4F1B2B0B822CD15D6C15B0F00A08", false, false,
              "manifest: an uppercase checksum is refused, not signed over"},
-            {"proj_7f3a9c", "prod-2026", 42, "9f86d0", false, false,
+            {id, "prod-2026", 42, "9f86d0", false, false,
              "manifest: a short checksum is refused"},
         };
         for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i) {
