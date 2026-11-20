@@ -1,5 +1,53 @@
 # Changelog
 
+## 1.2.0 (unreleased)
+
+API 1.2: additions only. A configuration that leaves the new field at zero
+and keeps its security mode behaves as in 1.1, and nothing stored changes.
+
+### Added
+
+- **Strict signatures.** The image signature covers the firmware bytes only,
+  and the server assigns the build number, so a server that was taken over
+  could offer an old signed image under a higher number, or another
+  project's image when two projects share a key. The SimpleOTA CLI now
+  makes a second signature with the same key once it knows the build
+  number, over a small text (project id, key id, build number, image
+  SHA-256), and the device writes the same text from what it holds itself
+  and checks that signature before it downloads anything. The code calls
+  the text a manifest; `sota_manifest.h` has the format.
+- `SIMPLEOTA_SECURITY_STRICT`: `SIGNED`, and an update without a strict
+  signature that verifies is refused (reason `signature_invalid`). It needs
+  a signing key and `project_id`; init fails without either. The device
+  reports `security_mode` `signed` and `"require_manifest":true` on
+  check-ins.
+- `simpleota_config_t::project_id`. With it and a pinned key, a device in
+  any mode checks a strict signature when the offer carries one, and
+  refuses a wrong one. That lets a fleet on `SIGNED` prove its strict
+  signatures before it moves to `STRICT`. It is a rehearsal, not the
+  protection: outside `STRICT` a server can leave the strict signature out,
+  and the update is taken on its image signature as before. Without
+  `project_id` strict signatures are not looked at, as in 1.1. It must be
+  the project's UUID, lowercase with hyphens, as the CLI signs it: init
+  fails for any other non-empty value, which could never verify.
+- The check response's optional `manifest_signature` (base64, 64 bytes) and
+  `manifest_version` (1 when absent) are read. A version this client does
+  not know counts as no strict signature.
+
+Costs about 1 KB of flash, and during apply a second verifier on the
+heap for a moment (about 700 bytes), freed before the download starts.
+
+### Fixed
+
+- Signing key ids of up to 64 ASCII characters, as the platform and the
+  CLI allow, can be pinned and are read from offers. Before, a
+  64-character id failed init, and in an offer it was dropped, so its
+  strict signature never verified. An offer whose key id is longer than 64
+  characters, or not a string (`null` included), has no usable signature.
+  An empty key id counts as none, as before: the image signature is
+  checked against every pinned key. A strict signature with an empty key
+  id is refused.
+
 ## 1.1.0 (unreleased)
 
 API 1.1. The new `simpleota_config_t` field comes after the 1.0 ones, so

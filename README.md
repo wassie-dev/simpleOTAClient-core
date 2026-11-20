@@ -45,6 +45,7 @@ indirectly and the linker drops what a build does not use.
 | `sota_url.h` | Server base URL validation and joining. |
 | `sota_json.{h,c}` | The minimal JSON scanner and string escaper used for server responses and request bodies. |
 | `sota_signing.{h,c}` | The signed-firmware gate (a pinned key never accepts a stripped signature), PEM key parsing, base64 signatures, and the streaming two-key Ed25519 verifier. `-DSIMPLEOTA_DISABLE_SIGNED_UPDATES` leaves the verifier and Monocypher out of a build that never takes a signed update. |
+| `sota_manifest.{h,c}` | The signed manifest: the bytes the SimpleOTA CLI signs to tie an image to its project and build number, the gate that decides when a device needs one, and the check that runs before the download. |
 | `sota_sha256.{h,c}` | A dependency-free SHA-256, the same on every IDF version (mbedTLS 4 in IDF 6 has no legacy API). |
 | `monocypher*` | [Monocypher](https://monocypher.org/) 3.1.3, unmodified. See `core/LICENSE-vendor.md`. |
 

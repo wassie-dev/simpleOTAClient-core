@@ -72,6 +72,7 @@ typedef struct {
     char log[64][48];      /**< "event reason" of each status received. */
     int log_count;
     int checks;
+    char last_check[1024]; /**< The body of the last check-in. */
 } fake_server_t;
 
 extern fake_world_t fw;

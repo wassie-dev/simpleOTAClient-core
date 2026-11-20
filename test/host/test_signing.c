@@ -25,6 +25,7 @@
 
 #include "sota_json.h"
 #include "sota_sha256.h"
+#include "sota_manifest.h"
 #include "sota_signing.h"
 
 static int g_failures = 0;
@@ -413,6 +414,85 @@ int main(void) {
           "gate: basic device, key pinned, signed offer w/o sig -> FAIL_CLOSED");
     CHECK(sota_signed_gate(false, 1, false, false) == SOTA_GATE_SKIP,
           "gate: basic device, key pinned, basic offer -> SKIP");
+
+    /* ---- the manifest ---------------------------------------------------
+     * A known answer, made outside this code, so the CLI and the device are
+     * held to the same bytes:
+     *   "SimpleOTA-Manifest-v1\n7f3a9c2e-4b1d-4e8a-9c3f-2a6d8b1e0f45\n"
+     *   "prod-2026\n42\n<sha256 hex>\n"
+     * The key is a throwaway test key, the RFC 8032 Ed25519 seed 00 01 .. 1f.
+     * To regenerate, sign with the SimpleOTA CLI's internal/signing package:
+     *   signing.SignManifest(ed25519.NewKeyFromSeed(seed),
+     *       signing.Manifest{ProjectID: id, KeyID: "prod-2026", Build: 42,
+     *       SHA256: sum})
+     * or with Python's cryptography package:
+     *   Ed25519PrivateKey.from_private_bytes(bytes(range(32))).sign(text) */
+    {
+        static const uint8_t pk[1][32] = {{
+            0x03, 0xa1, 0x07, 0xbf, 0xf3, 0xce, 0x10, 0xbe, 0x1d, 0x70, 0xdd,
+            0x18, 0xe7, 0x4b, 0xc0, 0x99, 0x67, 0xe4, 0xd6, 0x30, 0x9b, 0xa5,
+            0x0d, 0x5f, 0x1d, 0xdc, 0x86, 0x64, 0x12, 0x55, 0x31, 0xb8,
+        }};
+        static const char sum[] =
+            "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
+        static const char other_sum[] =
+            "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a09";
+        static const char id[] = "7f3a9c2e-4b1d-4e8a-9c3f-2a6d8b1e0f45";
+        uint8_t sig[64];
+        CHECK(sota_decode_signature_b64("prdyKc3o4PAAGr88oeACA66QVMX8jiU2FrOABRp/6rCqM+DEPQuf"
+                                        "0BCU3RtRtFSf8A3R/XaAEww5gTQrAaxIAA==",
+                                        sig),
+              "manifest: the known signature decodes");
+        struct {
+            const char *project, *key_id;
+            uint32_t build;
+            const char *checksum;
+            bool fed, verifies;
+            const char *name;
+        } cases[] = {
+            {id, "prod-2026", 42, sum, true, true, "manifest: the known answer verifies"},
+            {id, "prod-2026", 43, sum, true, false, "manifest: another build fails"},
+            {"7f3a9c2e-4b1d-4e8a-9c3f-2a6d8b1e0f46", "prod-2026", 42, sum, true, false,
+             "manifest: another project fails"},
+            {id, "prod-2027", 42, sum, true, false, "manifest: another key id fails"},
+            {id, "prod-2026", 42, other_sum, true, false, "manifest: another checksum fails"},
+            {"7f3a9c2e-4b1d-4e8a-9c3f-2a6d8b1e0f45\nprod-2026", "", 42, sum, false, false,
+             "manifest: a project id cannot bring its own line break"},
+            {"", "prod-2026", 42, sum, false, false, "manifest: an empty project id is refused"},
+            {id, "", 42, sum, false, false, "manifest: an empty key id is refused"},
+            {id, "prod-2026", 42,
+             "9F86D081884C7D659A2FEAA0C55AD015A3BF4F1B2B0B822CD15D6C15B0F00A08", false, false,
+             "manifest: an uppercase checksum is refused, not signed over"},
+            {id, "prod-2026", 42, "9f86d0", false, false,
+             "manifest: a short checksum is refused"},
+        };
+        for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i) {
+            sota_sig_verifier_t v;
+            sota_verifier_begin(&v, sig, pk, 1);
+            bool fed = sota_manifest_feed(&v, cases[i].project, cases[i].key_id, cases[i].build,
+                                          cases[i].checksum);
+            bool verifies = sota_verifier_final(&v) && fed;
+            CHECK(fed == cases[i].fed && verifies == cases[i].verifies, cases[i].name);
+        }
+
+        /* sota_manifest_gate(required, has_project, num_keys, offer_has_manifest) */
+        CHECK(sota_manifest_gate(true, true, 1, true) == SOTA_MANIFEST_VERIFY,
+              "manifest gate: required and present -> VERIFY");
+        CHECK(sota_manifest_gate(true, true, 1, false) == SOTA_MANIFEST_FAIL_CLOSED,
+              "manifest gate: required and stripped -> FAIL_CLOSED");
+        CHECK(sota_manifest_gate(true, false, 1, true) == SOTA_MANIFEST_FAIL_CLOSED,
+              "manifest gate: required without a project id -> FAIL_CLOSED");
+        CHECK(sota_manifest_gate(true, true, 0, true) == SOTA_MANIFEST_FAIL_CLOSED,
+              "manifest gate: required without a key -> FAIL_CLOSED");
+        CHECK(sota_manifest_gate(false, true, 1, true) == SOTA_MANIFEST_VERIFY,
+              "manifest gate: not required, checkable -> VERIFY");
+        CHECK(sota_manifest_gate(false, true, 1, false) == SOTA_MANIFEST_SKIP,
+              "manifest gate: not required, none offered -> SKIP");
+        CHECK(sota_manifest_gate(false, false, 1, true) == SOTA_MANIFEST_SKIP,
+              "manifest gate: not required, no project id -> SKIP");
+        CHECK(sota_manifest_gate(false, true, 0, true) == SOTA_MANIFEST_SKIP,
+              "manifest gate: not required, no key -> SKIP");
+    }
 
     printf("=======================\n");
     if (g_failures) {

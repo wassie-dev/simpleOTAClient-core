@@ -65,6 +65,11 @@ static void test_check_body(void)
           "every member, string values escaped, labels verbatim");
     d.labels_json = "{\"room\":\"lab\"},\"current_build_number\":0";
     char bad[512];
+    d.require_manifest = true;
+    check(sota_protocol_check_body(&d, &live, NULL, bad, sizeof(bad)) &&
+              strstr(bad, "\"security_mode\":\"signed\",\"require_manifest\":true,") != NULL,
+          "a device that requires manifests says so");
+    d.require_manifest = false;
     check(sota_protocol_check_body(&d, &live, NULL, bad, sizeof(bad)) &&
               strstr(bad, "labels") == NULL && strstr(bad, "4294967295") != NULL,
           "labels that are not one object are left out, so they cannot add members");
@@ -284,6 +289,40 @@ static void test_parse(void)
              "\"build_number\":7,\"version\":\"%0100d\"}", 0);
     check(parse(long_version, &o, url, sizeof(url)) == SOTA_CHECK_OFFER && o.version[0] == '\0',
           "a version too long to store is left empty");
+
+    /* Key ids run to 64 characters; a longer one is never cut to fit, and
+     * one that is not a string is never taken for none. */
+    char k64[67], k65[68], key_resp[600];
+    snprintf(k64, sizeof(k64), "\"%064d\"", 0);
+    snprintf(k65, sizeof(k65), "\"%065d\"", 0);
+    struct {
+        const char *value, *kept;
+        bool usable;
+        const char *name;
+    } keys[] = {
+        {k64, NULL, true, "a 64-character key id is kept whole"},
+        {k65, "", false, "a 65-character key id leaves both signatures unusable"},
+        {"null", "", false, "a null key id leaves both signatures unusable"},
+        {"5", "", false, "a key id that is not a string leaves both signatures unusable"},
+        {"\"\"", "", true, "an empty key id is kept as none"},
+    };
+    for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
+        snprintf(key_resp, sizeof(key_resp),
+                 "{\"update_available\":true,\"url\":\"https://x\",\"checksum\":\"" HASH "\","
+                 "\"build_number\":7,\"security_mode\":\"signed\",\"signature\":\"" SIG "\","
+                 "\"manifest_signature\":\"" SIG "\",\"signing_key_id\":%s}",
+                 keys[i].value);
+        const char *kept = keys[i].kept;
+        char inner[66];
+        if (!kept) {
+            snprintf(inner, sizeof(inner), "%064d", 0);
+            kept = inner;
+        }
+        check(parse(key_resp, &o, url, sizeof(url)) == SOTA_CHECK_OFFER &&
+                  strcmp(o.key_id, kept) == 0 && o.has_signature == keys[i].usable &&
+                  o.has_manifest == keys[i].usable,
+              keys[i].name);
+    }
 }
 
 static void test_signatures(void)
@@ -323,6 +362,31 @@ static void test_signatures(void)
                   o.signed_offer == cases[i].signed_offer &&
                   o.has_signature == cases[i].has_signature;
         check(ok, cases[i].name);
+    }
+
+    struct {
+        const char *extra;
+        bool has_manifest;
+        const char *name;
+    } manifests[] = {
+        {"", false, "no manifest"},
+        {",\"manifest_signature\":\"" SIG "\"", true, "a manifest, no version named: 1"},
+        {",\"manifest_signature\":\"" SIG "\",\"manifest_version\":1", true, "version 1"},
+        {",\"manifest_signature\":\"" SIG "\",\"manifest_version\":2", false,
+         "a later version: unusable"},
+        {",\"manifest_signature\":\"" SIG "\",\"manifest_version\":\"1\"", false,
+         "a version that is not a number: unusable"},
+        {",\"manifest_signature\":\"QUJD\"", false, "not 64 bytes: unusable"},
+        {",\"manifest_signature\":null", false, "not a string: unusable"},
+    };
+    for (size_t i = 0; i < sizeof(manifests) / sizeof(manifests[0]); ++i) {
+        snprintf(resp, sizeof(resp),
+                 "{\"update_available\":true,\"url\":\"https://x\",\"checksum\":\"" HASH
+                 "\",\"build_number\":7%s}",
+                 manifests[i].extra);
+        check(parse(resp, &o, url, sizeof(url)) == SOTA_CHECK_OFFER &&
+                  o.has_manifest == manifests[i].has_manifest,
+              manifests[i].name);
     }
 }
 
