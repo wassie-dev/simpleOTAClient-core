@@ -77,9 +77,10 @@ ESP-IDF (5.1 and later) and Arduino-ESP32 (2.x and 3.x) provide:
 | `simpleota.c` | The public API, `include/simpleota.h`, and `sota_app.h` |
 | `sota_framework.{h,c}` | What differs between the ESP-IDF and Arduino builds |
 
-`port/portable/` has `sota_hash.h` with no dependencies (a small SHA-256,
-and Monocypher's SHA-512), for the host tests and for a port to a platform
-without a crypto library. It is not copied into the clients.
+`port/portable/` has an implementation of `sota_hash.h` with no
+dependencies (a small SHA-256, and Monocypher's SHA-512), for the host
+tests and for a port to a platform without a crypto library. It is not
+copied into the clients.
 
 So both clients are the same code with the same API, and each repository
 is packaging: the ESP-IDF component adds its `CMakeLists.txt`, `Kconfig`

@@ -144,7 +144,9 @@ void sota_verifier_update(sota_sig_verifier_t *v, const uint8_t *data, size_t le
  *  hash did not fail. */
 bool sota_verifier_final(sota_sig_verifier_t *v);
 
-/** Give the check up without a result. Does nothing after final(). */
+/** Give the check up without a result, finishing its hashes. Does nothing
+ *  after final(), or after a begin() that returned false. Not for a
+ *  verifier that was never begun: its key count is not set. */
 void sota_verifier_abort(sota_sig_verifier_t *v);
 
 #else /* !SOTA_SIGNED_UPDATES */

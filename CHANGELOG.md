@@ -11,17 +11,18 @@ mbedTLS, and `port/portable/` has one with no dependencies.
 
 - The checksum's SHA-256, and the SHA-512 inside every Ed25519 check
   (image signatures and strict signatures alike), are the port's, behind
-  `sota_hash.h`. On ESP32 that is the mbedTLS TLS already links
+  `sota_hash.h`. On ESP32 that is the mbedTLS that TLS already links
   (`port/esp32/sota_hash_mbedtls.c`): the hash modules on mbedTLS 2 and 3,
   PSA Crypto on mbedTLS 4. mbedTLS uses the chip's SHA hardware where it
   has some: the C3, C6 and H2 have none for SHA-512, and the original
   ESP32 gives it to one hash of each type at a time. The client's own
-  SHA-256 and Monocypher's SHA-512 no longer go into the image; the
-  ESP-IDF port smoke app (ESP-IDF 5.5.5, ESP32, default configuration)
-  came out 3,320 bytes smaller. They moved to `port/portable/`, where the
-  host tests use them. `sota_sha256.h` is gone, and `sota_verifier_abort()`
-  is new: a hash is now always finished, because a port may hold hardware
-  for it.
+  SHA-256 and Monocypher's SHA-512 no longer go into the image; they
+  moved to `port/portable/`, where the host tests use them. The port smoke
+  app (`test/esp-idf`, built for the ESP32 with ESP-IDF 5.5.5 and its
+  `sdkconfig.defaults`) is 3,320 bytes smaller than on main at 1ce0378,
+  by the "Total image size" from `idf.py size`. `sota_sha256.h` is gone,
+  and `sota_verifier_abort()` is new: a hash is now always finished,
+  because a port may hold hardware for it.
 - A hash the port reports failed refuses the update: the checksum fails
   (`checksum_mismatch`), and so does an image or strict signature checked
   with it (`signature_invalid`). The mbedTLS port also refuses to build

@@ -9,7 +9,8 @@ CXX      ?= c++
 CFLAGS   ?= -std=c99 -Wall -Wextra -Werror
 CXXFLAGS ?= -std=c++11 -Wall -Wextra -Werror
 CORE     := ../../core
-# sota_hash.h with no dependencies, and the Ed25519 signing the tests use.
+# An implementation of sota_hash.h with no dependencies, and the Ed25519
+# signing the tests use.
 PORTABLE := ../../port/portable
 INC      := -I$(CORE) -I$(PORTABLE)
 
@@ -67,8 +68,8 @@ test_cxx: test_cxx.cpp $(OBJS) $(wildcard $(CORE)/*.h)
 	$(CXX) $(CXXFLAGS) $(INC) -o $@ test_cxx.cpp $(OBJS)
 
 PORT := ../../port/esp32
-# The test hashes the bundle's roots with the portable sota_hash.h, whose
-# SHA-512 is Monocypher's.
+# The test hashes the bundle's roots with the portable implementation of
+# sota_hash.h, whose SHA-512 is Monocypher's.
 FRAMEWORK_SRC := test_framework.c $(PORT)/sota_framework.c $(PORTABLE)/sota_hash_portable.c \
                  $(PORTABLE)/monocypher-ed25519.c $(CORE)/monocypher.c
 FRAMEWORK_DEPS := $(FRAMEWORK_SRC) $(PORT)/sota_framework.h $(wildcard esp_stub/*.h) $(wildcard $(CORE)/*.h) \

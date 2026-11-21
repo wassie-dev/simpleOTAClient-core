@@ -394,11 +394,16 @@ int main(void) {
         sota_verifier_update(&v, msg, K_SERVER_MSG_LEN);
         CHECK(!sota_verifier_final(&v), "two wrong keys rejected");
 
-        /* Given up half way: nothing is left to finish. */
-        sota_verifier_begin(&v, server_sig, keys, 2);
-        sota_verifier_update(&v, msg, K_SERVER_MSG_LEN / 2);
-        sota_verifier_abort(&v);
-        CHECK(v.num_keys == 0 && !sota_verifier_final(&v), "an aborted check cannot pass");
+        /* Given up half way: both keys' hashes are finished. */
+        {
+            int open_before = fake_open_hashes;
+            sota_verifier_begin(&v, server_sig, keys, 2);
+            sota_verifier_update(&v, msg, K_SERVER_MSG_LEN / 2);
+            int open_running = fake_open_hashes;
+            sota_verifier_abort(&v);
+            CHECK(open_running == open_before + 2 && fake_open_hashes == open_before,
+                  "an aborted check finishes its hashes");
+        }
 
         /* A port whose SHA-512 fails: R = the identity point and s = 0 pass
          * Ed25519's equation under any key when the hash comes out as zero,

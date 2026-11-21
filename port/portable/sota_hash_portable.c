@@ -1,6 +1,7 @@
 /**
- * sota_hash_portable.c - sota_hash.h with no dependencies, for the host
- * tests and for a port to a platform without a crypto library: a minimal
+ * sota_hash_portable.c - an implementation of sota_hash.h with no
+ * dependencies, for the host tests and for a port to a platform without a
+ * crypto library: a minimal
  * FIPS 180-4 SHA-256 (the construction of the standard's reference,
  * checked against the NIST vectors in test/host/test_signing.c), and
  * Monocypher's SHA-512 from monocypher-ed25519.c beside this file. The

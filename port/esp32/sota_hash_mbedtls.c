@@ -119,6 +119,7 @@ void sota_sha256_init(sota_hash_ctx *ctx)
 {
     sha256_t *h = (sha256_t *)ctx;
     mbedtls_sha256_init(&h->sha);
+    /* 0: SHA-256, not SHA-224. */
     h->failed = SOTA_MBEDTLS(mbedtls_sha256_starts)(&h->sha, 0) != 0;
 }
 
@@ -158,6 +159,7 @@ void sota_sha512_init(sota_hash_ctx *ctx)
 {
     sha512_t *h = (sha512_t *)ctx;
     mbedtls_sha512_init(&h->sha);
+    /* 0: SHA-512, not SHA-384. */
     h->failed = SOTA_MBEDTLS(mbedtls_sha512_starts)(&h->sha, 0) != 0;
 }
 
