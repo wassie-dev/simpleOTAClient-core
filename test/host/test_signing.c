@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "fake_hash.h"
 #include "sota_json.h"
 #include "sota_hash.h"
 #include "sota_manifest.h"
@@ -398,6 +399,21 @@ int main(void) {
         sota_verifier_update(&v, msg, K_SERVER_MSG_LEN / 2);
         sota_verifier_abort(&v);
         CHECK(v.num_keys == 0 && !sota_verifier_final(&v), "an aborted check cannot pass");
+
+        /* A port whose SHA-512 fails: R = the identity point and s = 0 pass
+         * Ed25519's equation under any key when the hash comes out as zero,
+         * so the failure itself has to refuse. */
+        {
+            const uint8_t forged[64] = {1};
+            memcpy(keys[0], server_key, 32);
+            memcpy(keys[1], other_key, 32);
+            fake_sha512_fails = true;
+            sota_verifier_begin(&v, forged, keys, 2);
+            sota_verifier_update(&v, msg, K_SERVER_MSG_LEN);
+            bool accepted = sota_verifier_final(&v);
+            fake_sha512_fails = false;
+            CHECK(!accepted, "a forged signature is refused when the hash fails");
+        }
 
         /* Zero keys: inert verifier fails closed. */
         CHECK(!sota_verifier_begin(&v, server_sig, keys, 0),

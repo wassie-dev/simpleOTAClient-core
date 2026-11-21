@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "fake_hal.h"
+#include "fake_hash.h"
 #include "sota_net.h"
 #include "fake_kv.h"
 #include "fake_malloc.h"
@@ -1140,6 +1141,76 @@ static void test_strict(void)
           "a signature over nothing does not pass for a manifest that was not fed");
 }
 
+/* ---- a port whose hashes fail ------------------------------------------- */
+
+/* R = the identity point, s = 0: it passes Ed25519's equation for any key
+ * and any message, when the message's SHA-512 comes out as zero. */
+static void forged_signature(char b64[100])
+{
+    uint8_t sig[64] = {1};
+    base64(sig, sizeof(sig), b64);
+}
+
+/* A failed hash gives a digest the server can predict (zeros here), so
+ * nothing may be taken on it. */
+static void test_failed_hash(void)
+{
+    uint8_t sk[32], pk[32];
+    for (int i = 0; i < 32; ++i) sk[i] = (uint8_t)(0x20 + i);
+    crypto_ed25519_public_key(pk, sk);
+    static char pem[200];
+    make_pem(pk, pem);
+    char forged[100];
+    forged_signature(forged);
+
+    device_on_build_1(true);
+    fake_server_offer(2, "dep-2");
+    memset(fs.checksum, '0', 64);
+    boot(SOTA_RST_POWERON);
+    fake_sha256_fails = true;
+    run(act_check);
+    run(act_apply);
+    fake_sha256_fails = false;
+    check(g_applied == SOTA_APPLY_CHECKSUM_FAIL && fw.boot == 0 && fake_open_hashes == 0,
+          "a download whose SHA-256 fails matches no checksum, zeros included");
+
+    device_on_build_1(true);
+    g_cfg.device.security_mode = "signed";
+    g_pems[0] = pem;
+    g_key_ids[0] = "k1";
+    g_pems[1] = NULL;
+    fake_server_offer(2, "dep-2");
+    boot(SOTA_RST_POWERON);
+    snprintf(g_extra, sizeof(g_extra),
+             "\"security_mode\":\"signed\",\"signature\":\"%s\",\"signing_key_id\":\"k1\"",
+             forged);
+    fs.extra = g_extra;
+    fake_sha512_fails = true;
+    run(act_check);
+    run(act_apply);
+    fake_sha512_fails = false;
+    check(g_applied == SOTA_APPLY_SIGNATURE_FAIL && fw.boot == 0 && fake_open_hashes == 0,
+          "a signature check whose SHA-512 fails refuses the image");
+
+    device_on_build_1(true);
+    g_cfg.device.security_mode = "signed";
+    g_cfg.device.require_manifest = true;
+    g_cfg.project_id = "proj-a";
+    g_pems[0] = pem;
+    g_key_ids[0] = "k1";
+    fake_server_offer(2, "dep-2");
+    boot(SOTA_RST_POWERON);
+    snprintf(g_extra, sizeof(g_extra),
+             "\"security_mode\":\"signed\",\"signature\":\"%s\",\"signing_key_id\":\"k1\","
+             "\"manifest_signature\":\"%s\"",
+             forged, forged);
+    fs.extra = g_extra;
+    fake_sha512_fails = true;
+    bool refused = refused_before_download();
+    fake_sha512_fails = false;
+    check(refused && fw.boot == 0, "a strict signature check whose SHA-512 fails refuses the offer");
+}
+
 /* ---- power cuts ----------------------------------------------------------- */
 
 /* Settled: no trial, no record, nothing to report, nothing more offered. */
@@ -1268,6 +1339,7 @@ int main(void)
     test_retries_spread();
     test_signed();
     test_strict();
+    test_failed_hash();
     test_one_engine();
     test_power_cuts(true, false);
     test_power_cuts(true, true);

@@ -73,7 +73,7 @@ ESP-IDF (5.1 and later) and Arduino-ESP32 (2.x and 3.x) provide:
 | `sota_runner_esp32.c` | `sota_runner.h` on a FreeRTOS task |
 | `sota_wdt_esp32.c` | The trial watchdog on `wdt_hal` |
 | `sota_net_esp32.c` | `sota_net.h` on `esp_http_client` |
-| `sota_hash_mbedtls.c` | `sota_hash.h` on the mbedTLS that TLS already links, with the chip's SHA hardware: the hash modules on mbedTLS 2 and 3, PSA Crypto on mbedTLS 4 (ESP-IDF 6) |
+| `sota_hash_mbedtls.c` | `sota_hash.h` on the mbedTLS that TLS already links, which uses the chip's SHA hardware where it has some (the C3, C6 and H2 have none for SHA-512): the hash modules on mbedTLS 2 and 3, PSA Crypto on mbedTLS 4 (ESP-IDF 6) |
 | `simpleota.c` | The public API, `include/simpleota.h`, and `sota_app.h` |
 | `sota_framework.{h,c}` | What differs between the ESP-IDF and Arduino builds |
 

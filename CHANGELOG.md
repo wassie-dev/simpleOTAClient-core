@@ -3,7 +3,8 @@
 ## Unreleased
 
 Ports: implement the new `sota_hash.h`, SHA-256 and (unless the build has
-`-DSIMPLEOTA_DISABLE_SIGNED_UPDATES`) SHA-512. `port/esp32/` has it on
+`-DSIMPLEOTA_DISABLE_SIGNED_UPDATES`) SHA-512. A hash that fails at any
+step must make its final function return false. `port/esp32/` has it on
 mbedTLS, and `port/portable/` has one with no dependencies.
 
 ### Changed
@@ -11,15 +12,30 @@ mbedTLS, and `port/portable/` has one with no dependencies.
 - The checksum's SHA-256, and the SHA-512 inside every Ed25519 check
   (image signatures and strict signatures alike), are the port's, behind
   `sota_hash.h`. On ESP32 that is the mbedTLS TLS already links
-  (`port/esp32/sota_hash_mbedtls.c`), with the chip's SHA hardware: the
-  hash modules on mbedTLS 2 and 3, PSA Crypto on mbedTLS 4. The client's
-  own SHA-256 and Monocypher's SHA-512 no longer go into the image, about
-  3.5 KB of flash. They moved to `port/portable/`, where the host tests
-  use them. `sota_sha256.h` is gone, and `sota_verifier_abort()` is new: a
-  hash is now always finished, because a port may hold hardware for it.
-- A signature verifier holds the port's hash state, so it is about 920
-  bytes on the heap where it was about 700, for the image signature and
-  for the moment the strict signature is checked.
+  (`port/esp32/sota_hash_mbedtls.c`): the hash modules on mbedTLS 2 and 3,
+  PSA Crypto on mbedTLS 4. mbedTLS uses the chip's SHA hardware where it
+  has some: the C3, C6 and H2 have none for SHA-512, and the original
+  ESP32 gives it to one hash of each type at a time. The client's own
+  SHA-256 and Monocypher's SHA-512 no longer go into the image; the
+  ESP-IDF port smoke app (ESP-IDF 5.5.5, ESP32, default configuration)
+  came out 3,320 bytes smaller. They moved to `port/portable/`, where the
+  host tests use them. `sota_sha256.h` is gone, and `sota_verifier_abort()`
+  is new: a hash is now always finished, because a port may hold hardware
+  for it.
+- A hash the port reports failed refuses the update: the checksum fails
+  (`checksum_mismatch`), and so does an image or strict signature checked
+  with it (`signature_invalid`). The mbedTLS port also refuses to build
+  under mbedTLS 4 when PSA Crypto leaves out SHA-256, or SHA-512 for
+  signed updates, as it already did under mbedTLS 2 and 3 without SHA-512.
+- A signature verifier holds the port's hash state, so it is 936 bytes on
+  the heap on ESP32 where it was 712, for the image signature and for the
+  moment the strict signature is checked.
+- More stack during apply. Static frame sizes from the compiler (`-Os`,
+  ESP-IDF 5.5), not a measured high-water mark: `sota_engine_apply()`
+  grows by 208 bytes, for the larger hash context; and where SHA-512 runs
+  in software (on the C3, C6 and H2, and on the original ESP32 whenever
+  another SHA-512 has the engine), mbedTLS's compression function takes
+  800 bytes, where Monocypher's took 144 to 176.
 
 ## 1.2.0 (2026-11-20)
 

@@ -24,8 +24,13 @@ TESTS := test_signing test_report test_trial test_wdt test_url test_state test_c
 test: $(TESTS)
 	@set -e; for t in $(TESTS); do echo "== $$t"; ./$$t; done
 
-test_signing: test_signing.c $(OBJS)
-	$(CC) $(CFLAGS) $(INC) -o $@ test_signing.c $(OBJS)
+# fake_hash.c goes around the hash functions to count the ones left open
+# and to make them fail.
+WRAP_HASH := -Wl,--wrap=sota_sha256_init,--wrap=sota_sha256_final,--wrap=sota_sha512_init,--wrap=sota_sha512_final
+FAKE_HASH := fake_hash.c fake_hash.h
+
+test_signing: test_signing.c $(FAKE_HASH) $(OBJS)
+	$(CC) $(CFLAGS) $(INC) $(WRAP_HASH) -o $@ test_signing.c fake_hash.c $(OBJS)
 
 test_report: test_report.c $(CORE)/sota_report.h $(CORE)/sota_time.h $(CORE)/sota_net.h
 	$(CC) $(CFLAGS) $(INC) -o $@ test_report.c
@@ -50,10 +55,8 @@ test_protocol: test_protocol.c $(OBJS)
 
 ENGINE := $(CORE)/sota_engine.c $(CORE)/sota_apply.c $(CORE)/sota_state.c
 
-# hash_count.c wraps the hash functions to count the ones left open.
-WRAP_HASH := -Wl,--wrap=sota_sha256_init,--wrap=sota_sha256_final,--wrap=sota_sha512_init,--wrap=sota_sha512_final
-test_engine: test_engine.c fake_hal.c fake_hal.h fake_kv.c fake_kv.h fake_malloc.h hash_count.c $(ENGINE) $(OBJS) $(wildcard $(CORE)/*.h)
-	$(CC) $(CFLAGS) $(INC) $(WRAP_HASH) -include fake_malloc.h -o $@ test_engine.c fake_hal.c fake_kv.c hash_count.c $(ENGINE) $(OBJS)
+test_engine: test_engine.c fake_hal.c fake_hal.h fake_kv.c fake_kv.h fake_malloc.h $(FAKE_HASH) $(ENGINE) $(OBJS) $(wildcard $(CORE)/*.h)
+	$(CC) $(CFLAGS) $(INC) $(WRAP_HASH) -include fake_malloc.h -o $@ test_engine.c fake_hal.c fake_kv.c fake_hash.c $(ENGINE) $(OBJS)
 
 # A build without signed updates: no Monocypher on the link line.
 UNSIGNED := $(ENGINE) $(CORE)/sota_json.c $(PORTABLE)/sota_hash_portable.c $(CORE)/sota_signing.c $(CORE)/sota_manifest.c $(CORE)/sota_protocol.c

@@ -22,6 +22,8 @@ typedef struct {
     size_t buffer_len;  /* Bytes in buffer. */
 } sha256_t;
 
+/* A negative array size, as C99 has no _Static_assert: the host tests
+ * build this file as C99. */
 typedef char sha256_fits_ctx[sizeof(sha256_t) <= SOTA_HASH_CTX_SIZE ? 1 : -1];
 
 static const uint32_t K[64] = {
@@ -160,8 +162,10 @@ void sota_sha256_update(sota_hash_ctx *ctx, const uint8_t *data, size_t len) {
     sha256_update((sha256_t *)ctx, data, len);
 }
 
-void sota_sha256_final(sota_hash_ctx *ctx, uint8_t out[32]) {
+/* Plain arithmetic on memory the caller holds: these hashes cannot fail. */
+bool sota_sha256_final(sota_hash_ctx *ctx, uint8_t out[32]) {
     sha256_final((sha256_t *)ctx, out);
+    return true;
 }
 
 #if SOTA_SIGNED_UPDATES
@@ -176,8 +180,9 @@ void sota_sha512_update(sota_hash_ctx *ctx, const uint8_t *data, size_t len) {
     crypto_sha512_update((crypto_sha512_ctx *)ctx, data, len);
 }
 
-void sota_sha512_final(sota_hash_ctx *ctx, uint8_t out[64]) {
+bool sota_sha512_final(sota_hash_ctx *ctx, uint8_t out[64]) {
     crypto_sha512_final((crypto_sha512_ctx *)ctx, out);
+    return true;
 }
 
 #endif /* SOTA_SIGNED_UPDATES */

@@ -337,7 +337,7 @@ sota_apply_result_t sota_engine_apply(sota_engine_t *e)
     sota_sha256_init(&sha);
     bool net = false;
     const char *failed = download(e, &job, expected, &sha, &net);
-    sota_sha256_final(&sha, digest);
+    bool hashed = sota_sha256_final(&sha, digest);
     sota_net_dl_close(e->cfg.user);
     job.downloading = false;
     if (failed) {
@@ -347,7 +347,13 @@ sota_apply_result_t sota_engine_apply(sota_engine_t *e)
     sota_engine_post_status(e, "downloaded", NULL, e->offer.deployment, e->offer.build);
 
     /* The checksum first, which tells a broken transfer apart; then the
-     * signature, which fails only for intact bytes nobody approved. */
+     * signature, which fails only for intact bytes nobody approved. A
+     * failed hash's digest is no digest of the download, whatever it
+     * matches. */
+    if (!hashed) {
+        SOTA_LOGE("the download could not be hashed");
+        return give_up(e, &job, "checksum_mismatch", SOTA_APPLY_CHECKSUM_FAIL);
+    }
     char hex[65];
     to_hex(digest, sizeof(digest), hex);
     if (strcmp(hex, e->offer.checksum) != 0) {

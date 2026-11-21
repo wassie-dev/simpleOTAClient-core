@@ -98,9 +98,10 @@ bool sota_decode_signature_b64(const char *b64, uint8_t out[64]);
  *
  * Runs one Monocypher incremental check context per candidate key, each
  * hashing with the port's SHA-512 (sota_hash.h); the signature is accepted
- * if it verifies under ANY candidate. The whole struct is about 900 bytes,
- * so the apply path allocates it on the heap rather than on a task stack
- * next to the download buffer.
+ * if it verifies under ANY candidate, and never for a key whose hash the
+ * port reports failed. The whole struct is 936 bytes on ESP32, so the
+ * apply path allocates it on the heap rather than on a task stack next to
+ * the download buffer.
  *
  * Usage: sota_verifier_begin() once, sota_verifier_update() per downloaded
  * chunk, then sota_verifier_final() once, or sota_verifier_abort() when the
@@ -110,17 +111,18 @@ bool sota_decode_signature_b64(const char *b64, uint8_t out[64]);
 
 #if SOTA_SIGNED_UPDATES
 
-/** One key's check: Monocypher's state, then the hash it runs on, where
- *  its custom-hash interface expects it. */
+/** One key's check: Monocypher's state first, where its custom-hash
+ *  callbacks find the rest, then the hash it runs on. */
 typedef struct {
-    crypto_check_ctx_abstract ctx; /**< Signature, key and the hash's vtable. */
-    sota_hash_ctx hash;            /**< The port's SHA-512. */
+    crypto_check_ctx_abstract check; /**< Signature, key and the hash's vtable. */
+    sota_hash_ctx hash;              /**< The port's SHA-512. */
+    bool hash_failed;                /**< The port reported the hash failed. */
 } sota_ed25519_check_t;
 
 /** A streaming signature check against each candidate key at once. */
 typedef struct {
-    sota_ed25519_check_t ctx[SOTA_VERIFIER_MAX_KEYS]; /**< One check per key. */
-    uint8_t num_keys;                                 /**< Checks in use. */
+    sota_ed25519_check_t checks[SOTA_VERIFIER_MAX_KEYS]; /**< One check per key. */
+    uint8_t num_keys;                                    /**< Checks in use. */
 } sota_sig_verifier_t;
 
 /**
@@ -138,7 +140,8 @@ bool sota_verifier_begin(sota_sig_verifier_t *v, const uint8_t sig[64],
 /** Feed the next chunk of the image, in download order. */
 void sota_verifier_update(sota_sig_verifier_t *v, const uint8_t *data, size_t len);
 
-/** @return true if the signature verifies under any candidate key. */
+/** @return true if the signature verifies under any candidate key whose
+ *  hash did not fail. */
 bool sota_verifier_final(sota_sig_verifier_t *v);
 
 /** Give the check up without a result. Does nothing after final(). */
