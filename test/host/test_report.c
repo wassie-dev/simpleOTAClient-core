@@ -71,6 +71,7 @@ int main(void)
     check(sota_retry_interval_s(1, 20) == 20 && sota_retry_interval_s(3, 300) == 300,
           "a retry never waits longer than the check interval");
     check(sota_net_parse_retry_after("120") == 120 && sota_net_parse_retry_after(" 5 ") == 5 &&
+              sota_net_parse_retry_after("\t60\t") == 60 &&
               sota_net_parse_retry_after("0") == 0 &&
               sota_net_parse_retry_after("99999999999") == UINT32_MAX,
           "Retry-After in seconds is read, saturating");

@@ -45,6 +45,7 @@ indirectly and the linker drops what a build does not use.
 | `sota_url.h` | Server base URL validation and joining. |
 | `sota_json.{h,c}` | The minimal JSON scanner and string escaper used for server responses and request bodies. |
 | `sota_signing.{h,c}` | The signed-firmware gate (a pinned key never accepts a stripped signature), PEM key parsing, base64 signatures, and the streaming two-key Ed25519 verifier. `-DSIMPLEOTA_DISABLE_SIGNED_UPDATES` leaves the verifier and Monocypher out of a build that never takes a signed update. |
+| `sota_manifest.{h,c}` | The signed manifest: the bytes the SimpleOTA CLI signs to tie an image to its project and build number, the gate that decides when a device needs one, and the check that runs before the download. |
 | `monocypher.{h,c}` | [Monocypher](https://monocypher.org/) 3.1.3, unmodified, for Ed25519. See `core/LICENSE-vendor.md`. |
 
 The interfaces, one per concern:
@@ -85,9 +86,11 @@ is packaging: the ESP-IDF component adds its `CMakeLists.txt`, `Kconfig`
 and manifest, and the Arduino library its `library.properties`. The
 Arduino build, which has no Kconfig and links against Arduino-ESP32's
 prebuilt ESP-IDF, differs only in `sota_framework.c`: the Kconfig defaults,
-the ISRG roots as the default CA (Arduino-ESP32 has no certificate bundle),
-warnings shown at Arduino's default log level, and the bootloader hook that
-keeps a trial image pending until `simpleota_init()`.
+the default CA on cores without the certificate bundle, warnings shown at
+Arduino's default log level, and the bootloader hook that keeps a trial
+image pending until `simpleota_init()`. Both builds verify TLS against the
+ESP-IDF certificate bundle by default; Arduino-ESP32 2.0.0 to 2.0.3, which
+do not link it, use ISRG Root X1 and X2 and GTS Root R4 instead.
 
 `SOTA_LOG_LEVEL` sets which log lines are compiled in (all by default; the
 ESP-IDF component caps it at `CONFIG_LOG_MAXIMUM_LEVEL`), and `SOTA_DL_CHUNK`
@@ -102,7 +105,9 @@ make -C test/host test
 
 CI also compiles everything, through the public API, in a small ESP-IDF app
 (`test/esp-idf`, several IDF versions and targets) and an Arduino sketch
-(`test/arduino`, cores 2.0.17 and 3.3.0).
+(`test/arduino`, cores 2.0.3, 2.0.4, 2.0.17, 3.0.0 and 3.3.0), and checks
+that the default TLS trust linked in is the certificate bundle, or on 2.0.3
+the PEM roots.
 
 `test_engine` runs the engine on a fake two-slot device, with and without
 bootloader rollback, and cuts power after every write and slot switch of

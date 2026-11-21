@@ -574,7 +574,7 @@ static void make_pem(const uint8_t pk[32], char *pem)
     sprintf(pem, "-----BEGIN PUBLIC KEY-----\n%s\n-----END PUBLIC KEY-----\n", b64);
 }
 
-static char g_extra[256];
+static char g_extra[512];
 
 static void signed_offer(const uint8_t sk[32], const uint8_t pk[32], const char *key_id,
                          bool tamper)
@@ -925,6 +925,221 @@ static void test_signed(void)
     check(sota_engine_add_key(&g_e, NULL, pem1) == false, "a third key is refused");
 }
 
+/* The manifest the CLI would sign for the offered image, added to the
+ * offer after its image signature. */
+static void sign_manifest(const uint8_t sk[32], const uint8_t pk[32], const char *project,
+                          const char *key_id, unsigned build)
+{
+    char text[256], b64[100];
+    uint8_t sig[64];
+    int n = snprintf(text, sizeof(text), "SimpleOTA-Manifest-v1\n%s\n%s\n%u\n%s\n", project,
+                     key_id, build, fs.checksum);
+    crypto_ed25519_sign(sig, sk, pk, (const uint8_t *)text, (size_t)n);
+    base64(sig, sizeof(sig), b64);
+    size_t used = strlen(g_extra);
+    snprintf(g_extra + used, sizeof(g_extra) - used, ",\"manifest_signature\":\"%s\"", b64);
+}
+
+/* Refused, with no hash the manifest check started left open. */
+static bool refused_before_download(void)
+{
+    int started = fake_server_count("download_started", NULL);
+    run(act_check);
+    run(act_apply);
+    return g_applied == SOTA_APPLY_SIGNATURE_FAIL &&
+           fake_server_count("download_started", NULL) == started && fake_open_hashes == 0;
+}
+
+static void test_strict(void)
+{
+    uint8_t sk[32], pk[32];
+    for (int i = 0; i < 32; ++i) sk[i] = (uint8_t)(0x40 + i);
+    crypto_ed25519_public_key(pk, sk);
+    static char pem[200];
+    make_pem(pk, pem);
+
+    /* A device that requires manifests. */
+    device_on_build_1(true);
+    g_cfg.device.security_mode = "signed";
+    g_cfg.device.require_manifest = true;
+    g_cfg.project_id = "proj-a";
+    g_pems[0] = pem;
+    g_key_ids[0] = "k1";
+    fake_server_offer(5, "dep-5");
+    boot(SOTA_RST_POWERON);
+    run(act_check);
+    check(strstr(fs.last_check, "\"require_manifest\":true") != NULL,
+          "the check-in says the device requires a manifest");
+
+    signed_offer(sk, pk, "k1", false);
+    check(refused_before_download(),
+          "a signed image without a manifest is refused: the server cannot strip it");
+
+    signed_offer(sk, pk, "k1", false);
+    sign_manifest(sk, pk, "proj-a", "k1", 4);
+    check(refused_before_download(),
+          "an old image's manifest names its own build: it cannot be offered as a higher one");
+
+    signed_offer(sk, pk, "k1", false);
+    sign_manifest(sk, pk, "proj-b", "k1", 5);
+    check(refused_before_download(),
+          "another project's build, signed with the same key, is refused");
+
+    signed_offer(sk, pk, "k1", false);
+    sign_manifest(sk, pk, "proj-a", "k2", 5);
+    check(refused_before_download(), "the key id is part of what was signed");
+
+    signed_offer(sk, pk, "k1", false);
+    sign_manifest(sk, pk, "proj-a", "k1", 5);
+    strcat(g_extra, ",\"manifest_version\":2");
+    check(refused_before_download(), "a manifest version this client does not know is refused");
+
+    /* The image signature is itself a signature by the right key. */
+    signed_offer(sk, pk, "k1", false);
+    {
+        char *sig = strstr(g_extra, "\"signature\":\"") + 13;
+        char copy[100];
+        size_t n = strcspn(sig, "\"");
+        memcpy(copy, sig, n);
+        copy[n] = '\0';
+        size_t used = strlen(g_extra);
+        snprintf(g_extra + used, sizeof(g_extra) - used, ",\"manifest_signature\":\"%s\"", copy);
+    }
+    check(refused_before_download(), "the image signature does not pass for a manifest");
+
+    signed_offer(sk, pk, "k1", false);
+    sign_manifest(sk, pk, "proj-a", "k1", 5);
+    check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
+          "the manifest for this project, key and build applies");
+    boot(SOTA_RST_SW);
+    run(act_check);
+    check(g_e.st.live.build == 5 && !g_e.in_trial, "and the device confirms the proven build");
+
+    /* Without its own project id a device has nothing to check against. */
+    g_cfg.project_id = NULL;
+    fake_server_offer(6, "dep-6");
+    boot(SOTA_RST_POWERON);
+    signed_offer(sk, pk, "k1", false);
+    sign_manifest(sk, pk, "proj-a", "k1", 6);
+    check(refused_before_download(), "requiring a manifest without a project id refuses all");
+    g_cfg.project_id = "proj\na";
+    sota_engine_deinit(&g_e);
+    check(!sota_engine_init(&g_e, &g_cfg), "a project id with a line break is refused at init");
+
+    /* SIGNED with a project id: manifests are checked when present. */
+    device_on_build_1(true);
+    g_cfg.device.security_mode = "signed";
+    g_cfg.project_id = "proj-a";
+    g_pems[0] = pem;
+    g_key_ids[0] = "k1";
+    fake_server_offer(5, "dep-5");
+    boot(SOTA_RST_POWERON);
+    run(act_check);
+    check(strstr(fs.last_check, "require_manifest") == NULL,
+          "a device that does not require manifests does not say so");
+    signed_offer(sk, pk, "k1", false);
+    sign_manifest(sk, pk, "proj-a", "k1", 4);
+    check(refused_before_download(), "SIGNED with a project id refuses a wrong manifest");
+    signed_offer(sk, pk, "k1", false);
+    check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
+          "and still takes a build from before manifests");
+
+    /* SIGNED as in 1.1, no project id: the new members are ignored. */
+    device_on_build_1(true);
+    g_cfg.device.security_mode = "signed";
+    g_pems[0] = pem;
+    g_key_ids[0] = "k1";
+    fake_server_offer(5, "dep-5");
+    boot(SOTA_RST_POWERON);
+    signed_offer(sk, pk, "k1", false);
+    sign_manifest(sk, pk, "proj-b", "k1", 4);
+    check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
+          "without a project id a manifest is not looked at");
+
+    /* Key ids run to 64 characters, as the server and CLI allow. */
+    static char k64[66];
+    memset(k64, 'x', 65);
+    k64[0] = 'k';
+    k64[65] = '\0';
+    check(!sota_engine_add_key(&g_e, k64, pem), "a 65-character key id cannot be pinned");
+    k64[64] = '\0';
+
+    device_on_build_1(true);
+    g_cfg.device.security_mode = "signed";
+    g_cfg.device.require_manifest = true;
+    g_cfg.project_id = "proj-a";
+    g_pems[0] = pem;
+    g_key_ids[0] = k64;
+    fake_server_offer(5, "dep-5");
+    boot(SOTA_RST_POWERON);
+    check(g_e.num_keys == 1, "a 64-character key id is pinned");
+    signed_offer(sk, pk, k64, false);
+    sign_manifest(sk, pk, "proj-a", k64, 5);
+    check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
+          "a manifest under a 64-character key id applies");
+
+    /* A key id too long to hold makes the offer's signatures unusable,
+     * even where no manifest is checked and every pinned key would do. */
+    static char k65[67];
+    memset(k65, 'x', 65);
+    k65[65] = '\0';
+    device_on_build_1(true);
+    g_cfg.device.security_mode = "signed";
+    g_pems[0] = pem;
+    g_key_ids[0] = "k1";
+    fake_server_offer(5, "dep-5");
+    boot(SOTA_RST_POWERON);
+    signed_offer(sk, pk, k65, false);
+    check(refused_before_download() && fake_server_count("failed", "signature_invalid") == 1,
+          "an offer with a 65-character key id is refused");
+
+    /* An empty key id names no key: the image signature is checked against
+     * every pinned key, as in 1.1, but a manifest needs one. */
+    g_key_ids[0] = "k1";
+    g_pems[1] = NULL;
+    device_on_build_1(true);
+    g_cfg.device.security_mode = "signed";
+    g_pems[0] = pem;
+    fake_server_offer(5, "dep-5");
+    boot(SOTA_RST_POWERON);
+    signed_offer(sk, pk, "", false);
+    check(run(act_check) == 0 && run(act_apply) == FAKE_JUMP_RESTART,
+          "an empty key id tries every pinned key for the image signature");
+
+    device_on_build_1(true);
+    g_cfg.device.security_mode = "signed";
+    g_cfg.device.require_manifest = true;
+    g_cfg.project_id = "proj-a";
+    g_pems[0] = pem;
+    fake_server_offer(5, "dep-5");
+    boot(SOTA_RST_POWERON);
+    signed_offer(sk, pk, "", false);
+    sign_manifest(sk, pk, "proj-a", "", 5);
+    check(refused_before_download(),
+          "a manifest signed over an empty key id is refused");
+
+    /* Nothing is fed for an empty key id, and a signature over no bytes at
+     * all is still one the key made. */
+    device_on_build_1(true);
+    g_cfg.device.security_mode = "signed";
+    g_cfg.device.require_manifest = true;
+    g_cfg.project_id = "proj-a";
+    g_pems[0] = pem;
+    fake_server_offer(5, "dep-5");
+    boot(SOTA_RST_POWERON);
+    signed_offer(sk, pk, "", false);
+    {
+        uint8_t sig[64];
+        char b64[100];
+        crypto_ed25519_sign(sig, sk, pk, (const uint8_t *)"", 0);
+        base64(sig, sizeof(sig), b64);
+        size_t used = strlen(g_extra);
+        snprintf(g_extra + used, sizeof(g_extra) - used, ",\"manifest_signature\":\"%s\"", b64);
+    }
+    check(refused_before_download(),
+          "a signature over nothing does not pass for a manifest that was not fed");
+}
+
 /* ---- power cuts ----------------------------------------------------------- */
 
 /* Settled: no trial, no record, nothing to report, nothing more offered. */
@@ -1052,6 +1267,7 @@ int main(void)
     test_no_early_retry();
     test_retries_spread();
     test_signed();
+    test_strict();
     test_one_engine();
     test_power_cuts(true, false);
     test_power_cuts(true, true);

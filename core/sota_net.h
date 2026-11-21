@@ -38,13 +38,13 @@ enum {
 static inline uint32_t sota_net_parse_retry_after(const char *value)
 {
     uint32_t s = 0;
-    while (*value == ' ') ++value;
+    while (*value == ' ' || *value == '\t') ++value;
     if (*value < '0' || *value > '9') return 0;
     for (; *value >= '0' && *value <= '9'; ++value) {
         uint32_t d = (uint32_t)(*value - '0');
         s = s > (UINT32_MAX - d) / 10u ? UINT32_MAX : s * 10u + d;
     }
-    while (*value == ' ') ++value;
+    while (*value == ' ' || *value == '\t') ++value;
     return *value ? 0 : s;
 }
 

@@ -62,6 +62,9 @@ typedef struct {
     const char *server_url;     /**< NULL: SOTA_DEFAULT_SERVER_URL. */
     sota_device_info_t device;  /**< Sent on every check-in. */
     const char *version_label;  /**< NULL: the stored one. */
+    const char *project_id;     /**< The project the device belongs to, as its
+                                     manifests name it. NULL: manifests are
+                                     not checked. */
     uint32_t image_build;       /**< This image's build, reported when SimpleOTA
                                      did not install it (a USB flash). 0: unknown. */
     uint32_t check_interval_s;  /**< 0: the default. */
@@ -78,7 +81,8 @@ typedef struct {
 typedef struct sota_engine {
     sota_config_t cfg;          /**< As given to sota_engine_init(). */
     uint8_t keys[SOTA_VERIFIER_MAX_KEYS][32];  /**< Pinned Ed25519 keys. */
-    char key_ids[SOTA_VERIFIER_MAX_KEYS][64];  /**< Their key ids, empty when none. */
+    /** Their key ids, empty when none. */
+    char key_ids[SOTA_VERIFIER_MAX_KEYS][SOTA_KEY_ID_MAX + 1];
     uint8_t num_keys;           /**< Keys pinned. */
 
     sota_state_t st;            /**< As stored, kept current. */
@@ -102,15 +106,15 @@ typedef struct sota_engine {
     volatile bool timeout_pending; /**< The confirm timeout fired, not handled yet. */
 } sota_engine_t;
 
-/** Set up an engine. No storage or network access. False for a token with
- *  control characters, an unusable server URL, or while another engine is
- *  set up: a device has one trial record, so it runs one engine until
- *  sota_engine_deinit(). */
+/** Set up an engine. No storage or network access. False for a token or
+ *  project id with control characters, an unusable server URL, or while
+ *  another engine is set up: a device has one trial record, so it runs one
+ *  engine until sota_engine_deinit(). */
 bool sota_engine_init(sota_engine_t *e, const sota_config_t *cfg);
 
 /** Pin an Ed25519 public key (PEM). key_id may be NULL. False when the
- *  PEM does not parse, two keys are pinned already, or the build leaves
- *  signed updates out (SOTA_SIGNED_UPDATES). */
+ *  PEM does not parse, key_id is over SOTA_KEY_ID_MAX, two keys are pinned
+ *  already, or the build leaves signed updates out (SOTA_SIGNED_UPDATES). */
 bool sota_engine_add_key(sota_engine_t *e, const char *key_id, const char *pem);
 
 /** Work out what this boot means for a saved trial: start supervising it,
